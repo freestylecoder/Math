@@ -1,0 +1,51 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Combinatorics", "Combinatorics\Combinatorics.fsproj", "{C3260B91-FD6D-4470-B128-260425A6F313}"
+EndProject
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Math", "Math\Math.fsproj", "{3718F5D2-5A11-4878-8A02-A24BFE4BEFFE}"
+EndProject
+Project("{f2a71f9b-5d33-465a-a702-920d77279786}") = "Random", "Random\Random.fsproj", "{1564E7D6-442E-4297-B1F9-BE4DB5DFD948}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C3260B91-FD6D-4470-B128-260425A6F313}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3260B91-FD6D-4470-B128-260425A6F313}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3260B91-FD6D-4470-B128-260425A6F313}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3260B91-FD6D-4470-B128-260425A6F313}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3718F5D2-5A11-4878-8A02-A24BFE4BEFFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3718F5D2-5A11-4878-8A02-A24BFE4BEFFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3718F5D2-5A11-4878-8A02-A24BFE4BEFFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3718F5D2-5A11-4878-8A02-A24BFE4BEFFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1564E7D6-442E-4297-B1F9-BE4DB5DFD948}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1564E7D6-442E-4297-B1F9-BE4DB5DFD948}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1564E7D6-442E-4297-B1F9-BE4DB5DFD948}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1564E7D6-442E-4297-B1F9-BE4DB5DFD948}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$0.TextStylePolicy = $2
+		$2.TabsToSpaces = True
+		$2.NoTabsAfterNonTabs = True
+		$2.scope = text/x-fsharp
+		$0.FSharpFormattingPolicy = $3
+		$3.DefaultFormat = $4
+		$4.IndentOnTryWith = False
+		$4.ReorderOpenDeclaration = True
+		$4.SpaceAfterComma = True
+		$4.SpaceAfterSemicolon = True
+		$4.SpaceAroundDelimiter = True
+		$4.SpaceBeforeArgument = True
+		$4.SpaceBeforeColon = True
+		$4.__added = 0
+		$3.scope = text/x-fsharp
+		$0.StandardHeader = $5
+		$0.VersionControlPolicy = $6
+		outputpath = bin
+	EndGlobalSection
+EndGlobal
