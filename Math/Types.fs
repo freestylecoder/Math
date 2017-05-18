@@ -5,37 +5,40 @@ open System
 module Types = 
     type public Natural = Natural of uint32 list
 
-    let (+) (left:Natural) (right:Natural) : Natural =
-        let getList n =
-            let (Natural l) = n
-            l
+    let inline private value (Natural n) = n
 
-        let len =
-            Math.Max( (getList left).Length, (getList right).Length )
+    let (+) (Natural left) (Natural right) : Natural =
+        let rightpad (l:uint32 list) n =
+            List.init (n - l.Length) (fun i -> 0u) @ l
 
-        let l = 
-            List.init (len - (getList left).Length) (fun i -> 0u)
-            |> List.append
-            <| (getList left)
-            |> List.rev
+        let leftpad l n =
+            l @ List.init (n - l.Length) (fun i -> 0u)
 
-        let r = 
-            List.init (len - (getList right).Length) (fun i -> 0u)
-            |> List.append
-            <| (getList right)
-            |> List.rev
+        let len = Math.Max( left.Length, right.Length )
+        let l = rightpad left len
+        let r = rightpad right len
+        let s = rightpad (List.map2 (fun x y -> x + y) l r) (len+1)
+        let o = leftpad (List.map2 (fun  x y -> if x >= ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) (len+1)
+        let n = List.map2 (fun x y -> x + y ) s o
 
-        let f i x y =
-            match i with
-            | 0 -> x + y
-            | i ->
-                match l.[i-1] >= ( System.UInt32.MaxValue - r.[i-1] ) with
-                | true -> x + y + 1u
-                | false -> x + y
+        Natural( if 0u = n.Head then n.Tail else n )
 
-        let s = 
-            List.mapi2 f l r
-            |> List.rev
+    let (<<<) (Natural left) (right:uint32) : Natural =
+        let msb = 0x80000000u
 
-        if s.Head = (List.min [ List.last l; List.last r; s.Head ]) then Natural ( 1u :: s )
-        else Natural ( s )
+        let shift1 (l:uint32 list) =
+            let s = 0u :: (List.map (fun x -> x <<< 1) l)
+            let o = (List.map (fun x -> if (msb &&& x) > 0u then 1u else 0u) l) @ [0u]
+            let n = List.map2 (fun x y -> x ||| y) s o
+            if 0u = n.Head then n.Tail else n
+
+        let rec shift (l:uint32 list) n =
+            match n with
+            | 0u -> l
+            | x -> shift1 (shift l (n-1u))
+
+        let rDiv = right / 32u
+        let rMod = right % 32u
+
+        let l = left @ (List.init (int(rDiv)) (fun i -> 0u))
+        Natural( shift l rMod )
