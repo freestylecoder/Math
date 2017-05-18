@@ -22,7 +22,7 @@ module Types =
         let n = List.map2 (fun x y -> x + y ) s o
 
         Natural( if 0u = n.Head then n.Tail else n )
-
+        
     let (<<<) (Natural left) (right:uint32) : Natural =
         let msb = 0x80000000u
 
@@ -41,4 +41,32 @@ module Types =
         let rMod = right % 32u
 
         let l = left @ (List.init (int(rDiv)) (fun i -> 0u))
+        Natural( shift l rMod )
+
+    let (>>>) (Natural left) (right:uint32) : Natural =
+        let msb = 0x80000000u
+
+        let rec chomp l n =
+            match l with
+            | [] -> [0u]
+            | _ ->
+                match n with
+                | 0u -> l
+                | x -> chomp (List.rev l |> List.tail |> List.rev) (n-1u)
+
+        let shift1 (l:uint32 list) =
+            let s = (List.map (fun x -> x >>> 1) l) @ [0u]
+            let o = 0u :: (List.map (fun x -> if (1u &&& x) > 0u then msb else 0u) l)
+            let n = List.map2 (fun x y -> x ||| y) s o
+            chomp (if 0u = n.Head then n.Tail else n) 1u
+
+        let rec shift (l:uint32 list) n =
+            match n with
+            | 0u -> l
+            | x -> shift1 (shift l (n-1u))
+
+        let rDiv = right / 32u
+        let rMod = right % 32u
+
+        let l = chomp left rDiv
         Natural( shift l rMod )
