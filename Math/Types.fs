@@ -7,6 +7,12 @@ module Types =
 
     let inline private value (Natural n) = n
 
+    // Stole this beauty from http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+    let private NumberOfSetBits (i:uint32) : uint32 =
+        let x = i - ((i >>> 1) &&& 0x55555555u);
+        let y = (x &&& 0x33333333u) + ((x >>> 2) &&& 0x33333333u);
+        (((y + (y >>> 4)) &&& 0x0F0F0F0Fu) * 0x01010101u) >>> 24;
+
     let (+) (Natural left) (Natural right) : Natural =
         let rightpad (l:uint32 list) n =
             List.init (n - l.Length) (fun i -> 0u) @ l
@@ -70,3 +76,6 @@ module Types =
 
         let l = chomp left rDiv
         Natural( shift l rMod )
+
+    let (*) (Natural left) (Natural right) : Natural =
+        Natural([])
