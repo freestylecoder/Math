@@ -78,4 +78,15 @@ module Types =
         Natural( shift l rMod )
 
     let (*) (Natural left) (Natural right) : Natural =
+        let leftbitcount = 
+            List.map NumberOfSetBits left
+            |> List.sum
+
+        let rightbitcount = 
+            List.map NumberOfSetBits right
+            |> List.sum
+
+        let l = if leftbitcount > rightbitcount then left else right
+        let r = if leftbitcount > rightbitcount then right else left
+
         Natural([])
