@@ -100,3 +100,65 @@ module Multiply =
     [<Fact>]
     let Big () =
         Assert.Equal( Natural([ 0x75CD9046u; 0x541D5980u]), Natural( [0xFEDCBA98u]) * Natural([0x76543210u]) )
+
+module And =
+    [<Theory>]
+    [<InlineData( 0u, 0u, 0u)>]
+    [<InlineData( 1u, 0u, 0u)>]
+    [<InlineData( 0u, 1u, 0u)>]
+    [<InlineData( 1u, 1u, 1u)>]
+    let Sanity l r x =
+        Assert.Equal( Natural([x]), Natural([l]) &&& Natural([r]) )
+
+    [<Fact>]
+    let BiggerLeft () =
+        Assert.Equal( Natural([1u]), Natural([0xFu; 0x00000101u]) &&& Natural([ 0x00010001u]) )
+
+    [<Fact>]
+    let BiggerRight () =
+        Assert.Equal( Natural([1u]), Natural([0x00010001u]) &&& Natural([0xFu; 0x00000101u]) )
+
+module Or =
+    [<Theory>]
+    [<InlineData( 0u, 0u, 0u)>]
+    [<InlineData( 1u, 0u, 1u)>]
+    [<InlineData( 0u, 1u, 1u)>]
+    [<InlineData( 1u, 1u, 1u)>]
+    let Sanity l r x =
+        Assert.Equal( Natural([x]), Natural([l]) ||| Natural([r]) )
+
+    [<Fact>]
+    let BiggerLeft () =
+        Assert.Equal( Natural([0xFu; 0x10101u]), Natural([0xFu; 0x00000101u]) ||| Natural([ 0x00010001u]) )
+
+    [<Fact>]
+    let BiggerRight () =
+        Assert.Equal( Natural([0xFu; 0x10101u]), Natural([0x00010001u]) ||| Natural([0xFu; 0x00000101u]) )
+
+module Xor =
+    [<Theory>]
+    [<InlineData( 0u, 0u, 0u)>]
+    [<InlineData( 1u, 0u, 1u)>]
+    [<InlineData( 0u, 1u, 1u)>]
+    [<InlineData( 1u, 1u, 0u)>]
+    let Sanity l r x =
+        Assert.Equal( Natural([x]), Natural([l]) ^^^ Natural([r]) )
+
+    [<Fact>]
+    let BiggerLeft () =
+        Assert.Equal( Natural([0xFu; 0x10100u]), Natural([0xFu; 0x00000101u]) ^^^ Natural([0x00010001u]) )
+
+    [<Fact>]
+    let BiggerRight () =
+        Assert.Equal( Natural([0xFu; 0x10100u]), Natural([0x00010001u]) ^^^ Natural([0xFu; 0x00000101u]) )
+
+module BitwiseNot =
+    [<Theory>]
+    [<InlineData( 0xFFFFFFFEu, 1u)>]
+    [<InlineData( 1u, 0xFFFFFFFEu)>]
+    let Sanity r x =
+        Assert.Equal( Natural([x]), ~~~ Natural([r]) )
+
+    [<Fact>]
+    let Bigger () =
+        Assert.Equal( Natural([0xF0123456u; 0x789ABCDEu]), ~~~ Natural([0x0FEDCBA9u; 0x87654321u]) )
