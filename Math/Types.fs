@@ -3,10 +3,16 @@
 open System
 
 module Types = 
+    // Stole this beauty from http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
+    let private NumberOfSetBits (i:uint32) : uint32 =
+        let x = i - ((i >>> 1) &&& 0x55555555u);
+        let y = (x &&& 0x33333333u) + ((x >>> 2) &&& 0x33333333u);
+        (((y + (y >>> 4)) &&& 0x0F0F0F0Fu) * 0x01010101u) >>> 24;
+
     type public Natural = Natural of uint32 list
         with
             static member Zero
-                with get() = [0u]
+                with get() = Natural([0u])
 
             static member (+) ((Natural left), (Natural right)) : Natural =
                 let rightpad (l:uint32 list) n =
@@ -24,7 +30,7 @@ module Types =
 
                 Natural( if 0u = n.Head then n.Tail else n )
 
-            static member (<<<) ((Natural left), (right:uint32)) : Natural =
+            static member (<<<) ((Natural left), (right:int)) : Natural =
                 let msb = 0x80000000u
 
                 let shift1 (l:uint32 list) =
@@ -35,16 +41,16 @@ module Types =
 
                 let rec shift (l:uint32 list) n =
                     match n with
-                    | 0u -> l
-                    | x -> shift1 (shift l (n-1u))
+                    | 0 -> l
+                    | x -> shift1 (shift l (n-1))
 
-                let rDiv = right / 32u
-                let rMod = right % 32u
+                let rDiv = right / 32
+                let rMod = right % 32
 
-                let l = left @ (List.init (int(rDiv)) (fun i -> 0u))
+                let l = left @ (List.init rDiv (fun i -> 0u))
                 Natural( shift l rMod )
 
-            static member (>>>) ((Natural left), (right:uint32)) : Natural =
+            static member (>>>) ((Natural left), (right:int)) : Natural =
                 let msb = 0x80000000u
 
                 let rec chomp l n =
@@ -52,54 +58,47 @@ module Types =
                     | [] -> [0u]
                     | _ ->
                         match n with
-                        | 0u -> l
-                        | x -> chomp (List.rev l |> List.tail |> List.rev) (n-1u)
+                        | 0 -> l
+                        | x -> chomp (List.rev l |> List.tail |> List.rev) (n-1)
 
                 let shift1 (l:uint32 list) =
                     let s = (List.map (fun x -> x >>> 1) l) @ [0u]
                     let o = 0u :: (List.map (fun x -> if (1u &&& x) > 0u then msb else 0u) l)
                     let n = List.map2 (fun x y -> x ||| y) s o
-                    chomp (if 0u = n.Head then n.Tail else n) 1u
+                    chomp (if 0u = n.Head then n.Tail else n) 1
 
                 let rec shift (l:uint32 list) n =
                     match n with
-                    | 0u -> l
-                    | x -> shift1 (shift l (n-1u))
+                    | 0 -> l
+                    | x -> shift1 (shift l (n-1))
 
-                let rDiv = right / 32u
-                let rMod = right % 32u
+                let rDiv = right / 32
+                let rMod = right % 32
 
                 let l = chomp left rDiv
                 Natural( shift l rMod )
 
-    let inline private value (Natural n) = n
+            static member (*) ((Natural left), (Natural right)) : Natural =
+                let leftbitcount = 
+                    List.map NumberOfSetBits left
+                    |> List.sum
 
-    // Stole this beauty from http://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
-    let private NumberOfSetBits (i:uint32) : uint32 =
-        let x = i - ((i >>> 1) &&& 0x55555555u);
-        let y = (x &&& 0x33333333u) + ((x >>> 2) &&& 0x33333333u);
-        (((y + (y >>> 4)) &&& 0x0F0F0F0Fu) * 0x01010101u) >>> 24;
+                let rightbitcount = 
+                    List.map NumberOfSetBits right
+                    |> List.sum
 
-    let (*) (Natural left) (Natural right) : Natural =
-        let leftbitcount = 
-            List.map NumberOfSetBits left
-            |> List.sum
+                let l = Natural(if leftbitcount > rightbitcount then left else right)
+                let r = (if leftbitcount > rightbitcount then right else left) |> List.rev
 
-        let rightbitcount = 
-            List.map NumberOfSetBits right
-            |> List.sum
+                let rec f (i:int) (b:int) (x:uint32) : Natural list =
+                    match x >>> b with
+                    | 0u -> []
+                    | n ->
+                        match n &&& 1u with
+                        | 0u -> f i (b+1) x
+                        | 1u -> (l <<< ((i * 32) + b)) :: (f i (b+1) x)
+                        | _ -> failwith "not possible"
 
-        let l = Natural(if leftbitcount > rightbitcount then left else right)
-        let r = (if leftbitcount > rightbitcount then right else left) |> List.rev
-
-        let rec f (i:int) (b:int) (x:uint32) : Natural list =
-            match x >>> b with
-            | 0u -> []
-            | n ->
-                match n &&& 1u with
-                | 0u -> f i (b+1) x
-                | 1u -> (l <<< (uint32 ((i * 32) + b))) :: (f i (b+1) x)
-
-        List.mapi (fun i x -> f i 0 x) r
-        |> List.concat
-        |> List.sum
+                List.mapi (fun i x -> f i 0 x) r
+                |> List.concat
+                |> List.sum
