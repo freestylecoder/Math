@@ -162,3 +162,48 @@ module BitwiseNot =
     [<Fact>]
     let Bigger () =
         Assert.Equal( Natural([0xF0123456u; 0x789ABCDEu]), ~~~ Natural([0x0FEDCBA9u; 0x87654321u]) )
+
+module Equality =
+    [<Theory>]
+    [<InlineData( 0u, 0u, true )>]
+    [<InlineData( 0u, 1u, false )>]
+    [<InlineData( 1u, 0u, false )>]
+    [<InlineData( 1u, 1u, true )>]
+    let Sanity l r x =
+        Assert.Equal( x, Natural([l]) = Natural([r]) )
+
+    [<Fact>]
+    let BiggerLeft () =
+        Assert.False( Natural([0xBADu; 0xDEADBEEFu]) = Natural([0xDEADBEEFu]) )
+
+    [<Fact>]
+    let BiggerRight () =
+        Assert.False( Natural([0xDEADBEEFu]) = Natural([0xBADu; 0xDEADBEEFu]) )
+
+module GreaterThan =
+    [<Theory>]
+    [<InlineData( 0u, 1u, false )>]
+    [<InlineData( 1u, 0u, true )>]
+    [<InlineData( 1u, 1u, false )>]
+    let Sanity l r x =
+        Assert.Equal( x, Natural([l]) > Natural([r]) )
+
+    [<Fact>]
+    let BiggerLeft () =
+        Assert.True( Natural([0xBADu; 0xDEADBEEFu]) > Natural([0xDEADBEEFu]) )
+
+    [<Fact>]
+    let BiggerRight () =
+        Assert.False( Natural([0xDEADBEEFu]) > Natural([0xBADu; 0xDEADBEEFu]) )
+    
+    [<Fact>]
+    let CascadeGreaterThan () =
+        Assert.True( Natural([1u; 1u]) > Natural([1u; 0u]) )
+    
+    [<Fact>]
+    let CascadeEqual () =
+        Assert.False( Natural([1u; 0u]) > Natural([1u; 0u]) )
+    
+    [<Fact>]
+    let CascadeLessThan () =
+        Assert.False( Natural([1u; 0u]) > Natural([1u; 1u]) )

@@ -21,7 +21,9 @@ module Types =
         | [] -> [0u]
         | 0u :: t -> compress t
         | _ -> l
-
+    
+    [<CustomEquality>]
+    [<CustomComparison>]
     type public Natural = Natural of uint32 list
         with
             static member Zero
@@ -91,8 +93,26 @@ module Types =
                 let l = chomp left rDiv
                 Natural( shift l rMod )
  
-            // Boolean Operators
+            // Comparison Operators
+            static member op_Equality ((Natural left), (Natural right)) : bool =
+                let (l,r) = normalize left right
+                List.map2 (fun x y -> x = y) l r
+                |> List.reduce (fun x y -> x && y)
  
+            static member op_GreaterThan ((Natural left), (Natural right)) : bool =
+                let rec gt l (r:uint32 list) =
+                    match l with
+                    | [] -> false
+                    | h::t ->
+                        if h = r.Head then gt t r.Tail
+                        else if h > r.Head then true
+                        else false
+
+                match left.Length - right.Length with
+                | x when x > 0 -> true
+                | x when x < 0 -> false
+                | _ -> gt left right
+
             // Arithmetic Operators
             static member (+) ((Natural left), (Natural right)) : Natural =
                 let rightpad (l:uint32 list) n =
@@ -133,3 +153,32 @@ module Types =
                 List.mapi (fun i x -> f i 0 x) r
                 |> List.concat
                 |> List.sum
+            
+            // .NET Object Overrides
+            override left.Equals( right ) =
+                match right.GetType() with
+                | t when t = typeof<Natural> -> Natural.op_Equality(left, right :?> Natural)
+                | _ -> false
+
+            override this.GetHashCode() =
+                let (Natural n) = this
+                let v =
+                    List.rev n
+                    |> List.head
+                v.GetHashCode()
+
+            override this.ToString() =
+                raise ( new NotImplementedException( "Need a few more operators defined first" ) )
+
+            // IComparable (for .NET) 
+            interface IComparable with
+                member left.CompareTo right = 
+                    match right.GetType() with
+                    | t when t = typeof<Natural> ->
+                        match Natural.op_Equality(left, right :?> Natural) with
+                        | true -> 0
+                        | false ->
+                            match Natural.op_GreaterThan(left, right :?> Natural) with
+                            | true -> 1
+                            | false -> -1
+                    | _ -> raise (new ArgumentException())
