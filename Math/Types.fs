@@ -113,6 +113,50 @@ module Types =
                 | x when x < 0 -> false
                 | _ -> gt left right
 
+            static member op_LessThan ((Natural left), (Natural right)) : bool =
+                let rec lt l (r:uint32 list) =
+                    match l with
+                    | [] -> false
+                    | h::t ->
+                        if h = r.Head then lt t r.Tail
+                        else if h < r.Head then true
+                        else false
+
+                match left.Length - right.Length with
+                | x when x < 0 -> true
+                | x when x > 0 -> false
+                | _ -> lt left right
+
+            static member op_GreaterThanOrEqual ((Natural left), (Natural right)) : bool =
+                let rec gte l (r:uint32 list) =
+                    match l with
+                    | [] -> true
+                    | h::t ->
+                        if h = r.Head then gte t r.Tail
+                        else if h > r.Head then true
+                        else false
+
+                match left.Length - right.Length with
+                | 0 -> gte left right
+                | _ -> false
+
+            static member op_LessThanOrEqual ((Natural left), (Natural right)) : bool =
+                let rec lte l (r:uint32 list) =
+                    match l with
+                    | [] -> true
+                    | h::t ->
+                        if h = r.Head then lte t r.Tail
+                        else if h < r.Head then true
+                        else false
+
+                match left.Length - right.Length with
+                | 0 -> lte left right
+                | _ -> false
+
+            static member op_Inequality (left:Natural, right:Natural) : bool =
+                Natural.op_Equality( left, right )
+                |> not
+ 
             // Arithmetic Operators
             static member (+) ((Natural left), (Natural right)) : Natural =
                 let rightpad (l:uint32 list) n =
