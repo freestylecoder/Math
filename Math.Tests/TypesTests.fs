@@ -296,6 +296,46 @@ module Addition =
         let r = Natural ([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue])
         Assert.Equal( Natural ([2u; 0u; 0u]), l + r )
 
+module Subtraction =
+    [<Theory>]
+    [<InlineData( 1u, 1u, 0u )>]                            // Sanity
+    [<InlineData( 1u, 0u, 1u )>]                            // Sanity
+    [<InlineData( 9u, 2u, 7u )>]                            // l > r
+    let Sanity l r s =
+        let l = Natural ([l])
+        let r = Natural ([r])
+        Assert.Equal( Natural ([s]), l - r )
+    
+    [<Fact>]
+    let SingleItemBadUnderflow () =
+        let l = Natural ([0u])
+        let r = Natural ([1u])
+        Assert.Equal( Natural ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+
+    [<Fact>]
+    let MultiItemNoUnderflow () =
+        let l = Natural ([3u; 4u])
+        let r = Natural ([1u; 2u])
+        Assert.Equal( Natural ([2u; 2u]), l - r )
+        
+    [<Fact>]
+    let MultiItemSafeUnderflow () =
+        let l = Natural ([4u; 2u])
+        let r = Natural ([1u; 3u])
+        Assert.Equal( Natural ([0x2u; 0xFFFFFFFFu]), l - r )
+        
+    [<Fact>]
+    let MultiItemSafeCascadingUnderflow () =
+        let l = Natural ([1u; 0u; 0u])
+        let r = Natural ([1u])
+        Assert.Equal( Natural ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+        
+    [<Fact>]
+    let MultiItemUnsafeUnderflow () =
+        let l = Natural ([1u; 2u])
+        let r = Natural ([1u; 3u])
+        Assert.Equal( Natural ([0xFFFFFFFFu; 0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+
 module Multiply =
     [<Theory>]
     [<InlineData( 1u, 1u, 1u )>]        // Sanity

@@ -158,6 +158,7 @@ module Types =
                 |> not
  
             // Arithmetic Operators
+            // Binary
             static member (+) ((Natural left), (Natural right)) : Natural =
                 let rightpad (l:uint32 list) n =
                     List.init (n - l.Length) (fun i -> 0u) @ l
@@ -170,6 +171,22 @@ module Types =
                 let s = rightpad (List.map2 (fun x y -> x + y) l r) (len+1)
                 let o = leftpad (List.map2 (fun  x y -> if x >= ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) (len+1)
                 let n = List.map2 (fun x y -> x + y ) s o
+
+                Natural( compress n )
+
+            static member (-) ((Natural left), (Natural right)) : Natural =
+                let rightpad (l:uint32 list) n =
+                    List.init (n - l.Length) (fun i -> 0u) @ l
+
+                let leftpad l n =
+                    l @ List.init (n - l.Length) (fun i -> 0u)
+
+                let (l,r) = normalize left right
+                let len = Math.Max( left.Length, right.Length )
+                let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
+                let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
+                let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
+                let n = List.map3 (fun x y z -> x - y - z ) d o o2
 
                 Natural( compress n )
 
@@ -198,6 +215,8 @@ module Types =
                 |> List.concat
                 |> List.sum
             
+            // Unary
+
             // .NET Object Overrides
             override left.Equals( right ) =
                 match right.GetType() with
@@ -211,8 +230,8 @@ module Types =
                     |> List.head
                 v.GetHashCode()
 
-            override this.ToString() =
-                raise ( new NotImplementedException( "Need a few more operators defined first" ) )
+            //override this.ToString() =
+            //    raise ( new NotImplementedException( "Need a few more operators defined first" ) )
 
             // IComparable (for .NET) 
             interface IComparable with
