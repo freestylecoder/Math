@@ -29,6 +29,9 @@ module Types =
             static member Zero
                 with get() = Natural([0u])
 
+            static member Unit
+                with get() = Natural([1u])
+
             // Bitwise Operators
             static member (&&&) ((Natural left), (Natural right)) : Natural =
                 let (l,r) = normalize left right
@@ -62,8 +65,7 @@ module Types =
                 let rDiv = right / 32
                 let rMod = right % 32
 
-                let l = left @ (List.init rDiv (fun i -> 0u))
-                Natural( shift l rMod )
+                Natural( (shift left rMod) @ (List.init rDiv (fun i -> 0u)) )
 
             static member (>>>) ((Natural left), (right:int)) : Natural =
                 let msb = 0x80000000u
@@ -190,31 +192,50 @@ module Types =
 
                 Natural( compress n )
 
-            static member (*) ((Natural left), (Natural right)) : Natural =
-                let leftbitcount = 
-                    List.map NumberOfSetBits left
-                    |> List.sum
+            static member (*) (left:Natural, right:Natural) : Natural =
+                let rec magic value bit =
+                    match value with
+                    | x when Natural.Zero = x ->
+                        []
+                    | _ ->
+                        match Natural.Unit &&& value with
+                        | Natural([0u]) ->
+                            magic (value>>>1) (bit+1)
+                        | Natural([1u]) ->
+                            (left<<<bit) :: (magic (value>>>1) (bit+1))
+                        | _ -> failwith "not possible (bit has value other than 0 or 1)"
 
-                let rightbitcount = 
-                    List.map NumberOfSetBits right
-                    |> List.sum
-
-                let l = Natural(if leftbitcount > rightbitcount then left else right)
-                let r = (if leftbitcount > rightbitcount then right else left) |> List.rev
-
-                let rec f (i:int) (b:int) (x:uint32) : Natural list =
-                    match x >>> b with
-                    | 0u -> []
-                    | n ->
-                        match n &&& 1u with
-                        | 0u -> f i (b+1) x
-                        | 1u -> (l <<< ((i * 32) + b)) :: (f i (b+1) x)
-                        | _ -> failwith "not possible"
-
-                List.mapi (fun i x -> f i 0 x) r
-                |> List.concat
+                magic right 0
                 |> List.sum
             
+            static member (/%) (left:Natural, right:Natural) : Natural*Natural =
+                let rec op bit =
+                    let factor = right <<< bit
+                    if factor > left then
+                        (Natural.Zero,left)
+                    else
+                        let (quotient,remainder) = op (bit + 1)
+
+                        if factor > remainder then
+                            (quotient,remainder)
+                        else
+                            (quotient+(Natural.Unit<<<bit),remainder-factor)
+
+                match right with
+                | Natural([0u]) -> raise (new DivideByZeroException())
+                | Natural([1u]) -> (left,Natural.Zero)
+                | r when r = left -> (Natural.Unit,Natural.Zero)
+                | _ ->
+                    op 0
+
+            static member (/) (left:Natural, right:Natural) : Natural =
+                let (q,_) = left /% right
+                q
+
+            static member (%) (left:Natural, right:Natural) : Natural =
+                let (_,r) = left /% right
+                r
+
             // Unary
 
             // .NET Object Overrides

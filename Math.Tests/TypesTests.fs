@@ -14,11 +14,11 @@ module And =
 
     [<Fact>]
     let BiggerLeft () =
-        Assert.Equal( Natural([1u]), Natural([0xFu; 0x00000101u]) &&& Natural([ 0x00010001u]) )
+        Assert.Equal( Natural.Unit, Natural([0xFu; 0x00000101u]) &&& Natural([ 0x00010001u]) )
 
     [<Fact>]
     let BiggerRight () =
-        Assert.Equal( Natural([1u]), Natural([0x00010001u]) &&& Natural([0xFu; 0x00000101u]) )
+        Assert.Equal( Natural.Unit, Natural([0x00010001u]) &&& Natural([0xFu; 0x00000101u]) )
 
 module Or =
     [<Theory>]
@@ -82,7 +82,7 @@ module LeftShift =
         
     [<Fact>]
     let OverOneUInt () =
-        Assert.Equal( Natural([8u; 0u; 0u]), Natural([1u]) <<< 67 )
+        Assert.Equal( Natural([8u; 0u; 0u]), Natural.Unit <<< 67 )
 
 module RightShift =
     [<Theory>]
@@ -102,7 +102,7 @@ module RightShift =
         
     [<Fact>]
     let OverOneUInt () =
-        Assert.Equal( Natural([1u]), Natural([0x10u; 0u; 0u]) >>> 68 )
+        Assert.Equal( Natural.Unit, Natural([0x10u; 0u; 0u]) >>> 68 )
         
     [<Fact>]
     let ReduceToZero () =
@@ -349,3 +349,65 @@ module Multiply =
     let Big () =
         Assert.Equal( Natural([ 0x75CD9046u; 0x541D5980u]), Natural( [0xFEDCBA98u]) * Natural([0x76543210u]) )
 
+module Division =
+    [<Theory>]
+    [<InlineData( 1u, 1u, 1u )>]        // Sanity
+    [<InlineData( 0u, 1u, 0u )>]        // Sanity
+    [<InlineData( 42u, 7u, 6u )>]       // multiple bits
+    [<InlineData( 50u, 5u, 10u )>]      // rev
+    [<InlineData( 50u, 10u, 5u )>]      // rev
+    [<InlineData( 54u, 5u, 10u )>]      // has remainder
+    let Sanity dividend divisor quotient =
+        Assert.Equal( Natural([quotient]), Natural([dividend]) / Natural([divisor]) )
+
+    [<Fact>]
+    let Zero () =
+        Assert.Equal( Natural( [0u] ), Natural([5u]) / Natural([10u]) )
+
+    [<Fact>]
+    let DivideByZero () =
+        Assert.Throws<System.DivideByZeroException>( fun () -> ( Natural.Unit / Natural.Zero ) |> ignore )
+
+    [<Fact>]
+    let Big () =
+        Assert.Equal( Natural([0xFEDCBA98u]), Natural([0x75CD9046u; 0x541D5980u]) / Natural([0x76543210u]) )
+
+module Modulo =
+    [<Theory>]
+    [<InlineData( 1u, 1u, 0u )>]        // Sanity
+    [<InlineData( 0u, 1u, 0u )>]        // Sanity
+    [<InlineData( 44u, 7u, 2u )>]       // multiple bits
+    [<InlineData( 52u, 5u, 2u )>]       // rev
+    [<InlineData( 52u, 10u, 2u )>]      // rev
+    let Sanity dividend divisor remainder =
+        Assert.Equal( Natural([remainder]), Natural([dividend]) % Natural([divisor]) )
+
+    [<Fact>]
+    let Zero () =
+        Assert.Equal( Natural([0u]), Natural([20u]) % Natural([10u]) )
+
+    [<Fact>]
+    let DivideByZero () =
+        Assert.Throws<System.DivideByZeroException>( fun () -> ( Natural.Unit % Natural.Zero ) |> ignore )
+
+    [<Fact>]
+    let Big () =
+        Assert.Equal( Natural([0x12345678u]), Natural([0x75CD9046u; 0x6651AFF8u]) % Natural([0x76543210u]) )
+
+module DivisionModulo =
+    [<Theory>]
+    [<InlineData( 1u, 1u, 1u, 0u )>]        // Sanity
+    [<InlineData( 0u, 1u, 0u, 0u )>]        // Sanity
+    [<InlineData( 44u, 7u, 6u, 2u )>]       // multiple bits
+    [<InlineData( 52u, 5u, 10u, 2u )>]      // rev
+    [<InlineData( 52u, 10u, 5u, 2u )>]      // rev
+    let Sanity dividend divisor quotient remainder =
+        Assert.Equal( (Natural([quotient]),Natural([remainder])), Natural([dividend]) /% Natural([divisor]) )
+
+    [<Fact>]
+    let DivideByZero () =
+        Assert.Throws<System.DivideByZeroException>( fun () -> ( Natural.Unit /% Natural.Zero ) |> ignore )
+
+    [<Fact>]
+    let Big () =
+        Assert.Equal( (Natural([0xFEDCBA98u]),Natural([0x12345678u])), Natural([0x75CD9046u; 0x6651AFF8u]) /% Natural([0x76543210u]) )
