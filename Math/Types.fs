@@ -31,7 +31,7 @@ module Types =
 
             static member Unit
                 with get() = Natural([1u])
-
+            
             // Bitwise Operators
             static member (&&&) ((Natural left), (Natural right)) : Natural =
                 let (l,r) = normalize left right
@@ -280,3 +280,19 @@ module Types =
                             | true -> 1
                             | false -> -1
                     | _ -> raise (new ArgumentException())
+
+            // Other things we need that require previous operators
+            static member Parse (s:string) =
+                // Yes, I know this is super inefficient
+                // That's why it's currently local to this function and not part of the type
+                let rec pow n e =
+                    match e with
+                    | 0 -> Natural.Unit
+                    | _ -> n * (pow n (e-1))
+
+                s.ToCharArray()
+                |> Array.rev
+                |> Array.map (fun c -> Convert.ToUInt32(c) - 0x30u )
+                |> Array.map (fun u -> Natural([u]))
+                |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
+                |> Array.sum
