@@ -411,3 +411,16 @@ module DivisionModulo =
     [<Fact>]
     let Big () =
         Assert.Equal( (Natural([0xFEDCBA98u]),Natural([0x12345678u])), Natural([0x75CD9046u; 0x6651AFF8u]) /% Natural([0x76543210u]) )
+
+module ToString =
+    [<Theory>]
+    [<InlineData( 0u, "0" )>]          // Sanity
+    [<InlineData( 1u, "1" )>]          // Sanity
+    [<InlineData( 123u, "123" )>]      // multiple bits
+    [<InlineData( 45678u, "45678" )>]  // rev
+    let Sanity n s =
+        Assert.Equal( s, Natural([n]).ToString() )
+    
+    [<Fact>]
+    let Bigger () =
+        Assert.Equal( "1234567890123456789", Natural( [ 0x112210F4u; 0x7DE98115u ] ).ToString() )

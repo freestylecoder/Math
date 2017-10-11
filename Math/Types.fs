@@ -251,8 +251,22 @@ module Types =
                     |> List.head
                 v.GetHashCode()
 
-            //override this.ToString() =
-            //    raise ( new NotImplementedException( "Need a few more operators defined first" ) )
+            override this.ToString() =
+                let rec f n : char list =
+                    match n with
+                    | Natural([0u]) -> []
+                    | _ ->
+                        let (q,Natural(r)) = n /% Natural([10u])
+                        Convert.ToChar(r.Head + 48u) :: (f q)
+
+                if Natural.Zero = this then
+                    "0"
+                else
+                    String.Concat(
+                        f this
+                        |> List.rev
+                        |> List.toArray
+                    )
 
             // IComparable (for .NET) 
             interface IComparable with
