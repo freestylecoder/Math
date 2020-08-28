@@ -22,33 +22,33 @@ module Types =
         | 0u :: t -> compress t
         | _ -> l
     
-    [<CustomEquality>]
-    [<CustomComparison>]
-    type public Natural = Natural of uint32 list
+    //[<CustomEquality>]
+    //[<CustomComparison>]
+    //type public Natural = Natural of uint32 list
+    type public Natural(data:uint32 list) =
+        member private Natural.Data = data
+        new(data:uint32 seq) = Natural( Seq.toList( data ) )
         with
-            static member Zero
-                with get() = Natural([0u])
-
-            static member Unit
-                with get() = Natural([1u])
+            static member Zero = Natural([0u])
+            static member Unit = Natural([1u])
             
             // Bitwise Operators
-            static member (&&&) ((Natural left), (Natural right)) : Natural =
-                let (l,r) = normalize left right
+            static member (&&&) (left:Natural, right:Natural) : Natural =
+                let (l,r) = normalize left.Data right.Data
                 Natural( List.map2 (fun x y -> x &&& y) l r |> compress )
 
-            static member (|||) ((Natural left), (Natural right)) : Natural =
-                let (l,r) = normalize left right
+            static member (|||) (left:Natural, right:Natural) : Natural =
+                let (l,r) = normalize left.Data right.Data
                 Natural( List.map2 (fun x y -> x ||| y) l r |> compress )
 
-            static member (^^^) ((Natural left), (Natural right)) : Natural =
-                let (l,r) = normalize left right
+            static member (^^^) (left:Natural, right:Natural) : Natural =
+                let (l,r) = normalize left.Data right.Data
                 Natural( List.map2 (fun x y -> x ^^^ y) l r |> compress )
 
-            static member (~~~) ((Natural right)) : Natural =
-                Natural( List.map (fun x -> ~~~ x) right |> compress )
+            static member (~~~) (right:Natural) : Natural =
+                Natural( List.map (fun x -> ~~~ x) right.Data |> compress )
 
-            static member (<<<) ((Natural left), (right:int)) : Natural =
+            static member (<<<) (left:Natural, (right:int)) : Natural =
                 let msb = 0x80000000u
 
                 let shift1 (l:uint32 list) =
@@ -65,9 +65,9 @@ module Types =
                 let rDiv = right / 32
                 let rMod = right % 32
 
-                Natural( (shift left rMod) @ (List.init rDiv (fun i -> 0u)) )
+                Natural( (shift left.Data rMod) @ (List.init rDiv (fun i -> 0u)) )
 
-            static member (>>>) ((Natural left), (right:int)) : Natural =
+            static member (>>>) (left:Natural, right:int) : Natural =
                 let msb = 0x80000000u
 
                 let rec chomp l n =
@@ -92,16 +92,16 @@ module Types =
                 let rDiv = right / 32
                 let rMod = right % 32
 
-                let l = chomp left rDiv
+                let l = chomp left.Data rDiv
                 Natural( shift l rMod )
  
             // Comparison Operators
-            static member op_Equality ((Natural left), (Natural right)) : bool =
-                let (l,r) = normalize left right
+            static member op_Equality (left:Natural, right:Natural) : bool =
+                let (l,r) = normalize left.Data right.Data
                 List.map2 (fun x y -> x = y) l r
                 |> List.reduce (fun x y -> x && y)
  
-            static member op_GreaterThan ((Natural left), (Natural right)) : bool =
+            static member op_GreaterThan (left:Natural, right:Natural) : bool =
                 let rec gt l (r:uint32 list) =
                     match l with
                     | [] -> false
@@ -110,12 +110,12 @@ module Types =
                         else if h > r.Head then true
                         else false
 
-                match left.Length - right.Length with
+                match left.Data.Length - right.Data.Length with
                 | x when x > 0 -> true
                 | x when x < 0 -> false
-                | _ -> gt left right
+                | _ -> gt left.Data right.Data
 
-            static member op_LessThan ((Natural left), (Natural right)) : bool =
+            static member op_LessThan (left:Natural, right:Natural) : bool =
                 let rec lt l (r:uint32 list) =
                     match l with
                     | [] -> false
@@ -124,12 +124,12 @@ module Types =
                         else if h < r.Head then true
                         else false
 
-                match left.Length - right.Length with
+                match left.Data.Length - right.Data.Length with
                 | x when x < 0 -> true
                 | x when x > 0 -> false
-                | _ -> lt left right
+                | _ -> lt left.Data right.Data
 
-            static member op_GreaterThanOrEqual ((Natural left), (Natural right)) : bool =
+            static member op_GreaterThanOrEqual (left:Natural, right:Natural) : bool =
                 let rec gte l (r:uint32 list) =
                     match l with
                     | [] -> true
@@ -138,11 +138,12 @@ module Types =
                         else if h > r.Head then true
                         else false
 
-                match left.Length - right.Length with
-                | 0 -> gte left right
-                | _ -> false
+                match left.Data.Length - right.Data.Length with
+                | x when x > 0 -> true
+                | x when x < 0 -> false
+                | 0 -> gte left.Data right.Data
 
-            static member op_LessThanOrEqual ((Natural left), (Natural right)) : bool =
+            static member op_LessThanOrEqual (left:Natural, right:Natural) : bool =
                 let rec lte l (r:uint32 list) =
                     match l with
                     | [] -> true
@@ -151,9 +152,10 @@ module Types =
                         else if h < r.Head then true
                         else false
 
-                match left.Length - right.Length with
-                | 0 -> lte left right
-                | _ -> false
+                match left.Data.Length - right.Data.Length with
+                | x when x > 0 -> false
+                | x when x < 0 -> true
+                | 0 -> lte left.Data right.Data
 
             static member op_Inequality (left:Natural, right:Natural) : bool =
                 Natural.op_Equality( left, right )
@@ -161,30 +163,30 @@ module Types =
  
             // Arithmetic Operators
             // Binary
-            static member (+) ((Natural left), (Natural right)) : Natural =
+            static member (+) (left:Natural, right:Natural) : Natural =
                 let rightpad (l:uint32 list) n =
                     List.init (n - l.Length) (fun i -> 0u) @ l
 
                 let leftpad l n =
                     l @ List.init (n - l.Length) (fun i -> 0u)
 
-                let (l,r) = normalize left right
-                let len = Math.Max( left.Length, right.Length )
+                let (l,r) = normalize left.Data right.Data
+                let len = Math.Max( left.Data.Length, right.Data.Length )
                 let s = rightpad (List.map2 (fun x y -> x + y) l r) (len+1)
                 let o = leftpad (List.map2 (fun  x y -> if x >= ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) (len+1)
                 let n = List.map2 (fun x y -> x + y ) s o
 
                 Natural( compress n )
 
-            static member (-) ((Natural left), (Natural right)) : Natural =
+            static member (-) (left:Natural, right:Natural) : Natural =
                 let rightpad (l:uint32 list) n =
                     List.init (n - l.Length) (fun i -> 0u) @ l
 
                 let leftpad l n =
                     l @ List.init (n - l.Length) (fun i -> 0u)
 
-                let (l,r) = normalize left right
-                let len = Math.Max( left.Length, right.Length )
+                let (l,r) = normalize left.Data right.Data
+                let len = Math.Max( left.Data.Length, right.Data.Length )
                 let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
                 let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
                 let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
@@ -199,9 +201,9 @@ module Types =
                         []
                     | _ ->
                         match Natural.Unit &&& value with
-                        | Natural([0u]) ->
+                        | z when z = Natural.Zero ->
                             magic (value>>>1) (bit+1)
-                        | Natural([1u]) ->
+                        | u when u = Natural.Unit ->
                             (left<<<bit) :: (magic (value>>>1) (bit+1))
                         | _ -> failwith "not possible (bit has value other than 0 or 1)"
 
@@ -222,8 +224,8 @@ module Types =
                             (quotient+(Natural.Unit<<<bit),remainder-factor)
 
                 match right with
-                | Natural([0u]) -> raise (new DivideByZeroException())
-                | Natural([1u]) -> (left,Natural.Zero)
+                | z when z = Natural.Zero -> raise (new DivideByZeroException())
+                | u when u = Natural.Unit -> (left,Natural.Zero)
                 | r when r = left -> (Natural.Unit,Natural.Zero)
                 | _ ->
                     op 0
@@ -245,19 +247,19 @@ module Types =
                 | _ -> false
 
             override this.GetHashCode() =
-                let (Natural n) = this
+                let n:Natural = this
                 let v =
-                    List.rev n
+                    List.rev n.Data
                     |> List.head
                 v.GetHashCode()
 
             override this.ToString() =
                 let rec f n : char list =
                     match n with
-                    | Natural([0u]) -> []
+                    | z when z = Natural.Zero -> []
                     | _ ->
-                        let (q,Natural(r)) = n /% Natural([10u])
-                        Convert.ToChar(r.Head + 48u) :: (f q)
+                        let (q,r) = n /% Natural([10u])
+                        Convert.ToChar(r.Data.Head + 48u) :: (f q)
 
                 if Natural.Zero = this then
                     "0"

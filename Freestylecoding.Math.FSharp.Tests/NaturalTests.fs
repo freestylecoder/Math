@@ -1,7 +1,57 @@
-﻿namespace Freestylecoding.Math.Tests.Natural
+namespace Freestylecoding.Math.FSharp.Tests
 
 open Xunit
 open Freestylecoding.Math.Types
+
+// NOTE: The sanity tests are here to do low level tests of a few parts
+// This lets me isolate those tests so I can use those parts in the rest of the tests
+//
+// In other words:
+// IF ANY OF THE SANITY TESTS FAIL, DON'T TRUST ANY OTHER TEST!
+[<Trait( "Type", "Sanity" )>]
+module Sanity =
+    [<Fact>]
+    let LeftShift () =
+        Assert.Equal( Natural([4u; 0x8000_0000u; 0u]), Natural([9u]) <<< 63 )
+
+    [<Fact>]
+    let RightShift () =
+        Assert.Equal( Natural([9u]), Natural([4u; 0x8000_0000u; 0u]) >>> 63 )
+
+    [<Fact>]
+    let GreaterThanTrue () =
+        Assert.True( Natural([0xDEADBEEFu; 0xBADu]) > Natural([0xBADu; 0xDEADBEEFu;]) )
+
+    [<Fact>]
+    let GreaterThanFalseByLessThan () =
+        Assert.False( Natural([0xBADu; 0xDEADBEEFu]) > Natural([0xDEADBEEFu; 0xBADu]) )
+
+    [<Fact>]
+    let GreaterThanFalseByEquals () =
+        Assert.False( Natural([0xBADu; 0xDEADBEEFu]) > Natural([0xBADu; 0xDEADBEEFu]) )
+
+    [<Fact>]
+    let Addition () =
+        Assert.Equal( Natural([2u; 0u; 0u]), Natural([1u; 1u]) + Natural([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue]) )
+
+    [<Fact>]
+    let Subtraction () =
+        Assert.Equal( Natural ([0xFFFF_FFFFu; 0xFFFF_FFFFu]), Natural([1u; 0u; 0u]) - Natural([1u]) )
+
+    [<Fact>]
+    let Multiplication () =
+        Assert.Equal( Natural([0x75CD9046u; 0x541D5980u]), Natural([0xFEDCBA98u]) * Natural([0x76543210u]) )
+
+    [<Fact>]
+    let DivisionModulo () =
+        Assert.Equal( (Natural([0xFEDCBA98u]),Natural([0x12345678u])), Natural([0x75CD9046u; 0x6651AFF8u]) /% Natural([0x76543210u]) )
+
+    [<Fact>]
+    let ToString () =
+        Assert.Equal( "1234567890123456789", Natural([0x112210F4u; 0x7DE98115u]).ToString() )
+
+    let Parse () =
+        Assert.Equal( Natural([0x112210F4u; 0x7DE98115u] ), Natural.Parse("1234567890123456789") )
 
 module And =
     [<Theory>]
