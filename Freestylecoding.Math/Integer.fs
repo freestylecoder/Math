@@ -123,24 +123,12 @@ type public Integer(data:uint list, negative:bool) =
         static member (+) (left:Integer, right:Integer) : Integer =
             match (left.Negative,right.Negative) with
             | (false,false) -> Integer( Natural( left.Data ) + Natural( right.Data ) )
-            | (false,true) -> Integer( Natural( left.Data ) - Natural( right.Data ) )
-            | (true,false) -> Integer( Natural( left.Data ) - Natural( right.Data ), true )
             | (true,true) -> Integer( Natural( right.Data ) + Natural( left.Data ), true )
-//            | _ ->
-
-            //let rightpad (l:uint32 list) n =
-            //    List.init (n - l.Length) (fun i -> 0u) @ l
-
-            //let leftpad l n =
-            //    l @ List.init (n - l.Length) (fun i -> 0u)
-
-            //let (l,r) = Helpers.normalize left.Data right.Data
-            //let len = Math.Max( left.Data.Length, right.Data.Length )
-            //let s = rightpad (List.map2 (fun x y -> x + y) l r) (len+1)
-            //let o = leftpad (List.map2 (fun  x y -> if x >= ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) (len+1)
-            //let n = List.map2 (fun x y -> x + y ) s o
-
-            //Integer( Helpers.compress n )
+            | _ ->
+                if left.Data < right.Data then
+                    Integer( Natural( right.Data ) - Natural( left.Data ), right.Negative )
+                else
+                    Integer( Natural( left.Data ) - Natural( right.Data ), left.Negative )
 
         static member (-) (left:Integer, right:Integer) : Integer =
             let rightpad (l:uint32 list) n =
