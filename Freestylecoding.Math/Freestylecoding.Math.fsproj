@@ -5,7 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Helpers.fs" />
     <Compile Include="Natural.fs" />
+    <Compile Include="Integer.fs" />
   </ItemGroup>
 
 </Project>

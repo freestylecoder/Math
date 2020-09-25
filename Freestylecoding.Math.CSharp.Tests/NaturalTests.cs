@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.FSharp.Core;
 using Xunit;
-using static Freestylecoding.Math.Types;
+using Freestylecoding.Math;
 
 namespace Freestylecoding.Math.CSharp.Tests {
 
