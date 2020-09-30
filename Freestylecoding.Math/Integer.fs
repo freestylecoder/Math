@@ -117,7 +117,7 @@ type public Integer(data:uint list, negative:bool) =
         static member op_Inequality (left:Integer, right:Integer) : bool =
             Integer.op_Equality( left, right )
             |> not
- 
+
         // Arithmetic Operators
         // Binary
         static member (+) (left:Integer, right:Integer) : Integer =
@@ -125,26 +125,40 @@ type public Integer(data:uint list, negative:bool) =
             | (false,false) -> Integer( Natural( left.Data ) + Natural( right.Data ) )
             | (true,true) -> Integer( Natural( right.Data ) + Natural( left.Data ), true )
             | _ ->
-                if left.Data < right.Data then
+                if Natural( left.Data ) < Natural( right.Data ) then
                     Integer( Natural( right.Data ) - Natural( left.Data ), right.Negative )
                 else
                     Integer( Natural( left.Data ) - Natural( right.Data ), left.Negative )
 
         static member (-) (left:Integer, right:Integer) : Integer =
-            let rightpad (l:uint32 list) n =
-                List.init (n - l.Length) (fun i -> 0u) @ l
+            match (left.Negative,right.Negative) with
+            | (false,true) -> Integer( Natural( left.Data ) + Natural( right.Data ) )
+            | (true,false) -> Integer( Natural( left.Data ) + Natural( right.Data ), true )
+            | (false,false) ->
+                if Natural( left.Data ) < Natural( right.Data ) then
+                    Integer( Natural( right.Data ) - Natural( left.Data ), true )
+                else
+                    Integer( Natural( left.Data ) - Natural( right.Data ), false )
+            | (true,true) ->
+                if Natural( left.Data ) < Natural( right.Data ) then
+                    Integer( Natural( right.Data ) - Natural( left.Data ), false )
+                else
+                    Integer( Natural( left.Data ) - Natural( right.Data ), true )
 
-            let leftpad l n =
-                l @ List.init (n - l.Length) (fun i -> 0u)
+            //let rightpad (l:uint32 list) n =
+            //    List.init (n - l.Length) (fun i -> 0u) @ l
 
-            let (l,r) = Helpers.normalize left.Data right.Data
-            let len = Math.Max( left.Data.Length, right.Data.Length )
-            let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
-            let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
-            let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
-            let n = List.map3 (fun x y z -> x - y - z ) d o o2
+            //let leftpad l n =
+            //    l @ List.init (n - l.Length) (fun i -> 0u)
 
-            Integer( Helpers.compress n )
+            //let (l,r) = Helpers.normalize left.Data right.Data
+            //let len = Math.Max( left.Data.Length, right.Data.Length )
+            //let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
+            //let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
+            //let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
+            //let n = List.map3 (fun x y z -> x - y - z ) d o o2
+
+            //Integer( Helpers.compress n )
 
         static member (*) (left:Integer, right:Integer) : Integer =
             let rec magic value bit =

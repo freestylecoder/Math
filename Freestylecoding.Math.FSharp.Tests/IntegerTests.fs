@@ -701,45 +701,74 @@ module Integer =
         let OverflowCausedOverflowNegative () =
             Assert.Equal( Integer([2u; 0u; 0u], true), Integer([1u; 1u], true) + Integer([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue], true) )
 
-    //module Subtraction =
-    //    [<Theory>]
-    //    [<InlineData( 1u, 1u, 0u )>]                            // Sanity
-    //    [<InlineData( 1u, 0u, 1u )>]                            // Sanity
-    //    [<InlineData( 9u, 2u, 7u )>]                            // l > r
-    //    let Sanity l r s =
-    //        let l = Integer ([l])
-    //        let r = Integer ([r])
-    //        Assert.Equal( Integer ([s]), l - r )
+    module Subtraction =
+        [<Theory>]
+        [<InlineData( "1", "1", "0" )>]                            // Sanity
+        [<InlineData( "-1", "1", "-2" )>]                            // Sanity
+        [<InlineData( "1", "-1", "2" )>]                            // Sanity
+        [<InlineData( "-1", "-1", "0" )>]                            // Sanity
+        [<InlineData( "1", "0", "1" )>]                            // Sanity
+        [<InlineData( "-1", "0", "-1" )>]                            // Sanity
+        [<InlineData( "0", "1", "-1" )>]                            // Sanity
+        [<InlineData( "0", "-1", "1" )>]                            // Sanity
+        [<InlineData( "9", "2", "7" )>]                            // l > r
+        [<InlineData( "-9", "2", "-11" )>]                            // l > r
+        [<InlineData( "9", "-2", "11" )>]                            // l > r
+        [<InlineData( "-9", "-2", "-7" )>]                            // l > r
+        [<InlineData( "1", "5", "-4" )>]                            // l < r
+        [<InlineData( "-1", "5", "-6" )>]                            // l < r
+        [<InlineData( "1", "-5", "6" )>]                            // l < r
+        [<InlineData( "-1", "-5", "4" )>]                            // l < r
+        let Sanity l r s =
+            Assert.Equal( Integer.Parse( s ), Integer.Parse( l ) - Integer.Parse( r ) )
     
-    //    [<Fact>]
-    //    let SingleItemBadUnderflow () =
-    //        let l = Integer ([0u])
-    //        let r = Integer ([1u])
-    //        Assert.Equal( Integer ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+        [<Fact>]
+        let MultiItemNoUnderflow () =
+            let l = Integer([3u; 4u])
+            let r = Integer([1u; 2u])
+            Assert.Equal( Integer([2u; 2u]), l - r )
 
-    //    [<Fact>]
-    //    let MultiItemNoUnderflow () =
-    //        let l = Integer ([3u; 4u])
-    //        let r = Integer ([1u; 2u])
-    //        Assert.Equal( Integer ([2u; 2u]), l - r )
+        [<Fact>]
+        let MultiItemNegativeNoUnderflow () =
+            let l = Integer([3u; 4u], true)
+            let r = Integer([1u; 2u], true)
+            Assert.Equal( Integer([2u; 2u], true), l - r )
+
+        [<Fact>]
+        let MultiItemMixedLeftNoUnderflow () =
+            let l = Integer([3u; 4u], true)
+            let r = Integer([1u; 2u])
+            Assert.Equal( Integer([4u; 6u], true), l - r )
+
+        [<Fact>]
+        let MultiItemMixedRightNoUnderflow () =
+            let l = Integer([3u; 4u])
+            let r = Integer([1u; 2u], true)
+            Assert.Equal( Integer([4u; 6u]), l - r )
+
+        [<Fact>]
+        let MultiItemUnderflow () =
+            let l = Integer ([4u; 2u])
+            let r = Integer ([1u; 3u])
+            Assert.Equal( Integer ([0x2u; 0xFFFFFFFFu]), l - r )
         
-    //    [<Fact>]
-    //    let MultiItemSafeUnderflow () =
-    //        let l = Integer ([4u; 2u])
-    //        let r = Integer ([1u; 3u])
-    //        Assert.Equal( Integer ([0x2u; 0xFFFFFFFFu]), l - r )
+        [<Fact>]
+        let MultiItemCascadingUnderflow () =
+            let l = Integer ([1u; 0u; 0u])
+            let r = Integer ([1u])
+            Assert.Equal( Integer ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+
+        [<Fact>]
+        let MultiItemNegativeOverflow () =
+            let l = Integer([0x2u; 0xFFFFFFFFu], true)
+            let r = Integer([1u; 3u])
+            Assert.Equal( Integer([4u; 2u], true), l - r )
         
-    //    [<Fact>]
-    //    let MultiItemSafeCascadingUnderflow () =
-    //        let l = Integer ([1u; 0u; 0u])
-    //        let r = Integer ([1u])
-    //        Assert.Equal( Integer ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
-        
-    //    [<Fact>]
-    //    let MultiItemUnsafeUnderflow () =
-    //        let l = Integer ([1u; 2u])
-    //        let r = Integer ([1u; 3u])
-    //        Assert.Equal( Integer ([0xFFFFFFFFu; 0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+        [<Fact>]
+        let MultiItemCascadingNegativeOverflow () =
+            let l = Integer ([0xFFFFFFFFu; 0xFFFFFFFFu], true)
+            let r = Integer ([1u])
+            Assert.Equal( Integer([1u; 0u; 0u], true), l - r )
 
     //module Multiply =
     //    [<Theory>]
