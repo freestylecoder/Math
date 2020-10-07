@@ -770,81 +770,191 @@ module Integer =
             let r = Integer ([1u])
             Assert.Equal( Integer([1u; 0u; 0u], true), l - r )
 
-    //module Multiply =
-    //    [<Theory>]
-    //    [<InlineData( 1u, 1u, 1u )>]        // Sanity
-    //    [<InlineData( 1u, 0u, 0u )>]        // Sanity
-    //    [<InlineData( 0u, 1u, 0u )>]        // Sanity
-    //    [<InlineData( 6u, 7u, 42u )>]       // multiple bits
-    //    let Sanity l r p =
-    //        Assert.Equal( Integer([p]), Integer([l]) * Integer([r]) )
+    module Multiply =
+        [<Theory>]
+        [<InlineData( "1", "1", "1" )>]        // Sanity
+        [<InlineData( "-1", "1", "-1" )>]        // Sanity
+        [<InlineData( "1", "-1", "-1" )>]        // Sanity
+        [<InlineData( "-1", "-1", "1" )>]        // Sanity
+        [<InlineData( "1", "0", "0" )>]        // Sanity
+        [<InlineData( "-1", "0", "0" )>]        // Sanity
+        [<InlineData( "0", "1", "0" )>]        // Sanity
+        [<InlineData( "0", "-1", "0" )>]        // Sanity
+        [<InlineData( "6", "7", "42" )>]       // multiple bits
+        [<InlineData( "-6", "7", "-42" )>]       // multiple bits
+        [<InlineData( "6", "-7", "-42" )>]       // multiple bits
+        [<InlineData( "-6", "-7", "42" )>]       // multiple bits
+        let Sanity l r p =
+            Assert.Equal( Integer.Parse( p ), Integer.Parse( l ) * Integer.Parse( r ) )
 
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( Integer([ 0x75CD9046u; 0x541D5980u]), Integer( [0xFEDCBA98u]) * Integer([0x76543210u]) )
+        [<Fact>]
+        let Big () =
+            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u]), Integer([0xFEDCBA98u]) * Integer([0x76543210u]) )
 
-    //module Division =
-    //    [<Theory>]
-    //    [<InlineData( 1u, 1u, 1u )>]        // Sanity
-    //    [<InlineData( 0u, 1u, 0u )>]        // Sanity
-    //    [<InlineData( 42u, 7u, 6u )>]       // multiple bits
-    //    [<InlineData( 50u, 5u, 10u )>]      // rev
-    //    [<InlineData( 50u, 10u, 5u )>]      // rev
-    //    [<InlineData( 54u, 5u, 10u )>]      // has remainder
-    //    let Sanity dividend divisor quotient =
-    //        Assert.Equal( Integer([quotient]), Integer([dividend]) / Integer([divisor]) )
+        [<Fact>]
+        let BigMixedLeft () =
+            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u], true), Integer([0xFEDCBA98u], true) * Integer([0x76543210u]) )
 
-    //    [<Fact>]
-    //    let Zero () =
-    //        Assert.Equal( Integer( [0u] ), Integer([5u]) / Integer([10u]) )
+        [<Fact>]
+        let BigMixedRight () =
+            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u], true), Integer([0xFEDCBA98u]) * Integer([0x76543210u], true) )
 
-    //    [<Fact>]
-    //    let DivideByZero () =
-    //        Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit / Integer.Zero ) |> ignore )
+        [<Fact>]
+        let BigNegative () =
+            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u]), Integer([0xFEDCBA98u], true) * Integer([0x76543210u], true) )
 
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( Integer([0xFEDCBA98u]), Integer([0x75CD9046u; 0x541D5980u]) / Integer([0x76543210u]) )
+    module Division =
+        [<Theory>]
+        [<InlineData( "1", "1", "1" )>]        // Sanity
+        [<InlineData( "-1", "1", "-1" )>]        // Sanity
+        [<InlineData( "1", "-1", "-1" )>]        // Sanity
+        [<InlineData( "-1", "-1", "1" )>]        // Sanity
+        [<InlineData( "0", "1", "0" )>]        // Sanity
+        [<InlineData( "0", "-1", "0" )>]        // Sanity
+        [<InlineData( "44", "7", "6" )>]       // multiple bits
+        [<InlineData( "-44", "7", "-6" )>]       // multiple bits
+        [<InlineData( "44", "-7", "-6" )>]       // multiple bits
+        [<InlineData( "-44", "-7", "6" )>]       // multiple bits
+        [<InlineData( "52", "5", "10" )>]      // rev
+        [<InlineData( "-52", "5", "-10" )>]      // rev
+        [<InlineData( "52", "-5", "-10" )>]      // rev
+        [<InlineData( "-52", "-5", "10" )>]      // rev
+        [<InlineData( "52", "10", "5" )>]      // rev
+        [<InlineData( "-52", "10", "-5" )>]      // rev
+        [<InlineData( "52", "-10", "-5" )>]      // rev
+        [<InlineData( "-52", "-10", "5" )>]      // rev
+        let Sanity dividend divisor quotient =
+            Assert.Equal( Integer.Parse( quotient ), Integer.Parse( dividend ) / Integer.Parse( divisor ) )
 
-    //module Modulo =
-    //    [<Theory>]
-    //    [<InlineData( 1u, 1u, 0u )>]        // Sanity
-    //    [<InlineData( 0u, 1u, 0u )>]        // Sanity
-    //    [<InlineData( 44u, 7u, 2u )>]       // multiple bits
-    //    [<InlineData( 52u, 5u, 2u )>]       // rev
-    //    [<InlineData( 52u, 10u, 2u )>]      // rev
-    //    let Sanity dividend divisor remainder =
-    //        Assert.Equal( Integer([remainder]), Integer([dividend]) % Integer([divisor]) )
+        [<Fact>]
+        let Zero () =
+            Assert.Equal( Integer([0u]), Integer([5u]) / Integer([10u]) )
 
-    //    [<Fact>]
-    //    let Zero () =
-    //        Assert.Equal( Integer([0u]), Integer([20u]) % Integer([10u]) )
+        [<Fact>]
+        let DivideByZero () =
+            Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit / Integer.Zero ) |> ignore )
 
-    //    [<Fact>]
-    //    let DivideByZero () =
-    //        Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit % Integer.Zero ) |> ignore )
+        [<Fact>]
+        let Big () =
+            Assert.Equal( Integer([0xFEDCBA98u]), Integer([0x75CD9046u; 0x6651AFF8u]) / Integer([0x76543210u]) )
 
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( Integer([0x12345678u]), Integer([0x75CD9046u; 0x6651AFF8u]) % Integer([0x76543210u]) )
+        [<Fact>]
+        let BigMixedLeft () =
+            Assert.Equal( Integer([0xFEDCBA98u], true), Integer([0x75CD9046u; 0x6651AFF8u], true) / Integer([0x76543210u]) )
 
-    //module DivisionModulo =
-    //    [<Theory>]
-    //    [<InlineData( 1u, 1u, 1u, 0u )>]        // Sanity
-    //    [<InlineData( 0u, 1u, 0u, 0u )>]        // Sanity
-    //    [<InlineData( 44u, 7u, 6u, 2u )>]       // multiple bits
-    //    [<InlineData( 52u, 5u, 10u, 2u )>]      // rev
-    //    [<InlineData( 52u, 10u, 5u, 2u )>]      // rev
-    //    let Sanity dividend divisor quotient remainder =
-    //        Assert.Equal( (Integer([quotient]),Integer([remainder])), Integer([dividend]) /% Integer([divisor]) )
+        [<Fact>]
+        let BigMixedRight () =
+            Assert.Equal( Integer([0xFEDCBA98u], true), Integer([0x75CD9046u; 0x6651AFF8u]) / Integer([0x76543210u], true) )
 
-    //    [<Fact>]
-    //    let DivideByZero () =
-    //        Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit /% Integer.Zero ) |> ignore )
+        [<Fact>]
+        let BigNegative () =
+            Assert.Equal( Integer([0xFEDCBA98u]), Integer([0x75CD9046u; 0x6651AFF8u], true) / Integer([0x76543210u], true) )
 
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( (Integer([0xFEDCBA98u]),Integer([0x12345678u])), Integer([0x75CD9046u; 0x6651AFF8u]) /% Integer([0x76543210u]) )
+    module Modulo =
+        [<Theory>]
+        [<InlineData( "1", "1", "0" )>]        // Sanity
+        [<InlineData( "-1", "1", "0" )>]        // Sanity
+        [<InlineData( "1", "-1", "0" )>]        // Sanity
+        [<InlineData( "-1", "-1", "0" )>]        // Sanity
+        [<InlineData( "0", "1", "0" )>]        // Sanity
+        [<InlineData( "0", "-1", "0" )>]        // Sanity
+        [<InlineData( "44", "7", "2" )>]       // multiple bits
+        [<InlineData( "-44", "7", "-2" )>]       // multiple bits
+        [<InlineData( "44", "-7", "2" )>]       // multiple bits
+        [<InlineData( "-44", "-7", "-2" )>]       // multiple bits
+        [<InlineData( "52", "5", "2" )>]      // rev
+        [<InlineData( "-52", "5", "-2" )>]      // rev
+        [<InlineData( "52", "-5", "2" )>]      // rev
+        [<InlineData( "-52", "-5", "-2" )>]      // rev
+        [<InlineData( "52", "10", "2" )>]      // rev
+        [<InlineData( "-52", "10", "-2" )>]      // rev
+        [<InlineData( "52", "-10", "2" )>]      // rev
+        [<InlineData( "-52", "-10", "-2" )>]      // rev
+        let Sanity dividend divisor remainder =
+            Assert.Equal( Integer.Parse( remainder ), Integer.Parse( dividend ) % Integer.Parse( divisor ) )
+
+        [<Fact>]
+        let Zero () =
+            Assert.Equal( Integer([0u]), Integer([20u]) % Integer([10u]) )
+
+        [<Fact>]
+        let DivideByZero () =
+            Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit % Integer.Zero ) |> ignore )
+
+        [<Fact>]
+        let Big () =
+            Assert.Equal( Integer([0x12345678u]), Integer([0x75CD9046u; 0x6651AFF8u]) % Integer([0x76543210u]) )
+
+        [<Fact>]
+        let BigMixedLeft () =
+            Assert.Equal( Integer([0x12345678u], true), Integer([0x75CD9046u; 0x6651AFF8u], true) % Integer([0x76543210u]) )
+
+        [<Fact>]
+        let BigMixedRight () =
+            Assert.Equal( Integer([0x12345678u]), Integer([0x75CD9046u; 0x6651AFF8u]) % Integer([0x76543210u], true) )
+
+        [<Fact>]
+        let BigNegative () =
+            Assert.Equal( Integer([0x12345678u], true), Integer([0x75CD9046u; 0x6651AFF8u], true) % Integer([0x76543210u], true) )
+
+    module DivisionModulo =
+        [<Theory>]
+        [<InlineData( "1", "1", "1", "0" )>]        // Sanity
+        [<InlineData( "-1", "1", "-1", "0" )>]        // Sanity
+        [<InlineData( "1", "-1", "-1", "0" )>]        // Sanity
+        [<InlineData( "-1", "-1", "1", "0" )>]        // Sanity
+        [<InlineData( "0", "1", "0", "0" )>]        // Sanity
+        [<InlineData( "0", "-1", "0", "0" )>]        // Sanity
+        [<InlineData( "44", "7", "6", "2" )>]       // multiple bits
+        [<InlineData( "-44", "7", "-6", "-2" )>]       // multiple bits
+        [<InlineData( "44", "-7", "-6", "2" )>]       // multiple bits
+        [<InlineData( "-44", "-7", "6", "-2" )>]       // multiple bits
+        [<InlineData( "52", "5", "10", "2" )>]      // rev
+        [<InlineData( "-52", "5", "-10", "-2" )>]      // rev
+        [<InlineData( "52", "-5", "-10", "2" )>]      // rev
+        [<InlineData( "-52", "-5", "10", "-2" )>]      // rev
+        [<InlineData( "52", "10", "5", "2" )>]      // rev
+        [<InlineData( "-52", "10", "-5", "-2" )>]      // rev
+        [<InlineData( "52", "-10", "-5", "2" )>]      // rev
+        [<InlineData( "-52", "-10", "5", "-2" )>]      // rev
+        let Sanity dividend divisor quotient remainder =
+            Assert.Equal( (Integer.Parse( quotient ),Integer.Parse( remainder )), Integer.Parse( dividend ) /% Integer.Parse( divisor ) )
+
+        [<Fact>]
+        let DivideByZero () =
+            Assert.Throws<System.DivideByZeroException>( fun () -> ( Integer.Unit /% Integer.Zero ) |> ignore )
+
+        [<Fact>]
+        let Big () =
+            Assert.Equal( (Integer([0xFEDCBA98u]),Integer([0x12345678u])), Integer([0x75CD9046u; 0x6651AFF8u]) /% Integer([0x76543210u]) )
+
+        [<Fact>]
+        let BigMixedLeft () =
+            Assert.Equal( (Integer([0xFEDCBA98u], true),Integer([0x12345678u], true)), Integer([0x75CD9046u; 0x6651AFF8u], true) /% Integer([0x76543210u]) )
+
+        [<Fact>]
+        let BigMixedRight () =
+            Assert.Equal( (Integer([0xFEDCBA98u], true),Integer([0x12345678u])), Integer([0x75CD9046u; 0x6651AFF8u]) /% Integer([0x76543210u], true) )
+
+        [<Fact>]
+        let BigNegative () =
+            Assert.Equal( (Integer([0xFEDCBA98u]),Integer([0x12345678u], true)), Integer([0x75CD9046u; 0x6651AFF8u], true) /% Integer([0x76543210u], true) )
+
+    module Negation =
+        [<Theory>]
+        [<InlineData( "1", "-1" )>]                            // Sanity
+        [<InlineData( "-1", "1" )>]                            // Sanity
+        [<InlineData( "0", "0" )>]                            // Sanity
+        let Sanity a e =
+            Assert.Equal( Integer.Parse( e ), -Integer.Parse( a ) )
+
+        [<Fact>]
+        let Big () =
+            Assert.Equal( Integer( [0xFEDCBA9u; 0x76543210u], true ), -Integer( [0xFEDCBA9u; 0x76543210u] )  )
+
+        [<Fact>]
+        let BigNegative () =
+            Assert.Equal( Integer( [0xFEDCBA9u; 0x76543210u] ), -Integer( [0xFEDCBA9u; 0x76543210u], true )  )
 
     module ToString =
         [<Theory>]

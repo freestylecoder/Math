@@ -145,56 +145,15 @@ type public Integer(data:uint list, negative:bool) =
                 else
                     Integer( Natural( left.Data ) - Natural( right.Data ), true )
 
-            //let rightpad (l:uint32 list) n =
-            //    List.init (n - l.Length) (fun i -> 0u) @ l
-
-            //let leftpad l n =
-            //    l @ List.init (n - l.Length) (fun i -> 0u)
-
-            //let (l,r) = Helpers.normalize left.Data right.Data
-            //let len = Math.Max( left.Data.Length, right.Data.Length )
-            //let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
-            //let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
-            //let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
-            //let n = List.map3 (fun x y z -> x - y - z ) d o o2
-
-            //Integer( Helpers.compress n )
-
         static member (*) (left:Integer, right:Integer) : Integer =
-            let rec magic value bit =
-                match value with
-                | x when Integer.Zero = x ->
-                    []
-                | _ ->
-                    match Integer.Unit &&& value with
-                    | z when z = Integer.Zero ->
-                        magic (value>>>1) (bit+1)
-                    | u when u = Integer.Unit ->
-                        (left<<<bit) :: (magic (value>>>1) (bit+1))
-                    | _ -> failwith "not possible (bit has value other than 0 or 1)"
-
-            magic right 0
-            |> List.fold (+) Integer.Zero
+            if( left.Negative = right.Negative ) then
+                Integer( Natural( left.Data ) * Natural( right.Data ) )
+            else
+                Integer( Natural( left.Data ) * Natural( right.Data ), true )
             
         static member (/%) (left:Integer, right:Integer) : Integer*Integer =
-            let rec op bit =
-                let factor = right <<< bit
-                if factor > left then
-                    (Integer.Zero,left)
-                else
-                    let (quotient,remainder) = op (bit + 1)
-
-                    if factor > remainder then
-                        (quotient,remainder)
-                    else
-                        (quotient+(Integer.Unit<<<bit),remainder-factor)
-
-            match right with
-            | z when z = Integer.Zero -> raise (new DivideByZeroException())
-            | u when u = Integer.Unit -> (left,Integer.Zero)
-            | r when r = left -> (Integer.Unit,Integer.Zero)
-            | _ ->
-                op 0
+            let (q,r) = Natural(left.Data) /% Natural(right.Data)
+            (Integer( q, Helpers.Xor left.Negative right.Negative ), Integer( r, left.Negative ) )
 
         static member (/) (left:Integer, right:Integer) : Integer =
             let (q,_) = left /% right
@@ -205,6 +164,8 @@ type public Integer(data:uint list, negative:bool) =
             r
 
         // Unary
+        static member (~-) (input:Integer) : Integer =
+            new Integer( input.Data, not input.Negative )
 
         // .NET Object Overrides
         override left.Equals( right ) =

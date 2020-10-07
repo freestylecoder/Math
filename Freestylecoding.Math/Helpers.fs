@@ -23,4 +23,6 @@ type internal Helpers =
         | 0u :: t -> Helpers.compress t
         | _ -> l
 
+    static member internal Xor (l:bool) (r:bool) : bool =
+        ( l || r ) && not ( l && r )
 
