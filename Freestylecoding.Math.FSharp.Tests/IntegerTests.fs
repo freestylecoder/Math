@@ -13,47 +13,47 @@ module Integer =
     module Sanity =
         [<Fact>]
         let LeftShift () =
-            Assert.Equal( Integer([4u; 0x8000_0000u; 0u]), Integer([9u]) <<< 63 )
+            Assert.Equal( Integer([4u; 0x8000_0000u; 0u], true), Integer([9u], true) <<< 63 )
 
         [<Fact>]
         let RightShift () =
-            Assert.Equal( Integer([9u]), Integer([4u; 0x8000_0000u; 0u]) >>> 63 )
+            Assert.Equal( Integer([9u], true), Integer([4u; 0x8000_0000u; 0u], true) >>> 63 )
 
         [<Fact>]
         let GreaterThanTrue () =
-            Assert.True( Integer([0xDEADBEEFu; 0xBADu]) > Integer([0xBADu; 0xDEADBEEFu;]) )
+            Assert.True( Integer([0xBADu; 0xDEADBEEFu;]) > Integer([0xDEADBEEFu; 0xBADu], true) )
 
         [<Fact>]
         let GreaterThanFalseByLessThan () =
-            Assert.False( Integer([0xBADu; 0xDEADBEEFu]) > Integer([0xDEADBEEFu; 0xBADu]) )
+            Assert.False( Integer([0xBADu; 0xDEADBEEFu], true) > Integer([0xDEADBEEFu; 0xBADu]) )
 
         [<Fact>]
         let GreaterThanFalseByEquals () =
-            Assert.False( Integer([0xBADu; 0xDEADBEEFu]) > Integer([0xBADu; 0xDEADBEEFu]) )
+            Assert.False( Integer([0xBADu; 0xDEADBEEFu], true) > Integer([0xBADu; 0xDEADBEEFu], true) )
 
         [<Fact>]
         let Addition () =
-            Assert.Equal( Integer([2u; 0u; 0u]), Integer([1u; 1u]) + Integer([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue]) )
+            Assert.Equal( Integer ([0xFFFF_FFFFu; 0xFFFF_FFFFu]), Integer([1u; 0u; 0u]) + Integer([1u], true) )
 
         [<Fact>]
         let Subtraction () =
-            Assert.Equal( Integer ([0xFFFF_FFFFu; 0xFFFF_FFFFu]), Integer([1u; 0u; 0u]) - Integer([1u]) )
+            Assert.Equal( Integer([2u; 0u; 0u]), Integer([1u; 1u]) - Integer([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue], true) )
 
         [<Fact>]
         let Multiplication () =
-            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u]), Integer([0xFEDCBA98u]) * Integer([0x76543210u]) )
+            Assert.Equal( Integer([0x75CD9046u; 0x541D5980u], true), Integer([0xFEDCBA98u], true) * Integer([0x76543210u]) )
 
         [<Fact>]
         let DivisionModulo () =
-            Assert.Equal( (Integer([0xFEDCBA98u]),Integer([0x12345678u])), Integer([0x75CD9046u; 0x6651AFF8u]) /% Integer([0x76543210u]) )
+            Assert.Equal( (Integer([0xFEDCBA98u]),Integer([0x12345678u], true)), Integer([0x75CD9046u; 0x6651AFF8u], true) /% Integer([0x76543210u], true) )
 
         [<Fact>]
         let ToString () =
-            Assert.Equal( "1234567890123456789", Integer([0x112210F4u; 0x7DE98115u]).ToString() )
+            Assert.Equal( "-1234567890123456789", Integer([0x112210F4u; 0x7DE98115u], true).ToString() )
 
         [<Fact>]
         let Parse () =
-            Assert.Equal( Integer([0x112210F4u; 0x7DE98115u] ), Integer.Parse("1234567890123456789") )
+            Assert.Equal( Integer([0x112210F4u; 0x7DE98115u], true ), Integer.Parse("-1234567890123456789") )
 
     module And =
         [<Theory>]
