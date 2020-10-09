@@ -11,7 +11,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 	// In other words:
 	// IF ANY OF THE SANITY TESTS FAIL, DON'T TRUST ANY OTHER TEST!
 	[Trait( "Type", "Sanity" )]
-	public class Sanity {
+	public class NaturalSanity {
 		[Fact]
 		public void LeftShift() =>
 			Assert.Equal( new Natural( new[] { 4u, 0x8000_0000u, 0u } ), new Natural( new[] { 9u } ) << 63 );
@@ -53,7 +53,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0x112210F4u, 0x7DE98115u } ), Natural.Parse( "1234567890123456789" ) );
 	}
 
-	public class And {
+	public class NaturalAnd {
 		[Theory]
 		[InlineData( 0u, 0u, 0u )]
 		[InlineData( 1u, 0u, 0u )]
@@ -71,7 +71,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( Natural.Unit, new Natural( new[] { 0x00010001u } ) & new Natural( new[] { 0xFu, 0x00000101u } ) );
 	}
 
-	public class Or {
+	public class NaturalOr {
 		[Theory]
 		[InlineData( 0u, 0u, 0u )]
 		[InlineData( 1u, 0u, 1u )]
@@ -89,7 +89,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0xFu, 0x10101u } ), new Natural( new[] { 0x00010001u } ) | new Natural( new[] { 0xFu, 0x00000101u } ) );
 	}
 
-	public class Xor {
+	public class NaturalXor {
 		[Theory]
 		[InlineData( 0u, 0u, 0u )]
 		[InlineData( 1u, 0u, 1u )]
@@ -110,7 +110,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 	// C# only allows this for certain types
 	// Need to loop back later and figure out how to convince it
 
-	//public class BitwiseNot {
+	//public class NaturalBitwiseNot {
 	//	[Theory]
 	//	[InlineData( 0xFFFFFFFEu, 1u )]
 	//	[InlineData( 1u, 0xFFFFFFFEu )]
@@ -124,7 +124,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 	//		Assert.Equal( new Natural( new[] { 0xF0123456u, 0x789ABCDEu } ), ~new Natural( new[] { 0x0FEDCBA9u, 0x87654321u } ) );
 	//}
 
-	public class LeftShift {
+	public class NaturalLeftShift {
 		[Theory]
 		[InlineData( 1u, 1, 2u )]        // Sanity
 		[InlineData( 0xFu, 2, 0x3Cu )]   // multiple bits
@@ -144,7 +144,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 8u, 0u, 0u } ), Natural.Unit << 67 );
 	}
 
-	public class RightShift {
+	public class NaturalRightShift {
 		[Theory]
 		[InlineData( 1u, 1, 0u )]        // Sanity
 		[InlineData( 0xFu, 2, 0x3u )]    // multiple bits
@@ -169,7 +169,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0u } ), new Natural( new[] { 0x10u, 0u, 0u } ) >> 99 );
 	}
 
-	public class Equality {
+	public class NaturalEquality {
 		[Theory]
 		[InlineData( 0u, 0u, true )]
 		[InlineData( 0u, 1u, false )]
@@ -187,7 +187,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.False( new Natural( new[] { 0xDEADBEEFu } ) == new Natural( new[] { 0xBADu, 0xDEADBEEFu } ) );
 	}
 
-	public class GreaterThan {
+	public class NaturalGreaterThan {
 		[Theory]
 		[InlineData( 0u, 1u, false )]
 		[InlineData( 1u, 0u, true )]
@@ -216,7 +216,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.False( new Natural( new[] { 1u, 0u } ) > new Natural( new[] { 1u, 1u } ) );
 	}
 
-	public class LessThan {
+	public class NaturalLessThan {
 		[Theory]
 		[InlineData( 0u, 1u, true )]
 		[InlineData( 1u, 0u, false )]
@@ -245,7 +245,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.True( new Natural( new[] { 1u, 0u } ) < new Natural( new[] { 1u, 1u } ) );
 	}
 
-	public class GreaterThanOrEqual {
+	public class NaturalGreaterThanOrEqual {
 		[Theory]
 		[InlineData( 0u, 1u, false )]
 		[InlineData( 1u, 0u, true )]
@@ -274,7 +274,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.False( new Natural( new[] { 1u, 0u } ) >= new Natural( new[] { 1u, 1u } ) );
 	}
 
-	public class LessThanOrEqual {
+	public class NaturalLessThanOrEqual {
 		[Theory]
 		[InlineData( 0u, 1u, true )]
 		[InlineData( 1u, 0u, false )]
@@ -303,7 +303,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.True( new Natural( new[] { 1u, 0u } ) <= new Natural( new[] { 1u, 1u } ) );
 	}
 
-	public class Inequality {
+	public class NaturalInequality {
 		[Theory]
 		[InlineData( 0u, 0u, false )]
 		[InlineData( 0u, 1u, true )]
@@ -321,7 +321,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.True( new Natural( new[] { 0xDEADBEEFu } ) != new Natural( new[] { 0xBADu, 0xDEADBEEFu } ) );
 	}
 
-	public class Addition {
+	public class NaturalAddition {
 		[Theory]
 		[InlineData( 1u, 1u, 2u )]        // Sanity
 		[InlineData( 1u, 0u, 1u )]        // Sanity
@@ -370,7 +370,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		}
 	}
 
-	public class Subtraction {
+	public class NaturalSubtraction {
 		[Theory]
 		[InlineData( 1u, 1u, 0u )]                            // Sanity
 		[InlineData( 1u, 0u, 1u )]                            // Sanity
@@ -415,7 +415,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		}
 	}
 
-	public class Multiply {
+	public class NaturalMultiply {
 		[Theory]
 		[InlineData( 1u, 1u, 1u )]        // Sanity
 		[InlineData( 1u, 0u, 0u )]        // Sanity
@@ -429,7 +429,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0x75CD9046u, 0x541D5980u } ), new Natural( new[] { 0xFEDCBA98u } ) * new Natural( new[] { 0x76543210u } ) );
 	}
 
-	public class Division {
+	public class NaturalDivision {
 		[Theory]
 		[InlineData( 1u, 1u, 1u )]        // Sanity
 		[InlineData( 0u, 1u, 0u )]        // Sanity
@@ -453,7 +453,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Big() =>
 			Assert.Equal( new Natural( new[] { 0xFEDCBA98u } ), new Natural( new[] { 0x75CD9046u, 0x541D5980u } ) / new Natural( new[] { 0x76543210u } ) );
 	}
-	public class Modulo {
+	public class NaturalModulo {
 		[Theory]
 		[InlineData( 1u, 1u, 0u )]        // Sanity
 		[InlineData( 0u, 1u, 0u )]        // Sanity
@@ -478,7 +478,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0x12345678u } ), new Natural( new[] { 0x75CD9046u, 0x6651AFF8u } ) % new Natural( new[] { 0x76543210u } ) );
 	}
 
-	public class ToString {
+	public class NaturalToString {
 		[Theory]
 		[InlineData( 0u, "0" )]          // Sanity
 		[InlineData( 1u, "1" )]          // Sanity
@@ -491,7 +491,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Bigger() =>
 			Assert.Equal( "1234567890123456789", new Natural( new[] { 0x112210F4u, 0x7DE98115u } ).ToString() );
 	}
-	public class Parse {
+	public class NaturalParse {
 		[Theory]
 		[InlineData( 0u, "0" )]          // Sanity
 		[InlineData( 1u, "1" )]          // Sanity

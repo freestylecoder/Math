@@ -96,6 +96,7 @@ module Integer =
             Assert.Equal( Integer([0xFu; 0x10101u]), Integer([0x00010001u]) ||| Integer([0xFu; 0x00000101u]) )
 
     module Xor =
+        [<Theory>]
         [<InlineData( "0", "0", "0")>]
         [<InlineData( "1", "0", "1")>]
         [<InlineData( "0", "1", "1")>]
