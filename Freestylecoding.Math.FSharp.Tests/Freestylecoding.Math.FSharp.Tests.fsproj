@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="IntegerTests.fs" />
     <Compile Include="NaturalTests.fs" />
   </ItemGroup>
 
