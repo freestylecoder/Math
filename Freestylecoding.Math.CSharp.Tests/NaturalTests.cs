@@ -1,7 +1,5 @@
 ﻿using System;
-using Microsoft.FSharp.Core;
 using Xunit;
-using Freestylecoding.Math;
 
 namespace Freestylecoding.Math.CSharp.Tests {
 
@@ -43,6 +41,19 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[Fact]
 		public void Multiplication() =>
 			Assert.Equal( new Natural( new[] { 0x75CD9046u, 0x541D5980u } ), new Natural( new[] { 0xFEDCBA98u } ) * new Natural( new[] { 0x76543210u } ) );
+
+		[Fact]
+		public void DivisionModulo() =>
+			Assert.Equal(
+				new Tuple<Natural,Natural>(
+					new Natural( new[] { 0xFEDCBA98u } ),
+					new Natural( new[] { 0x12345678u } )
+				),
+				Natural.op_DividePercent(
+					new Natural( new[] { 0x75CD9046u, 0x6651AFF8u } ),
+					new Natural( new[] { 0x76543210u } )
+				)
+			);
 
 		[Fact]
 		public void ToString_() =>
@@ -449,7 +460,6 @@ namespace Freestylecoding.Math.CSharp.Tests {
 				Assert.IsType<DivideByZeroException>( Record.Exception( () => Natural.Unit / Natural.Zero ) );
 
 		[Fact]
-
 		public void Big() =>
 			Assert.Equal( new Natural( new[] { 0xFEDCBA98u } ), new Natural( new[] { 0x75CD9046u, 0x541D5980u } ) / new Natural( new[] { 0x76543210u } ) );
 	}
@@ -472,10 +482,47 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.IsType<DivideByZeroException>( Record.Exception( () => Natural.Unit % Natural.Zero ) );
 
 		[Fact]
-
-
 		public void Big() =>
 			Assert.Equal( new Natural( new[] { 0x12345678u } ), new Natural( new[] { 0x75CD9046u, 0x6651AFF8u } ) % new Natural( new[] { 0x76543210u } ) );
+	}
+
+    public class NaturalDivisionModulo {
+		[Theory]
+		[InlineData( 1u, 1u, 1u, 0u )]        // Sanity
+		[InlineData( 0u, 1u, 0u, 0u )]        // Sanity
+		[InlineData( 44u, 7u, 6u, 2u )]       // multiple bits
+		[InlineData( 52u, 5u, 10u, 2u )]      // rev
+		[InlineData( 52u, 10u, 5u, 2u )]      // rev
+		public void Sanity( uint dividend, uint divisor, uint quotient, uint remainder ) =>
+            Assert.Equal(
+				new Tuple<Natural,Natural>(
+					new Natural( new[] { quotient } ),
+					new Natural( new[] { remainder } )
+				),
+				Natural.op_DividePercent(
+					new Natural( new[] { dividend } ),
+					new Natural( new[] { divisor } )
+				)
+			);
+
+		[Fact]
+		public void DivideByZero() =>
+			Assert.Throws<DivideByZeroException>(
+				() => Natural.op_DividePercent( Natural.Unit, Natural.Zero )
+			);
+
+        [Fact]
+		public void Big() =>
+            Assert.Equal(
+				new Tuple<Natural,Natural>(
+					new Natural( new[] { 0xFEDCBA98u } ),
+					new Natural( new[] { 0x12345678u } )
+				),
+				Natural.op_DividePercent(
+					new Natural( new[] { 0x75CD9046u, 0x6651AFF8u } ),
+					new Natural( new[] { 0x76543210u } )
+				)
+			);
 	}
 
 	public class NaturalToString {
@@ -491,6 +538,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Bigger() =>
 			Assert.Equal( "1234567890123456789", new Natural( new[] { 0x112210F4u, 0x7DE98115u } ).ToString() );
 	}
+
 	public class NaturalParse {
 		[Theory]
 		[InlineData( 0u, "0" )]          // Sanity

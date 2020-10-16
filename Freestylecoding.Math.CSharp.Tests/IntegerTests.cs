@@ -41,6 +41,19 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Multiplication() =>
 			Assert.Equal( new Integer( new[] { 0x75CD9046u, 0x541D5980u }, true ), new Integer( new[] { 0xFEDCBA98u }, true ) * new Integer( new[] { 0x76543210u } ) );
 
+        [Fact]
+        public void DivisionModulo() =>
+            Assert.Equal(
+				new Tuple<Integer,Integer>(
+					new Integer( new[] { 0xFEDCBA98u } ),
+					new Integer( new[] { 0x12345678u }, true)
+				),
+				Integer.op_DividePercent(
+					new Integer(new[] { 0x75CD9046u, 0x6651AFF8u }, true),
+					new Integer(new[] { 0x76543210u }, true)
+				)
+			);
+
 		[Fact]
 		public void ToStringTest() =>
 			Assert.Equal( "-1234567890123456789", new Integer( new[] { 0x112210F4u, 0x7DE98115u }, true ).ToString() );
@@ -892,6 +905,95 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[Fact]
 		public void BigNegative() =>
 			Assert.Equal( new Integer( new[] { 0x12345678u }, true ), new Integer( new[] { 0x75CD9046u, 0x6651AFF8u }, true ) % new Integer( new[] { 0x76543210u }, true ) );
+	}
+
+	public class IntegerDivisionModulo {
+		[Theory]
+		[InlineData( "1", "1", "1", "0" )]        // Sanity
+        [InlineData( "-1", "1", "-1", "0" )]        // Sanity
+        [InlineData( "1", "-1", "-1", "0" )]        // Sanity
+        [InlineData( "-1", "-1", "1", "0" )]        // Sanity
+        [InlineData( "0", "1", "0", "0" )]        // Sanity
+        [InlineData( "0", "-1", "0", "0" )]        // Sanity
+        [InlineData( "44", "7", "6", "2" )]       // multiple bits
+        [InlineData( "-44", "7", "-6", "-2" )]       // multiple bits
+        [InlineData( "44", "-7", "-6", "2" )]       // multiple bits
+        [InlineData( "-44", "-7", "6", "-2" )]       // multiple bits
+        [InlineData( "52", "5", "10", "2" )]      // rev
+        [InlineData( "-52", "5", "-10", "-2" )]      // rev
+        [InlineData( "52", "-5", "-10", "2" )]      // rev
+        [InlineData( "-52", "-5", "10", "-2" )]      // rev
+        [InlineData( "52", "10", "5", "2" )]      // rev
+        [InlineData( "-52", "10", "-5", "-2" )]      // rev
+        [InlineData( "52", "-10", "-5", "2" )]      // rev
+        [InlineData( "-52", "-10", "5", "-2" )]      // rev
+        public void Sanity( string dividend, string divisor, string quotient, string remainder ) =>
+			Assert.Equal(
+				new Tuple<Integer,Integer>(
+					Integer.Parse( quotient ),
+					Integer.Parse( remainder )
+				),
+				Integer.op_DividePercent(
+					Integer.Parse( dividend ),
+					Integer.Parse( divisor )
+				)
+			);
+
+		[Fact]
+		public void DivideByZero() =>
+			Assert.Throws<DivideByZeroException>( () => Integer.op_DividePercent( Integer.Unit, Integer.Zero ) );
+
+        [Fact]
+		public void Big() =>
+ 			Assert.Equal(
+				new Tuple<Integer,Integer>(
+					new Integer( new[] { 0xFEDCBA98u } ),
+					new Integer( new[] { 0x12345678u } )
+				),
+				Integer.op_DividePercent(
+					new Integer( new[] { 0x75CD9046u, 0x6651AFF8u } ),
+					new Integer( new[] { 0x76543210u } )
+				)
+			);
+
+        [Fact]
+		public void BigMixedLeft() =>
+ 			Assert.Equal(
+				new Tuple<Integer,Integer>(
+					new Integer( new[] { 0xFEDCBA98u }, true ),
+					new Integer( new[] { 0x12345678u }, true )
+				),
+				Integer.op_DividePercent(
+					new Integer( new[] { 0x75CD9046u, 0x6651AFF8u }, true ),
+					new Integer( new[] { 0x76543210u } )
+				)
+			);
+
+        [Fact]
+		public void BigMixedRight() =>
+ 			Assert.Equal(
+				new Tuple<Integer,Integer>(
+					new Integer( new[] { 0xFEDCBA98u }, true ),
+					new Integer( new[] { 0x12345678u } )
+				),
+				Integer.op_DividePercent(
+					new Integer( new[] { 0x75CD9046u, 0x6651AFF8u } ),
+					new Integer( new[] { 0x76543210u }, true )
+				)
+			);
+
+        [Fact]
+		public void BigNegative() =>
+ 			Assert.Equal(
+				new Tuple<Integer,Integer>(
+					new Integer( new[] { 0xFEDCBA98u } ),
+					new Integer( new[] { 0x12345678u }, true )
+				),
+				Integer.op_DividePercent(
+					new Integer( new[] { 0x75CD9046u, 0x6651AFF8u }, true ),
+					new Integer( new[] { 0x76543210u }, true )
+				)
+			);
 	}
 
 	public class IntegerNegation {
