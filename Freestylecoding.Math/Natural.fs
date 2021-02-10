@@ -5,6 +5,7 @@ open System
 type public Natural(data:uint32 list) =
     member internal Natural.Data = data
 
+    new(data:uint32) = Natural( [data] )
     new(data:uint32 seq) = Natural( Seq.toList( data ) )
 
     with
@@ -28,52 +29,42 @@ type public Natural(data:uint32 list) =
             Natural( List.map (fun x -> ~~~ x) right.Data |> Helpers.compress )
 
         static member (<<<) (left:Natural, (right:int)) : Natural =
-            let msb = 0x80000000u
+            let bitsToShift = right % 32
+            let listElementsToShift = right / 32
+            let overflowBits = ~~~(System.UInt32.MaxValue >>> bitsToShift)
 
-            let shift1 (l:uint32 list) =
-                let s = 0u :: (List.map (fun x -> x <<< 1) l)
-                let o = (List.map (fun x -> if (msb &&& x) > 0u then 1u else 0u) l) @ [0u]
-                let n = List.map2 (fun x y -> x ||| y) s o
-                if 0u = n.Head then n.Tail else n
+            let shiftedList = 0u :: (List.map (fun x -> x <<< bitsToShift) left.Data)
+            let overflowList = (List.map (fun x -> (overflowBits &&& x) >>> (32 - bitsToShift) ) left.Data) @ [0u]
+            let result = List.map2 (fun x y -> x ||| y) shiftedList overflowList
 
-            let rec shift (l:uint32 list) n =
-                match n with
-                | 0 -> l
-                | x -> shift1 (shift l (n-1))
-
-            let rDiv = right / 32
-            let rMod = right % 32
-
-            Natural( (shift left.Data rMod) @ (List.init rDiv (fun i -> 0u)) )
+            Natural( Helpers.compress( result ) @ (List.init listElementsToShift (fun i -> 0u)) )
 
         static member (>>>) (left:Natural, right:int) : Natural =
-            let msb = 0x80000000u
-
-            let rec chomp l n =
-                match l with
-                | [] -> [0u]
-                | _ ->
-                    match n with
-                    | 0 -> l
-                    | x -> chomp (List.rev l |> List.tail |> List.rev) (n-1)
-
-            let shift1 (l:uint32 list) =
-                let s = (List.map (fun x -> x >>> 1) l) @ [0u]
-                let o = 0u :: (List.map (fun x -> if (1u &&& x) > 0u then msb else 0u) l)
-                let n = List.map2 (fun x y -> x ||| y) s o
-                chomp (if 0u = n.Head then n.Tail else n) 1
-
-            let rec shift (l:uint32 list) n =
+            let rec chomp n l =
                 match n with
-                | 0 -> l
-                | x -> shift1 (shift l (n-1))
+                | x when x > (List.length l) -> [0u]
+                | x when x = (List.length l) -> []
+                | _ ->
+                    (List.head l) :: chomp n (List.tail l)
 
-            let rDiv = right / 32
-            let rMod = right % 32
+            let bitsToShift = right % 32
+            let listElementsToShift = right / 32
+            let underflowBits = ~~~(System.UInt32.MaxValue <<< bitsToShift)
 
-            let l = chomp left.Data rDiv
-            Natural( shift l rMod )
- 
+            let trimmedList = 
+                match listElementsToShift with
+                | 0 -> left.Data
+                | _ -> chomp listElementsToShift left.Data
+
+            let shiftedList = (List.map (fun x -> x >>> bitsToShift) trimmedList) @ [0u]
+            let underflowList = 0u :: (List.map (fun x -> (underflowBits &&& x) <<< (32 - bitsToShift) ) trimmedList)
+            let result =
+                List.map2 (fun x y -> x ||| y) shiftedList underflowList
+                |> chomp 1
+                |> Helpers.compress
+
+            Natural( result )
+
         // Comparison Operators
         static member op_Equality (left:Natural, right:Natural) : bool =
             let (l,r) = Helpers.normalize left.Data right.Data
