@@ -77,8 +77,7 @@ type public Natural(data:uint32 list) =
                 | [] -> false
                 | h::t ->
                     if h = r.Head then gt t r.Tail
-                    else if h > r.Head then true
-                    else false
+                    else h > r.Head
 
             match left.Data.Length - right.Data.Length with
             | x when x > 0 -> true
@@ -91,8 +90,7 @@ type public Natural(data:uint32 list) =
                 | [] -> false
                 | h::t ->
                     if h = r.Head then lt t r.Tail
-                    else if h < r.Head then true
-                    else false
+                    else h < r.Head
 
             match left.Data.Length - right.Data.Length with
             | x when x < 0 -> true
@@ -100,81 +98,49 @@ type public Natural(data:uint32 list) =
             | _ -> lt left.Data right.Data
 
         static member op_GreaterThanOrEqual (left:Natural, right:Natural) : bool =
-            let rec gte l (r:uint32 list) =
-                match l with
-                | [] -> true
-                | h::t ->
-                    if h = r.Head then gte t r.Tail
-                    else if h > r.Head then true
-                    else false
-
-            match left.Data.Length - right.Data.Length with
-            | x when x > 0 -> true
-            | x when x < 0 -> false
-            | 0 -> gte left.Data right.Data
+            (left = right) || (left > right)
 
         static member op_LessThanOrEqual (left:Natural, right:Natural) : bool =
-            let rec lte l (r:uint32 list) =
-                match l with
-                | [] -> true
-                | h::t ->
-                    if h = r.Head then lte t r.Tail
-                    else if h < r.Head then true
-                    else false
-
-            match left.Data.Length - right.Data.Length with
-            | x when x > 0 -> false
-            | x when x < 0 -> true
-            | 0 -> lte left.Data right.Data
+            (left = right) || (left < right)
 
         static member op_Inequality (left:Natural, right:Natural) : bool =
-            Natural.op_Equality( left, right )
-            |> not
+            (left = right) |> not
  
         // Arithmetic Operators
         // Binary
         static member (+) (left:Natural, right:Natural) : Natural =
-            let rightpad (l:uint32 list) n =
-                List.init (n - l.Length) (fun i -> 0u) @ l
+            let rec operation (l:uint32 list, r:uint32 list) : uint32 list =
+                let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
+                let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
+                match overflows with
+                | _ when [0u] = Helpers.compress overflows -> rawSums
+                | _ -> operation ( rawSums, overflows )
 
-            let leftpad l n =
-                l @ List.init (n - l.Length) (fun i -> 0u)
-
-            let (l,r) = Helpers.normalize left.Data right.Data
-            let len = Math.Max( left.Data.Length, right.Data.Length )
-            let s = rightpad (List.map2 (fun x y -> x + y) l r) (len+1)
-            let o = leftpad (List.map2 (fun  x y -> if x >= ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) (len+1)
-            let n = List.map2 (fun x y -> x + y ) s o
-
-            Natural( Helpers.compress n )
+            let result = operation ( Helpers.normalize left.Data right.Data )
+            Natural( Helpers.compress result )
 
         static member (-) (left:Natural, right:Natural) : Natural =
-            let rightpad (l:uint32 list) n =
-                List.init (n - l.Length) (fun i -> 0u) @ l
-
-            let leftpad l n =
-                l @ List.init (n - l.Length) (fun i -> 0u)
+            if( left < right ) then raise (new OverflowException())
 
             let (l,r) = Helpers.normalize left.Data right.Data
-            let len = Math.Max( left.Data.Length, right.Data.Length )
-            let d = rightpad (List.map2 (fun x y -> x - y) l r) (len+1)
-            let o = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) (len+1)
-            let o2 = leftpad (List.map2 (fun  x y -> if y > x then 1u else 0u) d.Tail o.Tail) (len+1)
-            let n = List.map3 (fun x y z -> x - y - z ) d o o2
+            let rawDifferences = 0u :: (List.map2 (fun x y -> x - y) l r)
+            let underflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) @ [0u]
+            let cascadeUnderflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) rawDifferences.Tail underflows.Tail) @ [0u]
+            let result = List.map3 (fun x y z -> x - y - z ) rawDifferences underflows cascadeUnderflows
 
-            Natural( Helpers.compress n )
+            Natural( Helpers.compress result )
 
         static member (*) (left:Natural, right:Natural) : Natural =
-            let rec magic value bit =
+            let rec magic value bitsToShiftLeft =
                 match value with
                 | x when Natural.Zero = x ->
                     []
                 | _ ->
                     match Natural.Unit &&& value with
                     | z when z = Natural.Zero ->
-                        magic (value>>>1) (bit+1)
+                        magic (value>>>1) (bitsToShiftLeft+1)
                     | u when u = Natural.Unit ->
-                        (left<<<bit) :: (magic (value>>>1) (bit+1))
+                        (left<<<bitsToShiftLeft) :: (magic (value>>>1) (bitsToShiftLeft+1))
                     | _ -> failwith "not possible (bit has value other than 0 or 1)"
 
             magic right 0
@@ -264,7 +230,7 @@ type public Natural(data:uint32 list) =
 
             s.ToCharArray()
             |> Array.rev
-            |> Array.map (fun c -> Convert.ToUInt32(c) - 0x30u )
+            |> Array.map (fun c -> Convert.ToUInt32(c) - 48u )
             |> Array.map (fun u -> Natural([u]))
             |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
             |> Array.sum

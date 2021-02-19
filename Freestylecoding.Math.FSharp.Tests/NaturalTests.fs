@@ -307,6 +307,7 @@ module Natural =
 
     module Addition =
         [<Theory>]
+        [<InlineData( 0u, 0u, 0u )>]        // Sanity
         [<InlineData( 1u, 1u, 2u )>]        // Sanity
         [<InlineData( 1u, 0u, 1u )>]        // Sanity
         [<InlineData( 0u, 1u, 1u )>]        // Sanity
@@ -347,6 +348,12 @@ module Natural =
             let r = Natural ([1u; System.UInt32.MaxValue - 1u; System.UInt32.MaxValue])
             Assert.Equal( Natural ([2u; 0u; 0u]), l + r )
 
+        [<Fact>]
+        let EdgeOfOverflow () =
+            let l = Natural ([1u; 1u])
+            let r = Natural ([1u; System.UInt32.MaxValue - 1u; 0u])
+            Assert.Equal( Natural ([1u; System.UInt32.MaxValue; 1u]), l + r )
+
     module Subtraction =
         [<Theory>]
         [<InlineData( 1u, 1u, 0u )>]                            // Sanity
@@ -361,7 +368,13 @@ module Natural =
         let SingleItemBadUnderflow () =
             let l = Natural ([0u])
             let r = Natural ([1u])
-            Assert.Equal( Natural ([0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+            Assert.True(
+                try
+                    l - r |> ignore
+                    false
+                with
+                | :? System.OverflowException -> true
+            )
 
         [<Fact>]
         let MultiItemNoUnderflow () =
@@ -385,7 +398,19 @@ module Natural =
         let MultiItemUnsafeUnderflow () =
             let l = Natural ([1u; 2u])
             let r = Natural ([1u; 3u])
-            Assert.Equal( Natural ([0xFFFFFFFFu; 0xFFFFFFFFu; 0xFFFFFFFFu]), l - r )
+            Assert.True(
+                try
+                    l - r |> ignore
+                    false
+                with
+                | :? System.OverflowException -> true
+            )
+
+        [<Fact>]
+        let LargeWithUnderflows () =
+            let l = Natural ([3u; 2u; 1u])
+            let r = Natural ([1u; 2u; 3u])
+            Assert.Equal( Natural ([0x1u; 0xFFFFFFFFu; 0xFFFFFFFEu]), l - r )
 
     module Multiply =
         [<Theory>]

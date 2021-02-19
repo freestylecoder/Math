@@ -396,7 +396,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void SingleItemBadUnderflow() {
 			Natural l = new Natural( new[] { 0u });
 			Natural r = new Natural( new[] {1u});
-			Assert.Equal( new Natural( new[] { 0xFFFFFFFFu, 0xFFFFFFFFu } ), l - r );
+			Assert.IsType<OverflowException>( Record.Exception( () => l - r ) );
 		}
 		[Fact]
 		public void MultiItemNoUnderflow() {
@@ -422,7 +422,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void MultiItemUnsafeUnderflow() {
 			Natural l = new Natural( new[] { 1u, 2u } );
 			Natural r = new Natural( new[] {1u, 3u});
-			Assert.Equal( new Natural( new[] { 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu } ), l - r );
+			Assert.IsType<OverflowException>( Record.Exception( () => l - r ) );
 		}
 	}
 
