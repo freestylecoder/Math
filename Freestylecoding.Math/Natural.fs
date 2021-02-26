@@ -104,7 +104,7 @@ type public Natural(data:uint32 list) =
             (left = right) || (left < right)
 
         static member op_Inequality (left:Natural, right:Natural) : bool =
-            (left = right) |> not
+            not (left = right)
  
         // Arithmetic Operators
         // Binary

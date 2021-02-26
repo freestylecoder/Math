@@ -957,6 +957,27 @@ module Integer =
         let BigNegative () =
             Assert.Equal( Integer( [0xFEDCBA9u; 0x76543210u] ), -Integer( [0xFEDCBA9u; 0x76543210u], true )  )
 
+    module Equals =
+        [<Theory>]
+        [<InlineData( "1", "1", true )>]      // Sanity
+        [<InlineData( "1", "-1", false )>]    // Sanity
+        [<InlineData( "-1", "1", false )>]    // Sanity
+        [<InlineData( "-1", "-1", true )>]    // Sanity
+        let Sanity l r e =
+            Assert.Equal( e, Integer.Parse( l ).Equals( Integer.Parse( r ) ) )
+
+        [<Fact>]
+        let NaturalEquals () =
+            Assert.True( Integer.Unit.Equals( Natural.Unit ) )
+
+        [<Fact>]
+        let NaturalNotEquals () =
+            Assert.False( Integer.Unit.Equals( Natural.Zero ) )
+
+        [<Fact>]
+        let NaturalSignNotEquals () =
+            Assert.False( (-Integer.Unit).Equals( Natural.Unit ) )
+
     module ToString =
         [<Theory>]
         [<InlineData( 0u, false, "0" )>]          // Sanity

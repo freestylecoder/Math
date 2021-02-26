@@ -1013,6 +1013,28 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Integer( new[] { 0xFEDCBA9u, 0x76543210u } ), -new Integer( new[] { 0xFEDCBA9u, 0x76543210u }, true ) );
 	}
 
+	public class IntegerEquals {
+		[Theory]
+		[InlineData( "1", "1", true )]      // Sanity
+		[InlineData( "1", "-1", false )]    // Sanity
+		[InlineData( "-1", "1", false )]    // Sanity
+		[InlineData( "-1", "-1", true )]    // Sanity
+		public void Sanity( string l, string r, bool e ) =>
+			Assert.Equal( e, Integer.Parse( l ).Equals( Integer.Parse( r ) ) );
+
+		[Fact]
+		public void NaturalEquals() =>
+			Assert.True( Integer.Unit.Equals( Natural.Unit ) );
+
+		[Fact]
+		public void NaturalNotEquals() =>
+			Assert.False( Integer.Unit.Equals( Natural.Zero ) );
+
+		[Fact]
+		public void NaturalSignNotEquals() =>
+			Assert.False( ( -Integer.Unit ).Equals( Natural.Unit ) );
+	}
+
 	public class IntegerToString {
 		[Theory]
 		[InlineData( 0u, false, "0" )]          // Sanity
