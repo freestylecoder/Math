@@ -4,7 +4,7 @@ open System
 
 type public Integer(data:uint list, negative:bool) =
     inherit Natural( data )
-    member private Integer.Negative:bool = negative && ( data <> [0u] )
+    member internal Integer.Negative:bool = negative && ( data <> [0u] )
 
     new(data:uint32 list) = Integer( data, false )
     new(data:uint32 seq) = Integer( Seq.toList( data ) )

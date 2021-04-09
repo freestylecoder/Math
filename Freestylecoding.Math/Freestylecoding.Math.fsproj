@@ -8,6 +8,7 @@
     <Compile Include="Helpers.fs" />
     <Compile Include="Natural.fs" />
     <Compile Include="Integer.fs" />
+    <Compile Include="Rational.fs" />
   </ItemGroup>
 
 </Project>
