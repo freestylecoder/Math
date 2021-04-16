@@ -814,95 +814,71 @@ module Rational =
                 Rational.Parse( "1/2" ) / Rational.Parse( "1/2" )
             )
 
-    //module Modulo =
-    //    [<Theory>]
-    //    [<InlineData( "1", "1", "0" )>]        // Sanity
-    //    [<InlineData( "-1", "1", "0" )>]        // Sanity
-    //    [<InlineData( "1", "-1", "0" )>]        // Sanity
-    //    [<InlineData( "-1", "-1", "0" )>]        // Sanity
-    //    [<InlineData( "0", "1", "0" )>]        // Sanity
-    //    [<InlineData( "0", "-1", "0" )>]        // Sanity
-    //    [<InlineData( "44", "7", "2" )>]       // multiple bits
-    //    [<InlineData( "-44", "7", "-2" )>]       // multiple bits
-    //    [<InlineData( "44", "-7", "2" )>]       // multiple bits
-    //    [<InlineData( "-44", "-7", "-2" )>]       // multiple bits
-    //    [<InlineData( "52", "5", "2" )>]      // rev
-    //    [<InlineData( "-52", "5", "-2" )>]      // rev
-    //    [<InlineData( "52", "-5", "2" )>]      // rev
-    //    [<InlineData( "-52", "-5", "-2" )>]      // rev
-    //    [<InlineData( "52", "10", "2" )>]      // rev
-    //    [<InlineData( "-52", "10", "-2" )>]      // rev
-    //    [<InlineData( "52", "-10", "2" )>]      // rev
-    //    [<InlineData( "-52", "-10", "-2" )>]      // rev
-    //    let Sanity dividend divisor remainder =
-    //        Assert.Equal( Rational.Parse( remainder ), Rational.Parse( dividend ) % Rational.Parse( divisor ) )
+    module Modulo =
+        [<Theory>]
+        [<InlineData( " 1/2",  " 1",    " 1/2" )>]      // Sanity
+        [<InlineData( "-1/2",  " 1",    "-1/2" )>]      // Sanity
+        [<InlineData( " 1/2",  "-1",    "-1/2" )>]      // Sanity
+        [<InlineData( "-1/2",  "-1",    " 1/2" )>]      // Sanity
+        [<InlineData( " 1  ",  " 1/2",  " 0" )>]        // Sanity
+        [<InlineData( "-1  ",  " 1/2",  " 0" )>]        // Sanity
+        [<InlineData( " 1  ",  "-1/2",  " 0" )>]        // Sanity
+        [<InlineData( "-1  ",  "-1/2",  " 0" )>]        // Sanity
+        [<InlineData( " 0",    " 1/2",  " 0" )>]        // Sanity
+        [<InlineData( " 0",    "-1/2",  " 0" )>]        // Sanity
+        [<InlineData( " 6/11", " 7/13", " 1/77" )>]     // multiple bits
+        [<InlineData( "-6/11", " 7/13", "-1/77" )>]     // multiple bits
+        [<InlineData( " 6/11", "-7/13", "-1/77" )>]     // multiple bits
+        [<InlineData( "-6/11", "-7/13", " 1/77" )>]     // multiple bits
+        let Sanity dividend divisor remainder =
+            Assert.Equal(
+                Rational.Parse( remainder ),
+                Rational.Parse( dividend ) % Rational.Parse( divisor )
+            )
 
-    //    [<Fact>]
-    //    let Zero () =
-    //        Assert.Equal( Rational([0u]), Rational([20u]) % Rational([10u]) )
+        [<Fact>]
+        let DivideByZero () =
+            Assert.Throws<System.DivideByZeroException>( fun () -> ( Rational.Unit % Rational.Zero ) |> ignore )
 
-    //    [<Fact>]
-    //    let DivideByZero () =
-    //        Assert.Throws<System.DivideByZeroException>( fun () -> ( Rational.Unit % Rational.Zero ) |> ignore )
+        [<Fact>]
+        let Inverse () =
+            Assert.Equal(
+                Rational.Parse( "0" ),
+                Rational.Parse( "1/2" ) % Rational.Parse( "1/2" )
+            )
 
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( Rational([0x12345678u]), Rational([0x75CD9046u; 0x6651AFF8u]) % Rational([0x76543210u]) )
+    module DivisionModulo =
+        [<Theory>]
+        [<InlineData( " 1/2",  " 1",    " 0", " 1/2" )>]      // Sanity
+        [<InlineData( "-1/2",  " 1",    " 0", "-1/2" )>]      // Sanity
+        [<InlineData( " 1/2",  "-1",    " 0", "-1/2" )>]      // Sanity
+        [<InlineData( "-1/2",  "-1",    " 0", " 1/2" )>]      // Sanity
+        [<InlineData( " 1  ",  " 1/2",  " 2", " 0" )>]        // Sanity
+        [<InlineData( "-1  ",  " 1/2",  "-2", " 0" )>]        // Sanity
+        [<InlineData( " 1  ",  "-1/2",  "-2", " 0" )>]        // Sanity
+        [<InlineData( "-1  ",  "-1/2",  " 2", " 0" )>]        // Sanity
+        [<InlineData( " 0",    " 1/2",  " 0", " 0" )>]        // Sanity
+        [<InlineData( " 0",    "-1/2",  " 0", " 0" )>]        // Sanity
+        [<InlineData( " 6/11", " 7/13", " 1", " 1/77" )>]     // multiple bits
+        [<InlineData( "-6/11", " 7/13", "-1", "-1/77" )>]     // multiple bits
+        [<InlineData( " 6/11", "-7/13", "-1", "-1/77" )>]     // multiple bits
+        [<InlineData( "-6/11", "-7/13", " 1", " 1/77" )>]     // multiple bits
+        let Sanity dividend divisor quotient remainder =
+            Assert.Equal(
+                ( Integer.Parse( quotient ), Rational.Parse( remainder ) ),
+                Rational.Parse( dividend ) /% Rational.Parse( divisor )
+            )
 
-    //    [<Fact>]
-    //    let BigMixedLeft () =
-    //        Assert.Equal( Rational([0x12345678u], true), Rational([0x75CD9046u; 0x6651AFF8u], true) % Rational([0x76543210u]) )
+        [<Fact>]
+        let DivideByZero () =
+            Assert.Throws<System.DivideByZeroException>( fun () -> ( Rational.Unit /% Rational.Zero ) |> ignore )
 
-    //    [<Fact>]
-    //    let BigMixedRight () =
-    //        Assert.Equal( Rational([0x12345678u]), Rational([0x75CD9046u; 0x6651AFF8u]) % Rational([0x76543210u], true) )
-
-    //    [<Fact>]
-    //    let BigNegative () =
-    //        Assert.Equal( Rational([0x12345678u], true), Rational([0x75CD9046u; 0x6651AFF8u], true) % Rational([0x76543210u], true) )
-
-    //module DivisionModulo =
-    //    [<Theory>]
-    //    [<InlineData( "1", "1", "1", "0" )>]        // Sanity
-    //    [<InlineData( "-1", "1", "-1", "0" )>]        // Sanity
-    //    [<InlineData( "1", "-1", "-1", "0" )>]        // Sanity
-    //    [<InlineData( "-1", "-1", "1", "0" )>]        // Sanity
-    //    [<InlineData( "0", "1", "0", "0" )>]        // Sanity
-    //    [<InlineData( "0", "-1", "0", "0" )>]        // Sanity
-    //    [<InlineData( "44", "7", "6", "2" )>]       // multiple bits
-    //    [<InlineData( "-44", "7", "-6", "-2" )>]       // multiple bits
-    //    [<InlineData( "44", "-7", "-6", "2" )>]       // multiple bits
-    //    [<InlineData( "-44", "-7", "6", "-2" )>]       // multiple bits
-    //    [<InlineData( "52", "5", "10", "2" )>]      // rev
-    //    [<InlineData( "-52", "5", "-10", "-2" )>]      // rev
-    //    [<InlineData( "52", "-5", "-10", "2" )>]      // rev
-    //    [<InlineData( "-52", "-5", "10", "-2" )>]      // rev
-    //    [<InlineData( "52", "10", "5", "2" )>]      // rev
-    //    [<InlineData( "-52", "10", "-5", "-2" )>]      // rev
-    //    [<InlineData( "52", "-10", "-5", "2" )>]      // rev
-    //    [<InlineData( "-52", "-10", "5", "-2" )>]      // rev
-    //    let Sanity dividend divisor quotient remainder =
-    //        Assert.Equal( (Rational.Parse( quotient ),Rational.Parse( remainder )), Rational.Parse( dividend ) /% Rational.Parse( divisor ) )
-
-    //    [<Fact>]
-    //    let DivideByZero () =
-    //        Assert.Throws<System.DivideByZeroException>( fun () -> ( Rational.Unit /% Rational.Zero ) |> ignore )
-
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal( (Rational([0xFEDCBA98u]),Rational([0x12345678u])), Rational([0x75CD9046u; 0x6651AFF8u]) /% Rational([0x76543210u]) )
-
-    //    [<Fact>]
-    //    let BigMixedLeft () =
-    //        Assert.Equal( (Rational([0xFEDCBA98u], true),Rational([0x12345678u], true)), Rational([0x75CD9046u; 0x6651AFF8u], true) /% Rational([0x76543210u]) )
-
-    //    [<Fact>]
-    //    let BigMixedRight () =
-    //        Assert.Equal( (Rational([0xFEDCBA98u], true),Rational([0x12345678u])), Rational([0x75CD9046u; 0x6651AFF8u]) /% Rational([0x76543210u], true) )
-
-    //    [<Fact>]
-    //    let BigNegative () =
-    //        Assert.Equal( (Rational([0xFEDCBA98u]),Rational([0x12345678u], true)), Rational([0x75CD9046u; 0x6651AFF8u], true) /% Rational([0x76543210u], true) )
+        [<Fact>]
+        let Inverse () =
+            Assert.Equal(
+                ( Integer.Parse( "1" ), Rational.Parse( "0" ) ),
+                Rational.Parse( "1/2" ) /% Rational.Parse( "1/2" )
+            )
 
     module Negation =
         [<Theory>]

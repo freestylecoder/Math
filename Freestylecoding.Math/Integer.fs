@@ -181,4 +181,4 @@ type public Integer(data:uint list, negative:bool) =
 
         // Other things we need that require previous operators
         static member Parse (s:string) =
-            Integer( Natural.Parse( s.TrimStart( '-' ) ), s.StartsWith( "-" ) )
+             Integer( Natural.Parse( s.Trim().TrimStart( '-' ) ), s.Trim().StartsWith( "-" ) )
