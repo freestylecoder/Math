@@ -19,17 +19,42 @@ module Rational =
         //let RightShift () =
         //    Assert.Equal( Rational([9u], true), Rational([4u; 0x8000_0000u; 0u], true) >>> 63 )
 
-        //[<Fact>]
-        //let GreaterThanTrue () =
-        //    Assert.True( Rational([0xBADu; 0xDEADBEEFu;]) > Rational([0xDEADBEEFu; 0xBADu], true) )
+        [<Fact>]
+        let GreaterThanTrue () =
+            Assert.True(
+                Rational(
+                    Integer( [0xBADu; 0xDEADBEEFu;] ),
+                    Natural( [2u] )
+                ) > Rational(
+                    Integer( [0xDEADBEEFu; 0xBADu], true ),
+                    Natural( [2u] )
+                )
+            )
 
-        //[<Fact>]
-        //let GreaterThanFalseByLessThan () =
-        //    Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) > Rational([0xDEADBEEFu; 0xBADu]) )
+        [<Fact>]
+        let GreaterThanFalseByLessThan () =
+            Assert.False(
+                Rational(
+                    Integer( [0xBADu; 0xDEADBEEFu;] , true),
+                    Natural( [2u] )
+                ) > Rational(
+                    Integer( [0xDEADBEEFu; 0xBADu] ),
+                    Natural( [2u] )
+                )
+            )
 
-        //[<Fact>]
-        //let GreaterThanFalseByEquals () =
-        //    Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) > Rational([0xBADu; 0xDEADBEEFu], true) )
+        [<Fact>]
+        let GreaterThanFalseByEquals () =
+            Assert.False(
+                Rational(
+                    Integer( [0xBADu; 0xDEADBEEFu;] , true),
+                    Natural( [2u] )
+                ) > Rational(
+                    Integer( [0xBADu; 0xDEADBEEFu;] , true),
+                    Natural( [2u] )
+                )
+
+            )
 
         [<Fact>]
         let Addition () =
@@ -285,399 +310,110 @@ module Rational =
         let BiggerRightDenominator () =
             Assert.False( Rational([20u], [0xDEADBEEFu]) = Rational([20u], [0xBADu; 0xDEADBEEFu]) )
     
-    //module GreaterThan =
-    //    [<Theory>]
-    //    [<InlineData( "0", "1", false )>]
-    //    [<InlineData( "1", "0", true )>]
-    //    [<InlineData( "0", "-1", true )>]
-    //    [<InlineData( "-1", "0", false )>]
-    //    [<InlineData( "1", "1", false )>]
-    //    [<InlineData( "-1", "1", false )>]
-    //    [<InlineData( "1", "-1", true )>]
-    //    [<InlineData( "-1", "-1", false )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) > Rational.Parse( r ) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu]) > Rational([0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.False( Rational([0xDEADBEEFu]) > Rational([0xBADu; 0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThan () =
-    //        Assert.True( Rational([1u; 1u]) > Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqual () =
-    //        Assert.False( Rational([1u; 0u]) > Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThan () =
-    //        Assert.False( Rational([1u; 0u]) > Rational([1u; 1u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftNegative () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) > Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightNegative () =
-    //        Assert.True( Rational([0xDEADBEEFu], true) > Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanNegative () =
-    //        Assert.False( Rational([1u; 1u], true) > Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualNegative () =
-    //        Assert.False( Rational([1u; 0u], true) > Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanNegative () =
-    //        Assert.True( Rational([1u; 0u], true) > Rational([1u; 1u],true) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeLeft () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) > Rational([0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeLeft () =
-    //        Assert.False( Rational([0xDEADBEEFu], true) > Rational([0xBADu; 0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 1u], true) > Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 0u], true) > Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 0u], true) > Rational([1u; 1u], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeRight () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], false) > Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeRight () =
-    //        Assert.True( Rational([0xDEADBEEFu], false) > Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 1u], false) > Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 0u], false) > Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 0u], false) > Rational([1u; 1u], true) )
-    //
-    //module LessThan =
-    //    [<Theory>]
-    //    [<InlineData( "0", "1", true )>]
-    //    [<InlineData( "1", "0", false )>]
-    //    [<InlineData( "0", "-1", false )>]
-    //    [<InlineData( "-1", "0", true )>]
-    //    [<InlineData( "1", "1", false )>]
-    //    [<InlineData( "-1", "1", true )>]
-    //    [<InlineData( "1", "-1", false )>]
-    //    [<InlineData( "-1", "-1", false )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) < Rational.Parse( r ) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu]) < Rational([0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.True( Rational([0xDEADBEEFu]) < Rational([0xBADu; 0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThan () =
-    //        Assert.False( Rational([1u; 1u]) < Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqual () =
-    //        Assert.False( Rational([1u; 0u]) < Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThan () =
-    //        Assert.True( Rational([1u; 0u]) < Rational([1u; 1u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftNegative () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], true) < Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightNegative () =
-    //        Assert.False( Rational([0xDEADBEEFu], true) < Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanNegative () =
-    //        Assert.True( Rational([1u; 1u], true) < Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualNegative () =
-    //        Assert.False( Rational([1u; 0u], true) < Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanNegative () =
-    //        Assert.False( Rational([1u; 0u], true) < Rational([1u; 1u],true) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeLeft () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], true) < Rational([0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeLeft () =
-    //        Assert.True( Rational([0xDEADBEEFu], true) < Rational([0xBADu; 0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 1u], true) < Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 0u], true) < Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 0u], true) < Rational([1u; 1u], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeRight () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], false) < Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeRight () =
-    //        Assert.False( Rational([0xDEADBEEFu], false) < Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 1u], false) < Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 0u], false) < Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 0u], false) < Rational([1u; 1u], true) )
-    //
-    //module GreaterThanOrEqual =
-    //    [<Theory>]
-    //    [<InlineData( "0", "1", false )>]
-    //    [<InlineData( "1", "0", true )>]
-    //    [<InlineData( "0", "-1", true )>]
-    //    [<InlineData( "-1", "0", false )>]
-    //    [<InlineData( "1", "1", true )>]
-    //    [<InlineData( "-1", "1", false )>]
-    //    [<InlineData( "1", "-1", true )>]
-    //    [<InlineData( "-1", "-1", true )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) >= Rational.Parse( r ) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu]) >= Rational([0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.False( Rational([0xDEADBEEFu]) >= Rational([0xBADu; 0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThan () =
-    //        Assert.True( Rational([1u; 1u]) >= Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqual () =
-    //        Assert.True( Rational([1u; 0u]) >= Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThan () =
-    //        Assert.False( Rational([1u; 0u]) >= Rational([1u; 1u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftNegative () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) >= Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightNegative () =
-    //        Assert.True( Rational([0xDEADBEEFu], true) >= Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanNegative () =
-    //        Assert.False( Rational([1u; 1u], true) >= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualNegative () =
-    //        Assert.True( Rational([1u; 0u], true) >= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanNegative () =
-    //        Assert.True( Rational([1u; 0u], true) >= Rational([1u; 1u],true) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeLeft () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], true) >= Rational([0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeLeft () =
-    //        Assert.False( Rational([0xDEADBEEFu], true) >= Rational([0xBADu; 0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 1u], true) >= Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 0u], true) >= Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeLeft () =
-    //        Assert.False( Rational([1u; 0u], true) >= Rational([1u; 1u], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeRight () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], false) >= Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeRight () =
-    //        Assert.True( Rational([0xDEADBEEFu], false) >= Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 1u], false) >= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 0u], false) >= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeRight () =
-    //        Assert.True( Rational([1u; 0u], false) >= Rational([1u; 1u], true) )
-    //
-    //module LessThanOrEqual =
-    //    [<Theory>]
-    //    [<InlineData( "0", "1", true )>]
-    //    [<InlineData( "1", "0", false )>]
-    //    [<InlineData( "0", "-1", false )>]
-    //    [<InlineData( "-1", "0", true )>]
-    //    [<InlineData( "1", "1", true )>]
-    //    [<InlineData( "-1", "1", true )>]
-    //    [<InlineData( "1", "-1", false )>]
-    //    [<InlineData( "-1", "-1", true )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) <= Rational.Parse( r ) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu]) <= Rational([0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.True( Rational([0xDEADBEEFu]) <= Rational([0xBADu; 0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThan () =
-    //        Assert.False( Rational([1u; 1u]) <= Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqual () =
-    //        Assert.True( Rational([1u; 0u]) <= Rational([1u; 0u]) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThan () =
-    //        Assert.True( Rational([1u; 0u]) <= Rational([1u; 1u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftNegative () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], true) <= Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightNegative () =
-    //        Assert.False( Rational([0xDEADBEEFu], true) <= Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanNegative () =
-    //        Assert.True( Rational([1u; 1u], true) <= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualNegative () =
-    //        Assert.True( Rational([1u; 0u], true) <= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanNegative () =
-    //        Assert.False( Rational([1u; 0u], true) <= Rational([1u; 1u],true) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeLeft () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu], true) <= Rational([0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeLeft () =
-    //        Assert.True( Rational([0xDEADBEEFu], true) <= Rational([0xBADu; 0xDEADBEEFu], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 1u], true) <= Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 0u], true) <= Rational([1u; 0u], false) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeLeft () =
-    //        Assert.True( Rational([1u; 0u], true) <= Rational([1u; 1u], false) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeftMixedNegativeRight () =
-    //        Assert.False( Rational([0xBADu; 0xDEADBEEFu], false) <= Rational([0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let BiggerRightMixedNegativeRight () =
-    //        Assert.False( Rational([0xDEADBEEFu], false) <= Rational([0xBADu; 0xDEADBEEFu], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeGreaterThanMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 1u], false) <= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeEqualMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 0u], false) <= Rational([1u; 0u], true) )
-    //
-    //    [<Fact>]
-    //    let CascadeLessThanMixedNegativeRight () =
-    //        Assert.False( Rational([1u; 0u], false) <= Rational([1u; 1u], true) )
-    //
-    //module Inequality =
-    //    [<Theory>]
-    //    [<InlineData( "0", "0", false )>]
-    //    [<InlineData( "0", "1", true )>]
-    //    [<InlineData( "1", "0", true )>]
-    //    [<InlineData( "1", "1", false )>]
-    //    [<InlineData( "0", "-1", true )>]
-    //    [<InlineData( "-1", "0", true )>]
-    //    [<InlineData( "-1", "1", true )>]
-    //    [<InlineData( "1", "-1", true )>]
-    //    [<InlineData( "-1", "-1", false )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) <> Rational.Parse( r ) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.True( Rational([0xBADu; 0xDEADBEEFu]) <> Rational([0xDEADBEEFu]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.True( Rational([0xDEADBEEFu]) <> Rational([0xBADu; 0xDEADBEEFu]) )
+    module GreaterThan =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   false )>]
+        [<InlineData( " 1",    " 0",   true )>]
+        [<InlineData( " 0",    "-1",   true )>]
+        [<InlineData( "-1",    " 0",   false )>]
+        [<InlineData( " 1",    " 1",   false )>]
+        [<InlineData( "-1",    " 1",   false )>]
+        [<InlineData( " 1",    "-1",   true )>]
+        [<InlineData( "-1",    "-1",   false )>]
+        [<InlineData( " 1/2",  " 1/2", false )>]
+        [<InlineData( "-1/2",  " 1/2", false )>]
+        [<InlineData( " 1/2",  "-1/2", true )>]
+        [<InlineData( "-1/2",  "-1/2", false )>]
+        [<InlineData( " 1/3",  " 1/2", false )>]
+        [<InlineData( "-1/3",  " 1/2", false )>]
+        [<InlineData( " 1/3",  "-1/2", true )>]
+        [<InlineData( "-1/3",  "-1/2", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Rational.Parse( l ) > Rational.Parse( r ) )
+    
+    module LessThan =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   true )>]
+        [<InlineData( " 1",    " 0",   false )>]
+        [<InlineData( " 0",    "-1",   false )>]
+        [<InlineData( "-1",    " 0",   true )>]
+        [<InlineData( " 1",    " 1",   false )>]
+        [<InlineData( "-1",    " 1",   true )>]
+        [<InlineData( " 1",    "-1",   false )>]
+        [<InlineData( "-1",    "-1",   false )>]
+        [<InlineData( " 1/2",  " 1/2", false )>]
+        [<InlineData( "-1/2",  " 1/2", true )>]
+        [<InlineData( " 1/2",  "-1/2", false )>]
+        [<InlineData( "-1/2",  "-1/2", false )>]
+        [<InlineData( " 1/3",  " 1/2", true )>]
+        [<InlineData( "-1/3",  " 1/2", true )>]
+        [<InlineData( " 1/3",  "-1/2", false )>]
+        [<InlineData( "-1/3",  "-1/2", false )>]
+        let Sanity l r x =
+            Assert.Equal( x, Rational.Parse( l ) < Rational.Parse( r ) )
+
+    module GreaterThanOrEqual =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   false )>]
+        [<InlineData( " 1",    " 0",   true )>]
+        [<InlineData( " 0",    "-1",   true )>]
+        [<InlineData( "-1",    " 0",   false )>]
+        [<InlineData( " 1",    " 1",   true )>]
+        [<InlineData( "-1",    " 1",   false )>]
+        [<InlineData( " 1",    "-1",   true )>]
+        [<InlineData( "-1",    "-1",   true )>]
+        [<InlineData( " 1/2",  " 1/2", true )>]
+        [<InlineData( "-1/2",  " 1/2", false )>]
+        [<InlineData( " 1/2",  "-1/2", true )>]
+        [<InlineData( "-1/2",  "-1/2", true )>]
+        [<InlineData( " 1/3",  " 1/2", false )>]
+        [<InlineData( "-1/3",  " 1/2", false )>]
+        [<InlineData( " 1/3",  "-1/2", true )>]
+        [<InlineData( "-1/3",  "-1/2", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Rational.Parse( l ) >= Rational.Parse( r ) )
+
+    module LessThanOrEqual =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   true )>]
+        [<InlineData( " 1",    " 0",   false )>]
+        [<InlineData( " 0",    "-1",   false )>]
+        [<InlineData( "-1",    " 0",   true )>]
+        [<InlineData( " 1",    " 1",   true )>]
+        [<InlineData( "-1",    " 1",   true )>]
+        [<InlineData( " 1",    "-1",   false )>]
+        [<InlineData( "-1",    "-1",   true )>]
+        [<InlineData( " 1/2",  " 1/2", true )>]
+        [<InlineData( "-1/2",  " 1/2", true )>]
+        [<InlineData( " 1/2",  "-1/2", false )>]
+        [<InlineData( "-1/2",  "-1/2", true )>]
+        [<InlineData( " 1/3",  " 1/2", true )>]
+        [<InlineData( "-1/3",  " 1/2", true )>]
+        [<InlineData( " 1/3",  "-1/2", false )>]
+        [<InlineData( "-1/3",  "-1/2", false )>]
+        let Sanity l r x =
+            Assert.Equal( x, Rational.Parse( l ) <= Rational.Parse( r ) )
+
+    module Inequality =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   true )>]
+        [<InlineData( " 1",    " 0",   true )>]
+        [<InlineData( " 0",    "-1",   true )>]
+        [<InlineData( "-1",    " 0",   true )>]
+        [<InlineData( " 1",    " 1",   false )>]
+        [<InlineData( "-1",    " 1",   true )>]
+        [<InlineData( " 1",    "-1",   true )>]
+        [<InlineData( "-1",    "-1",   false )>]
+        [<InlineData( " 1/2",  " 1/2", false )>]
+        [<InlineData( "-1/2",  " 1/2", true )>]
+        [<InlineData( " 1/2",  "-1/2", true )>]
+        [<InlineData( "-1/2",  "-1/2", false )>]
+        [<InlineData( " 1/3",  " 1/2", true )>]
+        [<InlineData( "-1/3",  " 1/2", true )>]
+        [<InlineData( " 1/3",  "-1/2", true )>]
+        [<InlineData( "-1/3",  "-1/2", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Rational.Parse( l ) <> Rational.Parse( r ) )
 
     module Addition =
         [<Theory>]

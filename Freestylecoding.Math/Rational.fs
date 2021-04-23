@@ -64,19 +64,23 @@ type public Rational(numerator:Integer, denominator:Natural) =
             ( left.Denominator = right.Denominator ) && ( left.Numerator = right.Numerator )
 
         static member op_GreaterThan (left:Rational, right:Rational) : bool =
-            raise (new System.NotImplementedException())
+            let l = left.Numerator * Integer( right.Denominator )
+            let r = right.Numerator * Integer( left.Denominator )
+            l > r
 
         static member op_LessThan (left:Rational, right:Rational) : bool =
-            raise (new System.NotImplementedException())
+            let l = left.Numerator * Integer( right.Denominator )
+            let r = right.Numerator * Integer( left.Denominator )
+            l < r
 
         static member op_GreaterThanOrEqual (left:Rational, right:Rational) : bool =
-            raise (new System.NotImplementedException())
+            left = right || left > right
 
         static member op_LessThanOrEqual (left:Rational, right:Rational) : bool =
-            raise (new System.NotImplementedException())
+            left = right || left < right
 
         static member op_Inequality (left:Rational, right:Rational) : bool =
-            raise (new System.NotImplementedException())
+            not ( left = right )
 
         // Arithmetic Operators
         // Binary
@@ -135,8 +139,42 @@ type public Rational(numerator:Integer, denominator:Natural) =
 
         // IComparable (for .NET) 
         interface IComparable with
+            // TODO: Add support for the other types
             member left.CompareTo right = 
-                raise (new System.NotImplementedException())
+                match right.GetType() with
+                | t when t = typeof<Rational> ->
+                    let r = right :?> Rational
+                    match Rational.op_Equality(left, r) with
+                    | true -> 0
+                    | false ->
+                        match Rational.op_GreaterThan(left, r) with
+                        | true -> 1
+                        | false -> -1
+                | t when t = typeof<Integer> ->
+                    let r = Rational( right :?> Integer, Natural.Unit )
+                    match Rational.op_Equality(left, r) with
+                    | true -> 0
+                    | false ->
+                        match Rational.op_GreaterThan(left, r) with
+                        | true -> 1
+                        | false -> -1
+                | t when t = typeof<Integer> ->
+                    let r = Rational( right :?> Integer, Natural.Unit )
+                    match Rational.op_Equality(left, r) with
+                    | true -> 0
+                    | false ->
+                        match Rational.op_GreaterThan(left, r) with
+                        | true -> 1
+                        | false -> -1
+                | t when t = typeof<Natural> ->
+                    let r = Rational( Integer( right :?> Natural ), Natural.Unit )
+                    match Rational.op_Equality(left, r) with
+                    | true -> 0
+                    | false ->
+                        match Rational.op_GreaterThan(left, r) with
+                        | true -> 1
+                        | false -> -1
+                | _ -> raise (new System.ArgumentException())
 
         // Other things we need that require previous operators
         static member Parse (s:string) =
