@@ -11,14 +11,6 @@ module Rational =
     // IF ANY OF THE SANITY TESTS FAIL, DON'T TRUST ANY OTHER TEST!
     [<Trait( "Type", "Sanity" )>]
     module Sanity =
-        //[<Fact>]
-        //let LeftShift () =
-        //    Assert.Equal( Rational([4u; 0x8000_0000u; 0u], true), Rational([9u], true) <<< 63 )
-
-        //[<Fact>]
-        //let RightShift () =
-        //    Assert.Equal( Rational([9u], true), Rational([4u; 0x8000_0000u; 0u], true) >>> 63 )
-
         [<Fact>]
         let GreaterThanTrue () =
             Assert.True(
@@ -98,176 +90,29 @@ module Rational =
                 Rational.Parse("-1234567890123456789 / 41")
             )
 
-    //module And =
-    //    [<Theory>]
-    //    [<InlineData( "0", "0", "0")>]
-    //    [<InlineData( "1", "0", "0")>]
-    //    [<InlineData( "0", "1", "0")>]
-    //    [<InlineData( "1", "1", "1")>]
-    //    [<InlineData( "-1", "1", "1")>]
-    //    [<InlineData( "1", "-1", "1")>]
-    //    [<InlineData( "-1", "-1", "-1")>]
-    //    let Sanity l r x =
-    //        Assert.Equal( Rational.Parse(x), Rational.Parse(l) &&& Rational.Parse(r) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.Equal( Rational.Unit, Rational([0xFu; 0x00000101u]) &&& Rational([ 0x00010001u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.Equal( Rational.Unit, Rational([0x00010001u]) &&& Rational([0xFu; 0x00000101u]) )
-    //
-    //module Or =
-    //    [<Theory>]
-    //    [<InlineData( "0", "0", "0")>]
-    //    [<InlineData( "1", "0", "1")>]
-    //    [<InlineData( "0", "1", "1")>]
-    //    [<InlineData( "1", "1", "1")>]
-    //    [<InlineData( "-1", "1", "-1")>]
-    //    [<InlineData( "1", "-1", "-1")>]
-    //    [<InlineData( "-1", "-1", "-1")>]
-    //    let Sanity l r x =
-    //        Assert.Equal( Rational.Parse(x), Rational.Parse(l) ||| Rational.Parse(r) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.Equal( Rational([0xFu; 0x10101u]), Rational([0xFu; 0x00000101u]) ||| Rational([ 0x00010001u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.Equal( Rational([0xFu; 0x10101u]), Rational([0x00010001u]) ||| Rational([0xFu; 0x00000101u]) )
-    //
-    //module Xor =
-    //    [<Theory>]
-    //    [<InlineData( "0", "0", "0")>]
-    //    [<InlineData( "1", "0", "1")>]
-    //    [<InlineData( "0", "1", "1")>]
-    //    [<InlineData( "1", "1", "0")>]
-    //    [<InlineData( "-1", "0", "-1")>]
-    //    [<InlineData( "0", "-1", "-1")>]
-    //    [<InlineData( "-1", "-1", "0")>]
-    //    [<InlineData( "-1", "1", "0")>]
-    //    [<InlineData( "1", "-1", "0")>]
-    //    [<InlineData( "1", "2", "3")>]
-    //    [<InlineData( "-1", "2", "-3")>]
-    //    [<InlineData( "1", "-2", "-3")>]
-    //    [<InlineData( "-1", "-2", "3")>]
-    //    let Sanity l r x =
-    //        Assert.Equal( Rational.Parse(x), Rational.Parse(l) ^^^ Rational.Parse(r) )
-    //
-    //    [<Fact>]
-    //    let BiggerLeft () =
-    //        Assert.Equal( Rational([0xFu; 0x10100u]), Rational([0xFu; 0x00000101u]) ^^^ Rational([0x00010001u]) )
-    //
-    //    [<Fact>]
-    //    let BiggerRight () =
-    //        Assert.Equal( Rational([0xFu; 0x10100u]), Rational([0x00010001u]) ^^^ Rational([0xFu; 0x00000101u]) )
-    //
-    //module BitwiseNot =
-    //    // NOTE: These are not going through Parse because it would be
-    //    // more difficult to casually tell what is going on.
-    //    [<Theory>]
-    //    [<InlineData( 0xFFFFFFFEu, 1u)>]
-    //    [<InlineData( 1u, 0xFFFFFFFEu)>]
-    //    let Sanity r x =
-    //        Assert.Equal( Rational([x], true), ~~~ Rational([r], false) )
-    //
-    //    [<Fact>]
-    //    let Bigger () =
-    //        Assert.Equal( Rational([0xF0123456u; 0x789ABCDEu], true), ~~~ Rational([0x0FEDCBA9u; 0x87654321u], false) )
-    //
-    //    [<Theory>]
-    //    [<InlineData( true, false )>]
-    //    [<InlineData( false, true )>]
-    //    let Sign expected initial =
-    //        Assert.Equal( Rational([0xF0123456u; 0x789ABCDEu], expected), ~~~ Rational([0x0FEDCBA9u; 0x87654321u], initial) )
-    //
-    //module LeftShift =
-    //    [<Theory>]
-    //    [<InlineData( "1", 1, "2" )>]
-    //    [<InlineData( "-1", 1, "-2" )>]
-    //    let Sanity l r s =
-    //        Assert.Equal( Rational.Parse( s ), Rational.Parse( l ) <<< r )
-    //  
-    //    [<Fact>]
-    //    let Multiple () =
-    //        Assert.Equal( Rational([0x3Cu]), Rational([0xFu]) <<< 2 )
-    //
-    //    [<Fact>]
-    //    let Overflow () =
-    //        Assert.Equal( Rational([1u; 0xFFFFFFFEu]), Rational([0xFFFFFFFFu]) <<< 1 )
-    //   
-    //    [<Fact>]
-    //    let MultipleOverflow () =
-    //        Assert.Equal( Rational([0x5u; 0xFFFFFFF8u]), Rational([0xBFFFFFFFu]) <<< 3 )
-    //    
-    //    [<Fact>]
-    //    let OverOneUInt () =
-    //        Assert.Equal( Rational([8u; 0u; 0u]), Rational.Unit <<< 67 )
-    //
-    //    [<Fact>]
-    //    let OverflowNegative () =
-    //        Assert.Equal( Rational([1u; 0xFFFFFFFEu], true), Rational([0xFFFFFFFFu], true) <<< 1 )
-    //        
-    //    [<Fact>]
-    //    let MultipleOverflowNegative () =
-    //        Assert.Equal( Rational([0x5u; 0xFFFFFFF8u], true), Rational([0xBFFFFFFFu], true) <<< 3 )
-    //       
-    //    [<Fact>]
-    //    let OverOneUIntNegative () =
-    //        Assert.Equal( Rational([8u; 0u; 0u], true), Rational( Natural.Unit, true ) <<< 67 )
-    //
-    //module RightShift =
-    //    [<Theory>]
-    //    [<InlineData( "1", 1, "0" )>]
-    //    [<InlineData( "15", 2, "3" )>]
-    //    [<InlineData( "60", 2, "15" )>]
-    //    [<InlineData( "60", 1, "30" )>]
-    //    [<InlineData( "-1", 1, "0" )>]
-    //    [<InlineData( "-2", 1, "-1" )>]
-    //    [<InlineData( "-15", 2, "-3" )>]
-    //    [<InlineData( "-60", 2, "-15" )>]
-    //    [<InlineData( "-60", 1, "-30" )>]
-    //    let Sanity l r s =
-    //        Assert.Equal( Rational.Parse( s ), Rational.Parse( l ) >>> r )
-    //
-    //    [<Fact>]
-    //    let Underflow () =
-    //        Assert.Equal( Rational([0x7FFFFFFFu]), Rational([0xFFFFFFFFu]) >>> 1 )
-    //   
-    //    [<Fact>]
-    //    let MultipleUnderflow () =
-    //        Assert.Equal( Rational([0x1u; 0x5FFFFFFFu]), Rational([0xAu; 0xFFFFFFFFu]) >>> 3 )
-    //    
-    //    [<Fact>]
-    //    let OverOneUInt () =
-    //        Assert.Equal( Rational.Unit, Rational([0x10u; 0u; 0u]) >>> 68 )
-    //
-    //    [<Fact>]
-    //    let ReduceToZero () =
-    //        Assert.Equal( Rational.Zero, Rational([0x10u; 0u; 0u]) >>> 99 )
-    //
-    //    [<Fact>]
-    //    let UnderflowNegative () =
-    //        Assert.Equal( Rational([0x7FFFFFFFu], true), Rational([0xFFFFFFFFu], true) >>> 1 )
-    //    
-    //    [<Fact>]
-    //    let MultipleUnderflowNegative () =
-    //        Assert.Equal( Rational([0x1u; 0x5FFFFFFFu], true), Rational([0xAu; 0xFFFFFFFFu], true) >>> 3 )
-    //    
-    //    [<Fact>]
-    //    let OverOneUIntNegative () =
-    //        Assert.Equal( Rational( Natural.Unit, true ), Rational([0x10u; 0u; 0u], true) >>> 68 )
-    //    
-    //    [<Fact>]
-    //    let RetainsNegative () =
-    //        Assert.Equal( Rational([1u], true ), Rational([2u], true) >>> 1 )
-    //
-    //    [<Fact>]
-    //    let NegativeReduceToZero () =
-    //        Assert.Equal( Rational.Zero, Rational([0x10u; 0u; 0u], true) >>> 99 )
-    
+    module Ctor =
+        [<Theory>]
+        [<InlineData(  " 0", "1",  " 0" )>]
+        [<InlineData(  " 1", "1",  " 1" )>]
+        [<InlineData(  "-1", "1",  "-1" )>]
+        [<InlineData(  " 1", "2",  " 1/2" )>]
+        [<InlineData(  "-1", "2",  "-1/2" )>]
+        [<InlineData(  " 2", "4",  " 1/2" )>]
+        [<InlineData(  "-2", "4",  "-1/2" )>]
+        [<InlineData(  " 6", "15", " 2/5" )>]
+        [<InlineData(  "-6", "15", "-2/5" )>]
+        let Sanity n d r =
+            Assert.Equal(
+                Rational.Parse( r ),
+                Rational( Integer.Parse( n ), Natural.Parse( d ) )
+            )
+
+        [<Fact>]
+        let DivideByZero =
+            Assert.IsType<System.DivideByZeroException>(
+                Record.Exception( fun () -> Rational( Integer.Unit, Natural.Zero ) |> ignore )
+            )
+
     module Equality =
         [<Theory>]
         [<InlineData(  0,  0, true )>]

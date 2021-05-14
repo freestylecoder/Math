@@ -40,24 +40,25 @@ type public Rational(numerator:Integer, denominator:Natural) =
         static member op_Implicit(integer:Integer) : Rational =
             Rational( integer, Natural.Unit )
 
-        // Bitwise Operators
-        static member (&&&) (left:Rational, right:Rational) : Rational =
-            raise (new System.NotImplementedException())
-
-        static member (|||) (left:Rational, right:Rational) : Rational =
-            raise (new System.NotImplementedException())
-
-        static member (^^^) (left:Rational, right:Rational) : Rational =
-            raise (new System.NotImplementedException())
-
-        static member (~~~) (right:Rational) : Rational =
-            raise (new System.NotImplementedException())
-
-        static member (<<<) (left:Rational, (right:int)) : Rational =
-            raise (new System.NotImplementedException())
-
-        static member (>>>) (left:Rational, right:int) : Rational =
-            raise (new System.NotImplementedException())
+        // Bitwise Operators - YAGNI
+        // We can add these later if we figure out what it even means
+        //static member (&&&) (left:Rational, right:Rational) : Rational =
+        //    raise (new System.NotImplementedException())
+        //
+        //static member (|||) (left:Rational, right:Rational) : Rational =
+        //    raise (new System.NotImplementedException())
+        //
+        //static member (^^^) (left:Rational, right:Rational) : Rational =
+        //    raise (new System.NotImplementedException())
+        //
+        //static member (~~~) (right:Rational) : Rational =
+        //    raise (new System.NotImplementedException())
+        //
+        //static member (<<<) (left:Rational, (right:int)) : Rational =
+        //    raise (new System.NotImplementedException())
+        //
+        //static member (>>>) (left:Rational, right:int) : Rational =
+        //    raise (new System.NotImplementedException())
  
         // Comparison Operators
         static member op_Equality (left:Rational, right:Rational) : bool =
