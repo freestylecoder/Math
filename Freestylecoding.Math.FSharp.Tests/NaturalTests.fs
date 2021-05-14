@@ -51,6 +51,7 @@ module Natural =
         let ToString () =
             Assert.Equal( "1234567890123456789", Natural([0x112210F4u; 0x7DE98115u]).ToString() )
 
+        [<Fact>]
         let Parse () =
             Assert.Equal( Natural([0x112210F4u; 0x7DE98115u] ), Natural.Parse("1234567890123456789") )
 
