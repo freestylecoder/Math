@@ -11,6 +11,7 @@ type public Integer(data:uint list, negative:bool) =
     new(data:uint32 seq, negative:bool) = Integer( Seq.toList( data ), negative )
     new(data:Natural) = Integer( data.Data, false )
     new(data:Natural, negative:bool) = Integer( data.Data, negative )
+    new(data:Integer) = Integer( data.Data, data.Negative )
     new(data:int32) = Integer( [Convert.ToUInt32(Math.Abs(data))], -1 = Math.Sign(data) )
 
     with

@@ -9,6 +9,7 @@
     <Compile Include="Natural.fs" />
     <Compile Include="Integer.fs" />
     <Compile Include="Rational.fs" />
+    <Compile Include="Real.fs" />
   </ItemGroup>
 
 </Project>
