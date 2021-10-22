@@ -62,10 +62,13 @@ type public Real(significand:Integer, exponent:Integer) =
             (left.Significand = right.Significand) && (left.Exponent = right.Exponent)
 
         static member op_GreaterThan (left:Real, right:Real) : bool =
-            raise (new System.NotImplementedException())
-            let l = left.Significand * Integer( right.Exponent )
-            let r = right.Significand * Integer( left.Exponent )
-            l > r
+            match left.Exponent - right.Exponent with
+            | n when n < Integer.Zero ->
+                left.Significand > ( right.Significand * Real.ExpandExp( right.Exponent - left.Exponent ) )
+            | p when p > Integer.Zero ->
+                ( left.Significand * Real.ExpandExp( left.Exponent - right.Exponent ) ) > right.Significand
+            | _ ->
+                left.Significand > right.Significand
 
         static member op_LessThan (left:Real, right:Real) : bool =
             raise (new System.NotImplementedException())
@@ -208,16 +211,28 @@ type public Real(significand:Integer, exponent:Integer) =
         interface IComparable with
             // TODO: Add support for the other types
             member left.CompareTo right = 
-                raise (new System.NotImplementedException())
-                match right.GetType() with
-                | t when t = typeof<Real> ->
-                    let r = right :?> Real
+                let result r =
                     match Real.op_Equality(left, r) with
                     | true -> 0
                     | false ->
                         match Real.op_GreaterThan(left, r) with
                         | true -> 1
                         | false -> -1
+
+                match right.GetType() with
+                | t when t = typeof<Real> ->
+                    result ( right :?> Real )
+                | t when t = typeof<Rational> ->
+                    raise (new System.InvalidCastException())
+                | t when t = typeof<Integer> ->
+                    result ( Real( right :?> Integer, Integer.Zero) )
+                | t when t = typeof<Natural> ->
+                    result ( Real( Integer( right :?> Natural ), Integer.Zero) )
+                | t when t = typeof<int> ->
+                    result ( Real( Integer( right :?> int ), Integer.Zero) )
+                | _ -> raise (new System.InvalidCastException())
+
+                //match right.GetType() with
                 //| t when t = typeof<Integer> ->
                 //    let r = Real( right :?> Integer, Natural.Unit )
                 //    match Real.op_Equality(left, r) with
@@ -242,7 +257,6 @@ type public Real(significand:Integer, exponent:Integer) =
                 //        match Real.op_GreaterThan(left, r) with
                 //        | true -> 1
                 //        | false -> -1
-                | _ -> raise (new System.ArgumentException())
 
         // Other things we need that require previous operators
         static member Parse (s:string) =

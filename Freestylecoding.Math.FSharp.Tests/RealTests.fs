@@ -157,26 +157,33 @@ module Real =
         let CheckExponent l r (e:bool) =
             Assert.Equal( e, Real( 1, l ) = Real( 1, r ) )
     
-    //module GreaterThan =
-    //    [<Theory>]
-    //    [<InlineData( " 0",    " 1",   false )>]
-    //    [<InlineData( " 1",    " 0",   true )>]
-    //    [<InlineData( " 0",    "-1",   true )>]
-    //    [<InlineData( "-1",    " 0",   false )>]
-    //    [<InlineData( " 1",    " 1",   false )>]
-    //    [<InlineData( "-1",    " 1",   false )>]
-    //    [<InlineData( " 1",    "-1",   true )>]
-    //    [<InlineData( "-1",    "-1",   false )>]
-    //    [<InlineData( " 1/2",  " 1/2", false )>]
-    //    [<InlineData( "-1/2",  " 1/2", false )>]
-    //    [<InlineData( " 1/2",  "-1/2", true )>]
-    //    [<InlineData( "-1/2",  "-1/2", false )>]
-    //    [<InlineData( " 1/3",  " 1/2", false )>]
-    //    [<InlineData( "-1/3",  " 1/2", false )>]
-    //    [<InlineData( " 1/3",  "-1/2", true )>]
-    //    [<InlineData( "-1/3",  "-1/2", true )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) > Rational.Parse( r ) )
+    module GreaterThan =
+        [<Theory>]
+        [<InlineData( " 0",     " 1",   false )>]
+        [<InlineData( " 1",     " 0",   true )>]
+        [<InlineData( " 0",     "-1",   true )>]
+        [<InlineData( "-1",     " 0",   false )>]
+        [<InlineData( " 1",     " 1",   false )>]
+        [<InlineData( "-1",     " 1",   false )>]
+        [<InlineData( " 1",     "-1",   true )>]
+        [<InlineData( "-1",     "-1",   false )>]
+        [<InlineData( " 0.5",   " 0.5", false )>]
+        [<InlineData( "-0.5",   " 0.5", false )>]
+        [<InlineData( " 0.5",   "-0.5", true )>]
+        [<InlineData( "-0.5",   "-0.5", false )>]
+        [<InlineData( " 0.33",  " 0.5", false )>]
+        [<InlineData( "-0.33",  " 0.5", false )>]
+        [<InlineData( " 0.33",  "-0.5", true )>]
+        [<InlineData( "-0.33",  "-0.5", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Real.op_GreaterThan( Real.Parse( l ), Real.Parse( r ) ) )
+
+        [<Theory>]
+        [<InlineData( "0.01", "0.011", false )>]
+        [<InlineData( "0.011", "0.01", true )>]
+        [<InlineData( "1111", "100", true)>]
+        let Normalization l r x =
+            Assert.Equal( x, Real.op_GreaterThan( Real.Parse( l ), Real.Parse( r ) ) )
     
     //module LessThan =
     //    [<Theory>]
@@ -199,26 +206,26 @@ module Real =
     //    let Sanity l r x =
     //        Assert.Equal( x, Rational.Parse( l ) < Rational.Parse( r ) )
 
-    //module GreaterThanOrEqual =
-    //    [<Theory>]
-    //    [<InlineData( " 0",    " 1",   false )>]
-    //    [<InlineData( " 1",    " 0",   true )>]
-    //    [<InlineData( " 0",    "-1",   true )>]
-    //    [<InlineData( "-1",    " 0",   false )>]
-    //    [<InlineData( " 1",    " 1",   true )>]
-    //    [<InlineData( "-1",    " 1",   false )>]
-    //    [<InlineData( " 1",    "-1",   true )>]
-    //    [<InlineData( "-1",    "-1",   true )>]
-    //    [<InlineData( " 1/2",  " 1/2", true )>]
-    //    [<InlineData( "-1/2",  " 1/2", false )>]
-    //    [<InlineData( " 1/2",  "-1/2", true )>]
-    //    [<InlineData( "-1/2",  "-1/2", true )>]
-    //    [<InlineData( " 1/3",  " 1/2", false )>]
-    //    [<InlineData( "-1/3",  " 1/2", false )>]
-    //    [<InlineData( " 1/3",  "-1/2", true )>]
-    //    [<InlineData( "-1/3",  "-1/2", true )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) >= Rational.Parse( r ) )
+    module GreaterThanOrEqual =
+        [<Theory>]
+        [<InlineData( " 0",     " 1",   false )>]
+        [<InlineData( " 1",     " 0",   true )>]
+        [<InlineData( " 0",     "-1",   true )>]
+        [<InlineData( "-1",     " 0",   false )>]
+        [<InlineData( " 1",     " 1",   true )>]
+        [<InlineData( "-1",     " 1",   false )>]
+        [<InlineData( " 1",     "-1",   true )>]
+        [<InlineData( "-1",     "-1",   true )>]
+        [<InlineData( " 0.5",   " 0.5", true )>]
+        [<InlineData( "-0.5",   " 0.5", false )>]
+        [<InlineData( " 0.5",   "-0.5", true )>]
+        [<InlineData( "-0.5",   "-0.5", true )>]
+        [<InlineData( " 0.33",  " 0.5", false )>]
+        [<InlineData( "-0.33",  " 0.5", false )>]
+        [<InlineData( " 0.33",  "-0.5", true )>]
+        [<InlineData( "-0.33",  "-0.5", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Real.op_GreaterThanOrEqual( Real.Parse( l ), Real.Parse( r ) ) )
 
     //module LessThanOrEqual =
     //    [<Theory>]
@@ -241,26 +248,52 @@ module Real =
     //    let Sanity l r x =
     //        Assert.Equal( x, Rational.Parse( l ) <= Rational.Parse( r ) )
 
-    //module Inequality =
-    //    [<Theory>]
-    //    [<InlineData( " 0",    " 1",   true )>]
-    //    [<InlineData( " 1",    " 0",   true )>]
-    //    [<InlineData( " 0",    "-1",   true )>]
-    //    [<InlineData( "-1",    " 0",   true )>]
-    //    [<InlineData( " 1",    " 1",   false )>]
-    //    [<InlineData( "-1",    " 1",   true )>]
-    //    [<InlineData( " 1",    "-1",   true )>]
-    //    [<InlineData( "-1",    "-1",   false )>]
-    //    [<InlineData( " 1/2",  " 1/2", false )>]
-    //    [<InlineData( "-1/2",  " 1/2", true )>]
-    //    [<InlineData( " 1/2",  "-1/2", true )>]
-    //    [<InlineData( "-1/2",  "-1/2", false )>]
-    //    [<InlineData( " 1/3",  " 1/2", true )>]
-    //    [<InlineData( "-1/3",  " 1/2", true )>]
-    //    [<InlineData( " 1/3",  "-1/2", true )>]
-    //    [<InlineData( "-1/3",  "-1/2", true )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) <> Rational.Parse( r ) )
+    module Inequality =
+        [<Theory>]
+        [<InlineData( " 0",     " 1",   true )>]
+        [<InlineData( " 1",     " 0",   true )>]
+        [<InlineData( " 0",     "-1",   true )>]
+        [<InlineData( "-1",     " 0",   true )>]
+        [<InlineData( " 1",     " 1",   false )>]
+        [<InlineData( "-1",     " 1",   true )>]
+        [<InlineData( " 1",     "-1",   true )>]
+        [<InlineData( "-1",     "-1",   false )>]
+        [<InlineData( " 0.5",   " 0.5", false )>]
+        [<InlineData( "-0.5",   " 0.5", true )>]
+        [<InlineData( " 0.5",   "-0.5", true )>]
+        [<InlineData( "-0.5",   "-0.5", false )>]
+        [<InlineData( " 0.33",  " 0.5", true )>]
+        [<InlineData( "-0.33",  " 0.5", true )>]
+        [<InlineData( " 0.33",  "-0.5", true )>]
+        [<InlineData( "-0.33",  "-0.5", true )>]
+        let Sanity l r x =
+            Assert.Equal( x, Real.Parse( l ) <> Real.Parse( r ) )
+
+        [<Theory>]
+        [<InlineData(  0,  0, false )>]
+        [<InlineData(  0,  1, true )>]
+        [<InlineData(  1,  0, true )>]
+        [<InlineData(  1,  1, false )>]
+        [<InlineData(  0, -1, true )>]
+        [<InlineData( -1,  0, true )>]
+        [<InlineData( -1,  1, true )>]
+        [<InlineData(  1, -1, true )>]
+        [<InlineData( -1, -1, false )>]
+        let CheckSignificand l r (e:bool) =
+            Assert.Equal( e, Real( l, 0 ) <> Real( r, 0 ) )
+
+        [<Theory>]
+        [<InlineData(  0,  0, false )>]
+        [<InlineData(  0,  1, true )>]
+        [<InlineData(  1,  0, true )>]
+        [<InlineData(  1,  1, false )>]
+        [<InlineData(  0, -1, true )>]
+        [<InlineData( -1,  0, true )>]
+        [<InlineData( -1,  1, true )>]
+        [<InlineData(  1, -1, true )>]
+        [<InlineData( -1, -1, false )>]
+        let CheckExponent l r (e:bool) =
+            Assert.Equal( e, Real( 1, l ) <> Real( 1, r ) )
 
     module Addition =
         [<Theory>]
