@@ -17,13 +17,23 @@ type public Real(significand:Integer, exponent:Integer) =
     member internal Real.Significand = s
     member internal Real.Exponent = e
 
-    //new(significand:uint32 list, exponent:uint32 list) = Real( Integer( significand ), Natural( exponent ) )
-    //new(significand:uint32 list, exponent:uint32 list, negative:bool) = Real( Integer( significand, negative ), Natural( exponent ) )
+    new( value:Real ) = Real( value.Significand, value.Exponent )
 
-    //new(significand:uint32 seq, exponent:uint32 seq) = Real( Integer( significand ), Natural( exponent ) )
-    //new(significand:uint32 seq, exponent:uint32 seq, negative:bool) = Real( Integer( significand, negative ), Natural( exponent ) )
+    new( significand:Natural ) =                   Real( Integer( significand ), Integer.Zero )
+    new( significand:Natural, exponent:Integer ) = Real( Integer( significand ), exponent )
+    new( significand:Natural, exponent:Natural ) = Real( Integer( significand ), Integer( exponent ) )
 
-    new(significand:int32, exponent:int32) = Real( Integer( significand ), Integer( exponent ) )
+    new( significand:Integer ) =                   Real( significand, Integer.Zero )
+    new( significand:Integer, exponent:Natural ) = Real( significand, Integer( exponent ) )
+
+    new( significand:int32, exponent:int32 ) =   Real( Integer( significand ), Integer( exponent ) )
+    new( significand:int32, exponent:uint32 ) =  Real( Integer( significand ), Natural( exponent ) )
+    new( significand:uint32, exponent:int32 ) =  Real( Natural( significand ), Integer( exponent ) )
+    new( significand:uint32, exponent:uint32 ) = Real( Natural( significand ), Natural( exponent ) )
+
+    new( significand:Rational ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ) )
+    new( significand:Rational, exponent:Integer ) = Real( Real( significand.Numerator, exponent ) / Real( significand.Denominator, exponent ) )
+    new( significand:Rational, exponent:Natural ) = Real( Real( significand.Numerator, exponent ) / Real( significand.Denominator, exponent ) )
 
     with
         static member Zero = Real( Integer.Zero, Integer.Zero )
@@ -71,10 +81,13 @@ type public Real(significand:Integer, exponent:Integer) =
                 left.Significand > right.Significand
 
         static member op_LessThan (left:Real, right:Real) : bool =
-            raise (new System.NotImplementedException())
-            let l = left.Significand * Integer( right.Exponent )
-            let r = right.Significand * Integer( left.Exponent )
-            l < r
+            match left.Exponent - right.Exponent with
+            | n when n < Integer.Zero ->
+                left.Significand < ( right.Significand * Real.ExpandExp( right.Exponent - left.Exponent ) )
+            | p when p > Integer.Zero ->
+                ( left.Significand * Real.ExpandExp( left.Exponent - right.Exponent ) ) < right.Significand
+            | _ ->
+                left.Significand < right.Significand
 
         static member op_GreaterThanOrEqual (left:Real, right:Real) : bool =
             left = right || left > right
@@ -171,16 +184,17 @@ type public Real(significand:Integer, exponent:Integer) =
             | t when t = typeof<Real> ->
                 Real.op_Equality(left, right :?> Real)
             | t when t = typeof<Rational> ->
-                raise (new System.NotImplementedException())
-                Real.op_Equality(left, right :?> Real)
+                let c = right :?> Rational
+                let r = Real( c.Numerator, Integer.Zero ) / Real( Integer( c.Denominator ), Integer.Zero )
+                Real.op_Equality(left, r)
             | t when t = typeof<Integer> ->
-                left.Exponent.Equals( Natural.Zero ) && left.Significand.Equals( right )
+                left.Exponent.Equals( Integer.Zero ) && left.Significand.Equals( right )
             | t when t = typeof<Natural> ->
-                left.Exponent.Equals( Natural.Zero ) && left.Significand.Equals( right )
+                left.Exponent.Equals( Integer.Zero ) && left.Significand.Equals( right )
             | _ -> false
 
         override this.GetHashCode() =
-            raise (new System.NotImplementedException())
+            this.Significand.GetHashCode() ^^^ this.Exponent.GetHashCode()
 
         override this.ToString() =
             match this.Exponent with
@@ -223,7 +237,8 @@ type public Real(significand:Integer, exponent:Integer) =
                 | t when t = typeof<Real> ->
                     result ( right :?> Real )
                 | t when t = typeof<Rational> ->
-                    raise (new System.InvalidCastException())
+                    let r = right :?> Rational
+                    result ( Real( r.Numerator, Integer.Zero ) / Real( Integer( r.Denominator ), Integer.Zero ) )
                 | t when t = typeof<Integer> ->
                     result ( Real( right :?> Integer, Integer.Zero) )
                 | t when t = typeof<Natural> ->
@@ -232,47 +247,29 @@ type public Real(significand:Integer, exponent:Integer) =
                     result ( Real( Integer( right :?> int ), Integer.Zero) )
                 | _ -> raise (new System.InvalidCastException())
 
-                //match right.GetType() with
-                //| t when t = typeof<Integer> ->
-                //    let r = Real( right :?> Integer, Natural.Unit )
-                //    match Real.op_Equality(left, r) with
-                //    | true -> 0
-                //    | false ->
-                //        match Real.op_GreaterThan(left, r) with
-                //        | true -> 1
-                //        | false -> -1
-                //| t when t = typeof<Integer> ->
-                //    let r = Real( right :?> Integer, Natural.Unit )
-                //    match Real.op_Equality(left, r) with
-                //    | true -> 0
-                //    | false ->
-                //        match Real.op_GreaterThan(left, r) with
-                //        | true -> 1
-                //        | false -> -1
-                //| t when t = typeof<Natural> ->
-                //    let r = Real( Integer( right :?> Natural ), Natural.Unit )
-                //    match Real.op_Equality(left, r) with
-                //    | true -> 0
-                //    | false ->
-                //        match Real.op_GreaterThan(left, r) with
-                //        | true -> 1
-                //        | false -> -1
-
         // Other things we need that require previous operators
         static member Parse (s:string) =
             if String.IsNullOrWhiteSpace s then raise (new System.ArgumentNullException())
 
-            // TODO: Need to handle e?? in string
-            // example: 1.1e6
-            let parts = s.Split [| '.' |]
-            match parts.Length with
-            | 1 ->
-                Real( Integer.Parse( parts.[0] ), Integer.Zero )
-            | 2 ->
-                if Integer.Parse( parts.[1] ).Negative then raise (new FormatException())
-                Real(
-                    Integer.Parse( $"{parts.[0]}{parts.[1]}" ),
-                    -Integer( parts.[1].Length )
-                )
-            | _ ->
-                raise (new FormatException())
+            let expSplit = s.Split( 'e', 'E' )
+            let (sigStr,exp) = 
+                match expSplit.Length with
+                | 1 -> ( expSplit.[0], Integer.Zero )
+                | 2 -> ( expSplit.[0], Integer.Parse( expSplit.[1] ) )
+                | _ -> raise (new FormatException())
+
+            let parts = sigStr.Split '.'
+            let signif =
+                match parts.Length with
+                | 1 ->
+                    Real( Integer.Parse( parts.[0] ), Integer.Zero )
+                | 2 ->
+                    if Integer.Parse( parts.[1] ).Negative then raise (new FormatException())
+                    Real(
+                        Integer.Parse( $"{parts.[0]}{parts.[1]}" ),
+                        -Integer( parts.[1].Length )
+                    )
+                | _ ->
+                    raise (new FormatException())
+
+            signif * Real( Integer.Unit, exp )

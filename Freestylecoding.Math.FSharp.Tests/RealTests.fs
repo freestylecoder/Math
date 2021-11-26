@@ -4,114 +4,28 @@ open Xunit
 open Freestylecoding.Math
 
 module Real =
-    // NOTE: The sanity tests are here to do low level tests of a few parts
-    // This lets me isolate those tests so I can use those parts in the rest of the tests
-    //
-    // In other words:
-    // IF ANY OF THE SANITY TESTS FAIL, DON'T TRUST ANY OTHER TEST!
-
-    //[<Trait( "Type", "Sanity" )>]
-    //module Sanity =
-    //    [<Fact>]
-    //    let GreaterThanTrue () =
-    //        Assert.True(
-    //            Rational(
-    //                Integer( [0xBADu; 0xDEADBEEFu;] ),
-    //                Natural( [2u] )
-    //            ) > Rational(
-    //                Integer( [0xDEADBEEFu; 0xBADu], true ),
-    //                Natural( [2u] )
-    //            )
-    //        )
-    //
-    //    [<Fact>]
-    //    let GreaterThanFalseByLessThan () =
-    //        Assert.False(
-    //            Rational(
-    //                Integer( [0xBADu; 0xDEADBEEFu;] , true),
-    //                Natural( [2u] )
-    //            ) > Rational(
-    //                Integer( [0xDEADBEEFu; 0xBADu] ),
-    //                Natural( [2u] )
-    //            )
-    //        )
-    //
-    //    [<Fact>]
-    //    let GreaterThanFalseByEquals () =
-    //        Assert.False(
-    //            Rational(
-    //                Integer( [0xBADu; 0xDEADBEEFu;] , true),
-    //                Natural( [2u] )
-    //            ) > Rational(
-    //                Integer( [0xBADu; 0xDEADBEEFu;] , true),
-    //                Natural( [2u] )
-    //            )
-    //        )
-    //
-    //    [<Fact>]
-    //    let Addition () =
-    //        Assert.Equal(
-    //            Rational( Integer( 5 ), Natural( 4u ) ),
-    //            Rational( Integer.Unit, Natural( 2u ) ) + Rational( Integer( 3 ), Natural( 4u ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let Subtraction () =
-    //        Assert.Equal(
-    //            Rational( Integer.Unit, Natural( 4u ) ),
-    //            Rational( Integer( 3 ), Natural( 4u ) ) - Rational( Integer.Unit, Natural( 2u ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let Multiplication () =
-    //        Assert.Equal(
-    //            Rational( Integer( 3 ), Natural( 8u ) ),
-    //            Rational( Integer.Unit, Natural( 2u ) ) * Rational( Integer( 3 ), Natural( 4u ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let DivisionModulo () =
-    //        Assert.Equal(
-    //            (
-    //                Integer.Unit,
-    //                Rational( Integer.Unit, Natural( 2u ) )
-    //            ),
-    //            Rational( Integer( 3 ), Natural( 4u ) ) /% Rational( Integer.Unit, Natural( 2u ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let ToString () =
-    //        Assert.Equal( "-5 / 7", Rational( Integer( -5 ), Natural( 7u ) ).ToString() )
-    //
-    //    [<Fact>]
-    //    let Parse () =
-    //        Assert.Equal(
-    //            Rational( Integer( [0x112210F4u; 0x7DE98115u], true ), Natural( 41u ) ),
-    //            Rational.Parse("-1234567890123456789 / 41")
-    //        )
-
-    //module Ctor =
-    //    [<Theory>]
-    //    [<InlineData(  " 0", "1",  " 0" )>]
-    //    [<InlineData(  " 1", "1",  " 1" )>]
-    //    [<InlineData(  "-1", "1",  "-1" )>]
-    //    [<InlineData(  " 1", "2",  " 1/2" )>]
-    //    [<InlineData(  "-1", "2",  "-1/2" )>]
-    //    [<InlineData(  " 2", "4",  " 1/2" )>]
-    //    [<InlineData(  "-2", "4",  "-1/2" )>]
-    //    [<InlineData(  " 6", "15", " 2/5" )>]
-    //    [<InlineData(  "-6", "15", "-2/5" )>]
-    //    let Sanity n d r =
-    //        Assert.Equal(
-    //            Rational.Parse( r ),
-    //            Rational( Integer.Parse( n ), Natural.Parse( d ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let DivideByZero =
-    //        Assert.IsType<System.DivideByZeroException>(
-    //            Record.Exception( fun () -> Rational( Integer.Unit, Natural.Zero ) |> ignore )
-    //        )
+    module Ctor =
+        [<Theory>]
+        [<InlineData(  " 0", " 1",  "     0" )>]
+        [<InlineData(  " 1", " 1",  "    10" )>]
+        [<InlineData(  "-1", " 1",  "   -10" )>]
+        [<InlineData(  " 1", " 2",  "   100" )>]
+        [<InlineData(  "-1", " 2",  "  -100" )>]
+        [<InlineData(  " 2", " 4",  " 20000" )>]
+        [<InlineData(  "-2", " 4",  "-20000" )>]
+        [<InlineData(  " 0", "-1",  "     0" )>]
+        [<InlineData(  " 1", "-1",  "     0.1" )>]
+        [<InlineData(  "-1", "-1",  "    -0.1" )>]
+        [<InlineData(  " 1", "-2",  "     0.01" )>]
+        [<InlineData(  "-1", "-2",  "    -0.01" )>]
+        [<InlineData(  " 2", "-4",  "     0.0002" )>]
+        [<InlineData(  "-2", "-4",  "    -0.0002" )>]
+        [<InlineData(  "12", "-1",  "     1.2" )>]
+        let Sanity n d r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Integer.Parse( n ), Integer.Parse( d ) )
+            )
 
     module Equality =
         [<Theory>]
@@ -141,7 +55,7 @@ module Real =
         [<InlineData( -1,  1, false )>]
         [<InlineData(  1, -1, false )>]
         [<InlineData( -1, -1, true )>]
-        let CheckSignificand l r (e:bool) =
+        let CheckSignificand (l:int32) (r:int32) (e:bool) =
             Assert.Equal( e, Real( l, 0 ) = Real( r, 0 ) )
 
         [<Theory>]
@@ -154,7 +68,7 @@ module Real =
         [<InlineData( -1,  1, false )>]
         [<InlineData(  1, -1, false )>]
         [<InlineData( -1, -1, true )>]
-        let CheckExponent l r (e:bool) =
+        let CheckExponent (l:int32) (r:int32) (e:bool) =
             Assert.Equal( e, Real( 1, l ) = Real( 1, r ) )
     
     module GreaterThan =
@@ -185,26 +99,33 @@ module Real =
         let Normalization l r x =
             Assert.Equal( x, Real.op_GreaterThan( Real.Parse( l ), Real.Parse( r ) ) )
     
-    //module LessThan =
-    //    [<Theory>]
-    //    [<InlineData( " 0",    " 1",   true )>]
-    //    [<InlineData( " 1",    " 0",   false )>]
-    //    [<InlineData( " 0",    "-1",   false )>]
-    //    [<InlineData( "-1",    " 0",   true )>]
-    //    [<InlineData( " 1",    " 1",   false )>]
-    //    [<InlineData( "-1",    " 1",   true )>]
-    //    [<InlineData( " 1",    "-1",   false )>]
-    //    [<InlineData( "-1",    "-1",   false )>]
-    //    [<InlineData( " 1/2",  " 1/2", false )>]
-    //    [<InlineData( "-1/2",  " 1/2", true )>]
-    //    [<InlineData( " 1/2",  "-1/2", false )>]
-    //    [<InlineData( "-1/2",  "-1/2", false )>]
-    //    [<InlineData( " 1/3",  " 1/2", true )>]
-    //    [<InlineData( "-1/3",  " 1/2", true )>]
-    //    [<InlineData( " 1/3",  "-1/2", false )>]
-    //    [<InlineData( "-1/3",  "-1/2", false )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) < Rational.Parse( r ) )
+    module LessThan =
+        [<Theory>]
+        [<InlineData( " 0",     " 1",   true )>]
+        [<InlineData( " 1",     " 0",   false )>]
+        [<InlineData( " 0",     "-1",   false )>]
+        [<InlineData( "-1",     " 0",   true )>]
+        [<InlineData( " 1",     " 1",   false )>]
+        [<InlineData( "-1",     " 1",   true )>]
+        [<InlineData( " 1",     "-1",   false )>]
+        [<InlineData( "-1",     "-1",   false )>]
+        [<InlineData( " 0.5",   " 0.5", false )>]
+        [<InlineData( "-0.5",   " 0.5", true )>]
+        [<InlineData( " 0.5",   "-0.5", false )>]
+        [<InlineData( "-0.5",   "-0.5", false )>]
+        [<InlineData( " 0.33",  " 0.5", true )>]
+        [<InlineData( "-0.33",  " 0.5", true )>]
+        [<InlineData( " 0.33",  "-0.5", false )>]
+        [<InlineData( "-0.33",  "-0.5", false )>]
+        let Sanity l r x =
+            Assert.Equal( x, Real.op_LessThan( Real.Parse( l ), Real.Parse( r ) ) )
+
+        [<Theory>]
+        [<InlineData( "0.01", "0.011", true )>]
+        [<InlineData( "0.011", "0.01", false )>]
+        [<InlineData( "1111", "100", false )>]
+        let Normalization l r x =
+            Assert.Equal( x, Real.op_LessThan( Real.Parse( l ), Real.Parse( r ) ) )
 
     module GreaterThanOrEqual =
         [<Theory>]
@@ -227,26 +148,26 @@ module Real =
         let Sanity l r x =
             Assert.Equal( x, Real.op_GreaterThanOrEqual( Real.Parse( l ), Real.Parse( r ) ) )
 
-    //module LessThanOrEqual =
-    //    [<Theory>]
-    //    [<InlineData( " 0",    " 1",   true )>]
-    //    [<InlineData( " 1",    " 0",   false )>]
-    //    [<InlineData( " 0",    "-1",   false )>]
-    //    [<InlineData( "-1",    " 0",   true )>]
-    //    [<InlineData( " 1",    " 1",   true )>]
-    //    [<InlineData( "-1",    " 1",   true )>]
-    //    [<InlineData( " 1",    "-1",   false )>]
-    //    [<InlineData( "-1",    "-1",   true )>]
-    //    [<InlineData( " 1/2",  " 1/2", true )>]
-    //    [<InlineData( "-1/2",  " 1/2", true )>]
-    //    [<InlineData( " 1/2",  "-1/2", false )>]
-    //    [<InlineData( "-1/2",  "-1/2", true )>]
-    //    [<InlineData( " 1/3",  " 1/2", true )>]
-    //    [<InlineData( "-1/3",  " 1/2", true )>]
-    //    [<InlineData( " 1/3",  "-1/2", false )>]
-    //    [<InlineData( "-1/3",  "-1/2", false )>]
-    //    let Sanity l r x =
-    //        Assert.Equal( x, Rational.Parse( l ) <= Rational.Parse( r ) )
+    module LessThanOrEqual =
+        [<Theory>]
+        [<InlineData( " 0",    " 1",   true )>]
+        [<InlineData( " 1",    " 0",   false )>]
+        [<InlineData( " 0",    "-1",   false )>]
+        [<InlineData( "-1",    " 0",   true )>]
+        [<InlineData( " 1",    " 1",   true )>]
+        [<InlineData( "-1",    " 1",   true )>]
+        [<InlineData( " 1",    "-1",   false )>]
+        [<InlineData( "-1",    "-1",   true )>]
+        [<InlineData( " 0.5",  " 0.5", true )>]
+        [<InlineData( "-0.5",  " 0.5", true )>]
+        [<InlineData( " 0.5",  "-0.5", false )>]
+        [<InlineData( "-0.5",  "-0.5", true )>]
+        [<InlineData( " 0.33", " 0.5", true )>]
+        [<InlineData( "-0.33", " 0.5", true )>]
+        [<InlineData( " 0.33", "-0.5", false )>]
+        [<InlineData( "-0.33", "-0.5", false )>]
+        let Sanity l r x =
+            Assert.Equal( x, Real.Parse( l ) <= Real.Parse( r ) )
 
     module Inequality =
         [<Theory>]
@@ -279,7 +200,7 @@ module Real =
         [<InlineData( -1,  1, true )>]
         [<InlineData(  1, -1, true )>]
         [<InlineData( -1, -1, false )>]
-        let CheckSignificand l r (e:bool) =
+        let CheckSignificand (l:int32) (r:int32) (e:bool) =
             Assert.Equal( e, Real( l, 0 ) <> Real( r, 0 ) )
 
         [<Theory>]
@@ -292,7 +213,7 @@ module Real =
         [<InlineData( -1,  1, true )>]
         [<InlineData(  1, -1, true )>]
         [<InlineData( -1, -1, false )>]
-        let CheckExponent l r (e:bool) =
+        let CheckExponent (l:int32) (r:int32) (e:bool) =
             Assert.Equal( e, Real( 1, l ) <> Real( 1, r ) )
 
     module Addition =
@@ -505,77 +426,69 @@ module Real =
                 Real.Parse( "0.5" ) /% Real.Parse( "0.5" )
             )
 
-    //module Negation =
-    //    [<Theory>]
-    //    [<InlineData(  1, 1u, -1, 1u )>] // Sanity
-    //    [<InlineData( -1, 1u,  1, 1u )>] // Sanity
-    //    [<InlineData(  0, 1u,  0, 1u )>] // Sanity
-    //    let Sanity (n:int) (d:uint) (en:int) (ed:uint) =
-    //        Assert.Equal(
-    //            Rational( Integer( en ), Natural( ed ) ),
-    //            -Rational( Integer( n ), Natural( d ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let Big () =
-    //        Assert.Equal(
-    //            Rational( Integer( [0xFEDCBA9u; 0x76543210u], true ), Natural.Unit ),
-    //            -Rational( Integer( [0xFEDCBA9u; 0x76543210u], false ), Natural.Unit )
-    //        )
-    //
-    //    [<Fact>]
-    //    let BigNegative () =
-    //        Assert.Equal(
-    //            Rational( Integer( [0xFEDCBA9u; 0x76543210u], false ), Natural.Unit ),
-    //            -Rational( Integer( [0xFEDCBA9u; 0x76543210u], true ), Natural.Unit )
-    //        )
-    //
-    //    [<Fact>]
-    //    let Small () =
-    //        Assert.Equal(
-    //            Rational( -Integer.Unit, Natural( [0xFEDCBA9u; 0x76543210u] ) ),
-    //            -Rational( Integer.Unit, Natural( [0xFEDCBA9u; 0x76543210u] ) )
-    //        )
-    //
-    //    [<Fact>]
-    //    let SmallNegative () =
-    //        Assert.Equal(
-    //            Rational( Integer.Unit, Natural( [0xFEDCBA9u; 0x76543210u] ) ),
-    //            -Rational( -Integer.Unit, Natural( [0xFEDCBA9u; 0x76543210u] ) )
-    //        )
+    module Negation =
+        [<Theory>]
+        [<InlineData(  "1", "-1" )>] // Sanity
+        [<InlineData( "-1", " 1" )>] // Sanity
+        [<InlineData(  "0", " 0" )>] // Sanity
+        let Sanity l r =
+            Assert.Equal(
+                Real.Parse( l ),
+                -Real.Parse( r )
+            )
 
-    //module Equals =
-    //    [<Theory>]
-    //    [<InlineData(  1,  1, true )>]    // Sanity
-    //    [<InlineData(  1, -1, false )>]   // Sanity
-    //    [<InlineData( -1,  1, false )>]   // Sanity
-    //    [<InlineData( -1, -1, true )>]    // Sanity
-    //    let Sanity (l:int32) (r:int32) (e:bool) =
-    //        Assert.Equal( e, Rational( Integer( l ), Natural.Unit ).Equals( Rational( Integer( r ), Natural.Unit ) ) )
-    //    
-    //    [<Fact>]
-    //    let NaturalEquals () =
-    //        Assert.True( Rational.Unit.Equals( Natural.Unit ) )
-    //    
-    //    [<Fact>]
-    //    let NaturalNotEquals () =
-    //        Assert.False( Rational.Unit.Equals( Natural.Zero ) )
-    //    
-    //    [<Fact>]
-    //    let NaturalSignNotEquals () =
-    //        Assert.False( (-Rational.Unit).Equals( Natural.Unit ) )
-    //
-    //    [<Fact>]
-    //    let IntegerEquals () =
-    //        Assert.True( Rational.Unit.Equals( Integer.Unit ) )
-    //    
-    //    [<Fact>]
-    //    let IntegerNotEquals () =
-    //        Assert.False( Rational.Unit.Equals( Integer.Zero ) )
-    //    
-    //    [<Fact>]
-    //    let IntegerSignNotEquals () =
-    //        Assert.False( (-Rational.Unit).Equals( Integer.Unit ) )
+    module Equals =
+        [<Theory>]
+        [<InlineData(  1,  1, true )>]    // Sanity
+        [<InlineData(  1, -1, false )>]   // Sanity
+        [<InlineData( -1,  1, false )>]   // Sanity
+        [<InlineData( -1, -1, true )>]    // Sanity
+        let Sanity (l:int32) (r:int32) (e:bool) =
+            Assert.Equal( e, Real( Integer( l ), Integer.Unit ).Equals( Real( Integer( r ), Integer.Unit ) ) )
+        
+        [<Fact>]
+        let NaturalEquals () =
+            Assert.True( Real.Unit.Equals( Natural.Unit ) )
+        
+        [<Fact>]
+        let NaturalNotEquals () =
+            Assert.False( Real.Unit.Equals( Natural.Zero ) )
+        
+        [<Fact>]
+        let NaturalSignNotEquals () =
+            Assert.False( (-Real.Unit).Equals( Natural.Unit ) )
+    
+        [<Fact>]
+        let IntegerEquals () =
+            Assert.True( Real.Unit.Equals( Integer.Unit ) )
+        
+        [<Fact>]
+        let IntegerNotEquals () =
+            Assert.False( Real.Unit.Equals( Integer.Zero ) )
+        
+        [<Fact>]
+        let IntegerSignNotEquals () =
+            Assert.False( (-Real.Unit).Equals( Integer.Unit ) )
+
+        [<Fact>]
+        let RationalEquals () =
+            Assert.True( Real.Unit.Equals( Rational.Unit ) )
+        
+        [<Fact>]
+        let RationalNotEquals () =
+            Assert.False( Real.Unit.Equals( Rational.Zero ) )
+        
+        [<Fact>]
+        let RationalSignNotEquals () =
+            Assert.False( (-Real.Unit).Equals( Rational.Unit ) )
+
+        [<Fact>]
+        let RationalConversionEquals () =
+            Assert.True( Real.Parse( "0.5" ).Equals( Rational( 1, 2u ) ) )
+
+        [<Fact>]
+        let RationalConversionEqualsWithRepeating () =
+            Assert.True( Real.Parse( "0.333333333333333333333333333333" ).Equals( Rational( 1, 3u ) ) )
     
     module ToString =
         [<Theory>]
@@ -619,7 +532,6 @@ module Real =
         let SimpleNegativeSmall () =
             Assert.Equal( "-0.00000000000000000000000011111111111111111111111111", Real.Parse( "-0.00000000000000000000000011111111111111111111111111" ).ToString() )
 
-
     module Parse =
         [<Theory>]
         [<InlineData( "4321",      4321,  0 )>]        // Sanity
@@ -632,6 +544,10 @@ module Real =
         [<InlineData( "-432100",  -4321,  2 )>]        // Sanity
         [<InlineData( "-0.04321", -4321, -5 )>]        // Sanity
         [<InlineData( "-.04321",  -4321, -5 )>]        // Sanity
+        [<InlineData( "4.321e3",   4321,  0 )>]        // Sanity
+        [<InlineData( "4.32e3",    432,   1 )>]        // Sanity
+        [<InlineData( "43.21e-3",  4321, -5 )>]        // Sanity
+        [<InlineData( "43.2e-1",   432,  -2 )>]        // Sanity
         let Sanity (str:string) (n:int32) (d:int32) =
             Assert.Equal( Real(n, d), Real.Parse(str) )
     
