@@ -21,10 +21,412 @@ module Real =
         [<InlineData(  " 2", "-4",  "     0.0002" )>]
         [<InlineData(  "-2", "-4",  "    -0.0002" )>]
         [<InlineData(  "12", "-1",  "     1.2" )>]
-        let Sanity n d r =
+        let DefaultCtor n d r =
             Assert.Equal(
                 Real.Parse( r ),
                 Real( Integer.Parse( n ), Integer.Parse( d ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0",  "0" )>]
+        [<InlineData(   "1",  "1" )>]
+        [<InlineData(   "2",  "2" )>]
+        [<InlineData(  "12", "12" )>]
+        let NaturalCtor n r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Natural.Parse( n ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0", "0",       "0" )>]
+        [<InlineData(   "1", "0",       "1" )>]
+        [<InlineData(   "2", "0",       "2" )>]
+        [<InlineData(  "12", "0",      "12" )>]
+        [<InlineData(   "0", "1",       "0" )>]
+        [<InlineData(   "1", "1",      "10" )>]
+        [<InlineData(   "2", "1",      "20" )>]
+        [<InlineData(  "12", "1",     "120" )>]
+        [<InlineData(   "0", "5",       "0" )>]
+        [<InlineData(   "1", "5",  "100000" )>]
+        [<InlineData(   "2", "5",  "200000" )>]
+        [<InlineData(  "12", "5", "1200000" )>]
+        let NaturalNaturalCtor (s:string) (e:string) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Natural.Parse( s ), Natural.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0",  "0",       "0" )>]
+        [<InlineData(   "1",  "0",       "1" )>]
+        [<InlineData(   "2",  "0",       "2" )>]
+        [<InlineData(  "12",  "0",      "12" )>]
+        [<InlineData(   "0",  "1",       "0" )>]
+        [<InlineData(   "1",  "1",      "10" )>]
+        [<InlineData(   "2",  "1",      "20" )>]
+        [<InlineData(  "12",  "1",     "120" )>]
+        [<InlineData(   "0",  "5",       "0" )>]
+        [<InlineData(   "1",  "5",  "100000" )>]
+        [<InlineData(   "2",  "5",  "200000" )>]
+        [<InlineData(  "12",  "5", "1200000" )>]
+        [<InlineData(   "0", "-1",       "0" )>]
+        [<InlineData(   "1", "-1",       "0.1" )>]
+        [<InlineData(   "2", "-1",       "0.2" )>]
+        [<InlineData(  "12", "-1",       "1.2" )>]
+        [<InlineData(   "0", "-5",       "0" )>]
+        [<InlineData(   "1", "-5",       "0.00001" )>]
+        [<InlineData(   "2", "-5",       "0.00002" )>]
+        [<InlineData(  "12", "-5",       "0.00012" )>]
+        let NaturalIntegerCtor (s:string) (e:string) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Natural.Parse( s ), Integer.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0",   "0" )>]
+        [<InlineData(   "1",   "1" )>]
+        [<InlineData(   "2",   "2" )>]
+        [<InlineData(  "12",  "12" )>]
+        [<InlineData(  "-1",  "-1" )>]
+        [<InlineData(  "-2",  "-2" )>]
+        [<InlineData( "-12", "-12" )>]
+        let IntegerCtor i r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Integer.Parse( i ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0", "0",    "0" )>]
+        [<InlineData(   "1", "0",    "1" )>]
+        [<InlineData(   "2", "0",    "2" )>]
+        [<InlineData(  "12", "0",   "12" )>]
+        [<InlineData(  "-1", "0",   "-1" )>]
+        [<InlineData(  "-2", "0",   "-2" )>]
+        [<InlineData( "-12", "0",  "-12" )>]
+        [<InlineData(   "0", "1",    "0" )>]
+        [<InlineData(   "1", "1",   "10" )>]
+        [<InlineData(   "2", "1",   "20" )>]
+        [<InlineData(  "12", "1",  "120" )>]
+        [<InlineData(  "-1", "1",  "-10" )>]
+        [<InlineData(  "-2", "1",  "-20" )>]
+        [<InlineData( "-12", "1", "-120" )>]
+        [<InlineData(   "0", "5",    "0" )>]
+        [<InlineData(   "1", "5",   "100000" )>]
+        [<InlineData(   "2", "5",   "200000" )>]
+        [<InlineData(  "12", "5",  "1200000" )>]
+        [<InlineData(  "-1", "5",  "-100000" )>]
+        [<InlineData(  "-2", "5",  "-200000" )>]
+        [<InlineData( "-12", "5", "-1200000" )>]
+        let IntegerNaturalCtor i n r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Integer.Parse( i ), Natural.Parse( n ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   0u, 0u,       "0" )>]
+        [<InlineData(   1u, 0u,       "1" )>]
+        [<InlineData(   2u, 0u,       "2" )>]
+        [<InlineData(  12u, 0u,      "12" )>]
+        [<InlineData(   0u, 1u,       "0" )>]
+        [<InlineData(   1u, 1u,      "10" )>]
+        [<InlineData(   2u, 1u,      "20" )>]
+        [<InlineData(  12u, 1u,     "120" )>]
+        [<InlineData(   0u, 5u,       "0" )>]
+        [<InlineData(   1u, 5u,  "100000" )>]
+        [<InlineData(   2u, 5u,  "200000" )>]
+        [<InlineData(  12u, 5u, "1200000" )>]
+        let Uint32Uint32Ctor (s:uint32) (e:uint32) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( s, e )
+            )
+
+        [<Theory>]
+        [<InlineData(   0u,  0,       "0" )>]
+        [<InlineData(   1u,  0,       "1" )>]
+        [<InlineData(   2u,  0,       "2" )>]
+        [<InlineData(  12u,  0,      "12" )>]
+        [<InlineData(   0u,  1,       "0" )>]
+        [<InlineData(   1u,  1,      "10" )>]
+        [<InlineData(   2u,  1,      "20" )>]
+        [<InlineData(  12u,  1,     "120" )>]
+        [<InlineData(   0u,  5,       "0" )>]
+        [<InlineData(   1u,  5,  "100000" )>]
+        [<InlineData(   2u,  5,  "200000" )>]
+        [<InlineData(  12u,  5, "1200000" )>]
+        [<InlineData(   0u, -1,       "0" )>]
+        [<InlineData(   1u, -1,       "0.1" )>]
+        [<InlineData(   2u, -1,       "0.2" )>]
+        [<InlineData(  12u, -1,       "1.2" )>]
+        [<InlineData(   0u, -5,       "0" )>]
+        [<InlineData(   1u, -5,       "0.00001" )>]
+        [<InlineData(   2u, -5,       "0.00002" )>]
+        [<InlineData(  12u, -5,       "0.00012" )>]
+        let Unit32Int32Ctor (s:uint32) (e:int32) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( s, e )
+            )
+
+        [<Theory>]
+        [<InlineData(   0, 0u,    "0" )>]
+        [<InlineData(   1, 0u,    "1" )>]
+        [<InlineData(   2, 0u,    "2" )>]
+        [<InlineData(  12, 0u,   "12" )>]
+        [<InlineData(  -1, 0u,   "-1" )>]
+        [<InlineData(  -2, 0u,   "-2" )>]
+        [<InlineData( -12, 0u,  "-12" )>]
+        [<InlineData(   0, 1u,    "0" )>]
+        [<InlineData(   1, 1u,   "10" )>]
+        [<InlineData(   2, 1u,   "20" )>]
+        [<InlineData(  12, 1u,  "120" )>]
+        [<InlineData(  -1, 1u,  "-10" )>]
+        [<InlineData(  -2, 1u,  "-20" )>]
+        [<InlineData( -12, 1u, "-120" )>]
+        [<InlineData(   0, 5u,    "0" )>]
+        [<InlineData(   1, 5u,   "100000" )>]
+        [<InlineData(   2, 5u,   "200000" )>]
+        [<InlineData(  12, 5u,  "1200000" )>]
+        [<InlineData(  -1, 5u,  "-100000" )>]
+        [<InlineData(  -2, 5u,  "-200000" )>]
+        [<InlineData( -12, 5u, "-1200000" )>]
+        let Int32Uint32Ctor (i:int32) (n:uint32) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( i, n )
+            )
+
+        [<Theory>]
+        [<InlineData(   0,  1,  "     0" )>]
+        [<InlineData(   1,  1,  "    10" )>]
+        [<InlineData(  -1,  1,  "   -10" )>]
+        [<InlineData(   1,  2,  "   100" )>]
+        [<InlineData(  -1,  2,  "  -100" )>]
+        [<InlineData(   2,  4,  " 20000" )>]
+        [<InlineData(  -2,  4,  "-20000" )>]
+        [<InlineData(   0, -1,  "     0" )>]
+        [<InlineData(   1, -1,  "     0.1" )>]
+        [<InlineData(  -1, -1,  "    -0.1" )>]
+        [<InlineData(   1, -2,  "     0.01" )>]
+        [<InlineData(  -1, -2,  "    -0.01" )>]
+        [<InlineData(   2, -4,  "     0.0002" )>]
+        [<InlineData(  -2, -4,  "    -0.0002" )>]
+        [<InlineData(  12, -1,  "     1.2" )>]
+        let Int32Int32Ctor (s:int32) (e:int32) (r:string) =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( s, e )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0", "1",    "0" )>]
+        [<InlineData(   "1", "1",    "1" )>]
+        [<InlineData(   "2", "1",    "2" )>]
+        [<InlineData(  "12", "1",   "12" )>]
+        [<InlineData(  "-1", "1",   "-1" )>]
+        [<InlineData(  "-2", "1",   "-2" )>]
+        [<InlineData( "-12", "1",  "-12" )>]
+        [<InlineData(   "0", "5",    "0" )>]
+        [<InlineData(   "1", "5",    "0.2" )>]
+        [<InlineData(   "2", "5",    "0.4" )>]
+        [<InlineData(  "12", "5",    "2.4" )>]
+        [<InlineData(  "-1", "5",   "-0.2" )>]
+        [<InlineData(  "-2", "5",   "-0.4" )>]
+        [<InlineData( "-12", "5",   "-2.4" )>]
+        let RationalCtor n d r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Rational( Integer.Parse( n ), Natural.Parse( d ) ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0", "1", "0",        "0" )>]
+        [<InlineData(   "1", "1", "0",        "1" )>]
+        [<InlineData(   "2", "1", "0",        "2" )>]
+        [<InlineData(  "12", "1", "0",       "12" )>]
+        [<InlineData(  "-1", "1", "0",       "-1" )>]
+        [<InlineData(  "-2", "1", "0",       "-2" )>]
+        [<InlineData( "-12", "1", "0",      "-12" )>]
+        [<InlineData(   "0", "5", "0",        "0" )>]
+        [<InlineData(   "1", "5", "0",        "0.2" )>]
+        [<InlineData(   "2", "5", "0",        "0.4" )>]
+        [<InlineData(  "12", "5", "0",        "2.4" )>]
+        [<InlineData(  "-1", "5", "0",       "-0.2" )>]
+        [<InlineData(  "-2", "5", "0",       "-0.4" )>]
+        [<InlineData( "-12", "5", "0",       "-2.4" )>]
+        [<InlineData(   "0", "1", "1",        "0" )>]
+        [<InlineData(   "1", "1", "1",       "10" )>]
+        [<InlineData(   "2", "1", "1",       "20" )>]
+        [<InlineData(  "12", "1", "1",      "120" )>]
+        [<InlineData(  "-1", "1", "1",      "-10" )>]
+        [<InlineData(  "-2", "1", "1",      "-20" )>]
+        [<InlineData( "-12", "1", "1",     "-120" )>]
+        [<InlineData(   "0", "5", "1",        "0" )>]
+        [<InlineData(   "1", "5", "1",        "2" )>]
+        [<InlineData(   "2", "5", "1",        "4" )>]
+        [<InlineData(  "12", "5", "1",       "24" )>]
+        [<InlineData(  "-1", "5", "1",       "-2" )>]
+        [<InlineData(  "-2", "5", "1",       "-4" )>]
+        [<InlineData( "-12", "5", "1",      "-24" )>]
+        [<InlineData(   "0", "1", "5",        "0" )>]
+        [<InlineData(   "1", "1", "5",   "100000" )>]
+        [<InlineData(   "2", "1", "5",   "200000" )>]
+        [<InlineData(  "12", "1", "5",  "1200000" )>]
+        [<InlineData(  "-1", "1", "5",  "-100000" )>]
+        [<InlineData(  "-2", "1", "5",  "-200000" )>]
+        [<InlineData( "-12", "1", "5", "-1200000" )>]
+        [<InlineData(   "0", "5", "5",        "0" )>]
+        [<InlineData(   "1", "5", "5",    "20000" )>]
+        [<InlineData(   "2", "5", "5",    "40000" )>]
+        [<InlineData(  "12", "5", "5",   "240000" )>]
+        [<InlineData(  "-1", "5", "5",   "-20000" )>]
+        [<InlineData(  "-2", "5", "5",   "-40000" )>]
+        [<InlineData( "-12", "5", "5",  "-240000" )>]
+        let RationalNaturalCtor n d e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Rational( Integer.Parse( n ), Natural.Parse( d ) ), Natural.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0", "1",  "0",        "0" )>]
+        [<InlineData(   "1", "1",  "0",        "1" )>]
+        [<InlineData(   "2", "1",  "0",        "2" )>]
+        [<InlineData(  "12", "1",  "0",       "12" )>]
+        [<InlineData(  "-1", "1",  "0",       "-1" )>]
+        [<InlineData(  "-2", "1",  "0",       "-2" )>]
+        [<InlineData( "-12", "1",  "0",      "-12" )>]
+        [<InlineData(   "0", "5",  "0",        "0" )>]
+        [<InlineData(   "1", "5",  "0",        "0.2" )>]
+        [<InlineData(   "2", "5",  "0",        "0.4" )>]
+        [<InlineData(  "12", "5",  "0",        "2.4" )>]
+        [<InlineData(  "-1", "5",  "0",       "-0.2" )>]
+        [<InlineData(  "-2", "5",  "0",       "-0.4" )>]
+        [<InlineData( "-12", "5",  "0",       "-2.4" )>]
+        [<InlineData(   "0", "1",  "1",        "0" )>]
+        [<InlineData(   "1", "1",  "1",       "10" )>]
+        [<InlineData(   "2", "1",  "1",       "20" )>]
+        [<InlineData(  "12", "1",  "1",      "120" )>]
+        [<InlineData(  "-1", "1",  "1",      "-10" )>]
+        [<InlineData(  "-2", "1",  "1",      "-20" )>]
+        [<InlineData( "-12", "1",  "1",     "-120" )>]
+        [<InlineData(   "0", "5",  "1",        "0" )>]
+        [<InlineData(   "1", "5",  "1",        "2" )>]
+        [<InlineData(   "2", "5",  "1",        "4" )>]
+        [<InlineData(  "12", "5",  "1",       "24" )>]
+        [<InlineData(  "-1", "5",  "1",       "-2" )>]
+        [<InlineData(  "-2", "5",  "1",       "-4" )>]
+        [<InlineData( "-12", "5",  "1",      "-24" )>]
+        [<InlineData(   "0", "1",  "5",        "0" )>]
+        [<InlineData(   "1", "1",  "5",   "100000" )>]
+        [<InlineData(   "2", "1",  "5",   "200000" )>]
+        [<InlineData(  "12", "1",  "5",  "1200000" )>]
+        [<InlineData(  "-1", "1",  "5",  "-100000" )>]
+        [<InlineData(  "-2", "1",  "5",  "-200000" )>]
+        [<InlineData( "-12", "1",  "5", "-1200000" )>]
+        [<InlineData(   "0", "5",  "5",        "0" )>]
+        [<InlineData(   "1", "5",  "5",    "20000" )>]
+        [<InlineData(   "2", "5",  "5",    "40000" )>]
+        [<InlineData(  "12", "5",  "5",   "240000" )>]
+        [<InlineData(  "-1", "5",  "5",   "-20000" )>]
+        [<InlineData(  "-2", "5",  "5",   "-40000" )>]
+        [<InlineData( "-12", "5",  "5",  "-240000" )>]
+        [<InlineData(   "0", "1", "-1",        "0" )>]
+        [<InlineData(   "1", "1", "-1",        "0.1" )>]
+        [<InlineData(   "2", "1", "-1",        "0.2" )>]
+        [<InlineData(  "12", "1", "-1",        "1.2" )>]
+        [<InlineData(  "-1", "1", "-1",       "-0.1" )>]
+        [<InlineData(  "-2", "1", "-1",       "-0.2" )>]
+        [<InlineData( "-12", "1", "-1",       "-1.2" )>]
+        [<InlineData(   "0", "5", "-1",         "0" )>]
+        [<InlineData(   "1", "5", "-1",         "0.02" )>]
+        [<InlineData(   "2", "5", "-1",         "0.04" )>]
+        [<InlineData(  "12", "5", "-1",         "0.24" )>]
+        [<InlineData(  "-1", "5", "-1",        "-0.02" )>]
+        [<InlineData(  "-2", "5", "-1",        "-0.04" )>]
+        [<InlineData( "-12", "5", "-1",        "-0.24" )>]
+        [<InlineData(   "0", "1", "-5",        "0" )>]
+        [<InlineData(   "1", "1", "-5",        "0.00001" )>]
+        [<InlineData(   "2", "1", "-5",        "0.00002" )>]
+        [<InlineData(  "12", "1", "-5",        "0.00012" )>]
+        [<InlineData(  "-1", "1", "-5",       "-0.00001" )>]
+        [<InlineData(  "-2", "1", "-5",       "-0.00002" )>]
+        [<InlineData( "-12", "1", "-5",       "-0.00012" )>]
+        [<InlineData(   "0", "5", "-5",        "0" )>]
+        [<InlineData(   "1", "5", "-5",        "0.000002" )>]
+        [<InlineData(   "2", "5", "-5",        "0.000004" )>]
+        [<InlineData(  "12", "5", "-5",        "0.000024" )>]
+        [<InlineData(  "-1", "5", "-5",       "-0.000002" )>]
+        [<InlineData(  "-2", "5", "-5",       "-0.000004" )>]
+        [<InlineData( "-12", "5", "-5",       "-0.000024" )>]
+        let RationalIntegerCtor n d e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Rational( Integer.Parse( n ), Natural.Parse( d ) ), Integer.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0" )>]
+        [<InlineData(   "1" )>]
+        [<InlineData(   "2" )>]
+        [<InlineData(  "12" )>]
+        [<InlineData(  "-1" )>]
+        [<InlineData(  "-2" )>]
+        [<InlineData( "-12" )>]
+        [<InlineData(   "0" )>]
+        [<InlineData(   "0.2" )>]
+        [<InlineData(   "0.4" )>]
+        [<InlineData(   "2.4" )>]
+        [<InlineData(  "-0.2" )>]
+        [<InlineData(  "-0.4" )>]
+        [<InlineData(  "-2.4" )>]
+        let RealCtor r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Real.Parse( r ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0",    "0",    "0" )>]
+        [<InlineData(   "2",    "0",    "2" )>]
+        [<InlineData(  "-2",    "0",   "-2" )>]
+        [<InlineData(   "0.2",  "0",    "0.2" )>]
+        [<InlineData(  "-0.2",  "0",   "-0.2" )>]
+        [<InlineData(   "0",    "2",    "0" )>]
+        [<InlineData(   "2",    "2",  "200" )>]
+        [<InlineData(  "-2",    "2", "-200" )>]
+        [<InlineData(   "0.2",  "2",   "20" )>]
+        [<InlineData(  "-0.2",  "2",  "-20" )>]
+        let RealNaturalCtor s e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Real.Parse( s ), Natural.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData(   "0",    "0",    "0" )>]
+        [<InlineData(   "2",    "0",    "2" )>]
+        [<InlineData(  "-2",    "0",   "-2" )>]
+        [<InlineData(   "0.2",  "0",    "0.2" )>]
+        [<InlineData(  "-0.2",  "0",   "-0.2" )>]
+        [<InlineData(   "0",    "2",    "0" )>]
+        [<InlineData(   "2",    "2",  "200" )>]
+        [<InlineData(  "-2",    "2", "-200" )>]
+        [<InlineData(   "0.2",  "2",   "20" )>]
+        [<InlineData(  "-0.2",  "2",  "-20" )>]
+        [<InlineData(   "0",   "-2",  "0" )>]
+        [<InlineData(   "2",   "-2",  "0.02" )>]
+        [<InlineData(  "-2",   "-2", "-0.02" )>]
+        [<InlineData(   "0.2", "-2",  "0.002" )>]
+        [<InlineData(  "-0.2", "-2", "-0.002" )>]
+        let RealIntegerCtor s e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( Real.Parse( s ), Integer.Parse( e ) )
             )
 
     module Equality =

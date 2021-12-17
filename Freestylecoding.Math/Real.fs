@@ -18,6 +18,8 @@ type public Real(significand:Integer, exponent:Integer) =
     member internal Real.Exponent = e
 
     new( value:Real ) = Real( value.Significand, value.Exponent )
+    new( value:Real, exp:Natural ) = Real( value * Real( Integer.Unit, exp ) )
+    new( value:Real, exp:Integer ) = Real( value * Real( Integer.Unit, exp ) )
 
     new( significand:Natural ) =                   Real( Integer( significand ), Integer.Zero )
     new( significand:Natural, exponent:Integer ) = Real( Integer( significand ), exponent )
@@ -32,8 +34,8 @@ type public Real(significand:Integer, exponent:Integer) =
     new( significand:uint32, exponent:uint32 ) = Real( Natural( significand ), Natural( exponent ) )
 
     new( significand:Rational ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ) )
-    new( significand:Rational, exponent:Integer ) = Real( Real( significand.Numerator, exponent ) / Real( significand.Denominator, exponent ) )
-    new( significand:Rational, exponent:Natural ) = Real( Real( significand.Numerator, exponent ) / Real( significand.Denominator, exponent ) )
+    new( significand:Rational, exponent:Integer ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ), exponent )
+    new( significand:Rational, exponent:Natural ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ), exponent )
 
     with
         static member Zero = Real( Integer.Zero, Integer.Zero )
