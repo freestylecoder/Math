@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Freestylecoding.Math.CSharp.Tests {
 	[Trait( "Type", "Sanity" )]
-	public class Sanity {
+	public class RationalSanity {
 		[Fact]
 		public void GreaterThanTrue() =>
 			Assert.True(
@@ -86,7 +86,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Ctor {
+	public class RationalCtor {
 		[Theory]
 		[InlineData( " 0", "1", " 0" )]
 		[InlineData( " 1", "1", " 1" )]
@@ -110,7 +110,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Equality {
+	public class RationalEquality {
 		[Theory]
 		[InlineData( 0, 0, true )]
 		[InlineData( 0, 1, false )]
@@ -164,7 +164,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class GreaterThan {
+	public class RationalGreaterThan {
 		[Theory]
 		[InlineData( " 0", " 1", false )]
 		[InlineData( " 1", " 0", true )]
@@ -186,7 +186,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( x, Rational.Parse( l ) > Rational.Parse( r ) );
 	}
 
-	public class LessThan {
+	public class RationalLessThan {
 		[Theory]
 		[InlineData( " 0", " 1", true )]
 		[InlineData( " 1", " 0", false )]
@@ -208,7 +208,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( x, Rational.Parse( l ) < Rational.Parse( r ) );
 	}
 
-	public class GreaterThanOrEqual {
+	public class RationalGreaterThanOrEqual {
 		[Theory]
 		[InlineData( " 0", " 1", false )]
 		[InlineData( " 1", " 0", true )]
@@ -230,7 +230,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( x, Rational.Parse( l ) >= Rational.Parse( r ) );
 	}
 
-	public class LessThanOrEqual {
+	public class RationalLessThanOrEqual {
 		[Theory]
 		[InlineData( " 0", " 1", true )]
 		[InlineData( " 1", " 0", false )]
@@ -252,7 +252,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( x, Rational.Parse( l ) <= Rational.Parse( r ) );
 	}
 
-	public class Inequality {
+	public class RationalInequality {
 		[Theory]
 		[InlineData( " 0", " 1", true )]
 		[InlineData( " 1", " 0", true )]
@@ -274,7 +274,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( x, Rational.Parse( l ) != Rational.Parse( r ) );
 	}
 
-	public class Addition {
+	public class RationalAddition {
 		[Theory]
 		[InlineData( " 1/2", " 1/2", " 1" )]     // Sanity
 		[InlineData( "-1/2", " 1/2", " 0" )]     // Sanity
@@ -303,7 +303,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Subtraction {
+	public class RationalSubtraction {
 		[Theory]
 		[InlineData( " 1/2", " 1/2", " 0" )]     // Sanity
 		[InlineData( "-1/2", " 1/2", "-1" )]     // Sanity
@@ -332,7 +332,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Multiply {
+	public class RationalMultiply {
 		[Theory]
 		[InlineData( " 1/2", " 1", " 1/2" )]      // Sanity
 		[InlineData( "-1/2", " 1", "-1/2" )]      // Sanity
@@ -382,7 +382,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Division {
+	public class RationalDivision {
 		[Theory]
 		[InlineData( " 1/2", " 1", " 1/2" )]      // Sanity
 		[InlineData( "-1/2", " 1", "-1/2" )]      // Sanity
@@ -413,7 +413,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Modulo {
+	public class RationalModulo {
 		[Theory]
 		[InlineData( " 1/2", " 1", " 1/2" )]      // Sanity
 		[InlineData( "-1/2", " 1", "-1/2" )]      // Sanity
@@ -447,7 +447,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class DivisionModulo {
+	public class RationalDivisionModulo {
 		[Theory]
 		[InlineData( " 1/2", " 1", " 0", " 1/2" )]      // Sanity
 		[InlineData( "-1/2", " 1", " 0", "-1/2" )]      // Sanity
@@ -481,7 +481,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Negation {
+	public class RationalNegation {
 		[Theory]
 		[InlineData( 1, 1u, -1, 1u )] // Sanity
 		[InlineData( -1, 1u, 1, 1u )] // Sanity
@@ -521,7 +521,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Equals {
+	public class RationalEquals {
 		[Theory]
 		[InlineData( 1, 1, true )]    // Sanity
 		[InlineData( 1, -1, false )]   // Sanity
@@ -555,7 +555,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.False( ( -Rational.Unit ).Equals( Integer.Unit ) );
 	}
 
-	public class ToString {
+	public class RationalToString {
 		[Theory]
 		[InlineData( 0, 1u, "0" )]
 		[InlineData( 1, 1u, "1" )]
@@ -596,7 +596,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 	}
 
-	public class Parse {
+	public class RationalParse {
 		[Theory]
 		[InlineData( "0", 0, 1u )]        // Sanity
 		[InlineData( "1", 1, 1u )]        // Sanity

@@ -166,7 +166,7 @@ module Real =
         [<InlineData(   1u, -5,       "0.00001" )>]
         [<InlineData(   2u, -5,       "0.00002" )>]
         [<InlineData(  12u, -5,       "0.00012" )>]
-        let Unit32Int32Ctor (s:uint32) (e:int32) (r:string) =
+        let Uint32Int32Ctor (s:uint32) (e:int32) (r:string) =
             Assert.Equal(
                 Real.Parse( r ),
                 Real( s, e )
@@ -667,7 +667,7 @@ module Real =
             Assert.Equal( Real.Parse( s ), Real.Parse( l ) - Real.Parse( r ) )
 
     module Multiply =
-        [<SkippableTheory>]
+        [<Theory>]
         [<InlineData( "0",  "0",    "0" )>]      // Sanity
         [<InlineData( "0",  "1",    "0" )>]      // Sanity
         [<InlineData( "1",  "0",    "0" )>]      // Sanity
@@ -685,10 +685,9 @@ module Real =
         [<InlineData( "1234567890", "987654321", "1219326311126352690" )>]
         [<InlineData( ".123456789", ".0987654321", "0.0121932631112635269" )>]
         [<InlineData( "1234567890", ".0987654321", "121932631.112635269" )>]
-        [<InlineData( "1234567890", ".0987654321", "121932631.112635269" )>]
-        [<InlineData( "2e100", "1e-100", "2", Skip = "Parse doesn't support E yet" )>]
-        [<InlineData( "2e101", "1e-100", "20", Skip = "Parse doesn't support E yet" )>]
-        [<InlineData( "2e100", "1e-101", "0.2", Skip = "Parse doesn't support E yet" )>]
+        [<InlineData( "2e100", "1e-100", "2" )>]
+        [<InlineData( "2e101", "1e-100", "20" )>]
+        [<InlineData( "2e100", "1e-101", "0.2" )>]
         let Sanity l r p =
             Assert.Equal( Real.Parse( p ), Real.Parse( l ) * Real.Parse( r ) )
     
