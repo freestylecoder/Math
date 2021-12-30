@@ -55,6 +55,48 @@ module Natural =
         let Parse () =
             Assert.Equal( Natural([0x112210F4u; 0x7DE98115u] ), Natural.Parse("1234567890123456789") )
 
+    module Ctor =
+        [<Theory>]
+        [<InlineData(                    "0", 0u, 0u, 0u )>]
+        [<InlineData(           "4294967297", 0u, 1u, 1u )>]
+        [<InlineData( "18446744073709551616", 1u, 0u, 0u )>]
+        [<InlineData( "18446744073709551617", 1u, 0u, 1u )>]
+        let Default expected a b c =
+            Assert.Equal( Natural.Parse( expected ), Natural( [a; b; c] ) )
+
+        [<Theory>]
+        [<InlineData(   0u )>]
+        [<InlineData(   1u )>]
+        [<InlineData(   2u )>]
+        [<InlineData(   5u )>]
+        [<InlineData( 100u )>]
+        let Uint32 (actual:uint32) =
+            Assert.Equal( Natural( [actual] ), Natural( actual ) )
+
+        [<Theory>]
+        [<InlineData( 0x0000_0000UL, 0x0000_0000UL, 0x0000_0000_0000_0000UL )>]
+        [<InlineData( 0x0000_0000UL, 0x0000_0001UL, 0x0000_0000_0000_0001UL )>]
+        [<InlineData( 0x0000_0001UL, 0x0000_0000UL, 0x0000_0001_0000_0000UL )>]
+        [<InlineData( 0x0000_0001UL, 0x0000_0001UL, 0x0000_0001_0000_0001UL )>]
+        [<InlineData( 0x1200_0340UL, 0x0560_0078UL, 0x1200_0340_0560_0078UL )>]
+        [<InlineData( 0x1234_5678UL, 0x9ABC_DEF0UL, 0x1234_5678_9ABC_DEF0UL )>]
+        [<InlineData( 0xFFFF_0000UL, 0x0000_0000UL, 0xFFFF_0000_0000_0000UL )>]
+        [<InlineData( 0xFFFF_EEEEUL, 0xDDDD_CCCCUL, 0xFFFF_EEEE_DDDD_CCCCUL )>]
+        let Uint64 (expectedHigh:uint32) (expectedLow:uint32) (actual:uint64) =
+            Assert.Equal( Natural( [expectedHigh; expectedLow] ), Natural( actual ) )
+
+        [<Theory>]
+        [<InlineData( 0u, 0u, 0u )>]
+        [<InlineData( 0u, 0u, 1u )>]
+        [<InlineData( 0u, 1u, 0u )>]
+        [<InlineData( 0u, 1u, 1u )>]
+        [<InlineData( 1u, 0u, 0u )>]
+        [<InlineData( 1u, 0u, 1u )>]
+        [<InlineData( 1u, 1u, 0u )>]
+        [<InlineData( 1u, 1u, 1u )>]
+        let Uint32Sequence (a:uint32) (b:uint32) (c:uint32) =
+            Assert.Equal( Natural( [ a; b; c ] ), Natural( seq { a; b; c } ) )
+
     module And =
         [<Theory>]
         [<InlineData( 0u, 0u, 0u)>]

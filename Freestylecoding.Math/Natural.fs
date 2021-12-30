@@ -6,6 +6,11 @@ type public Natural(data:uint32 list) =
     member internal Natural.Data = data
 
     new(data:uint32) = Natural( [data] )
+    new(data:uint64) = Natural( [
+        Convert.ToUInt32( data >>> 32 );
+        Convert.ToUInt32( data &&& 0xFFFF_FFFFUL )
+    ] )
+
     new(data:uint32 seq) = Natural( Seq.toList( data ) )
 
     with

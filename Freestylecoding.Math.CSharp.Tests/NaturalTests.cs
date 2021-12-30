@@ -45,7 +45,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[Fact]
 		public void DivisionModulo() =>
 			Assert.Equal(
-				new Tuple<Natural,Natural>(
+				new Tuple<Natural, Natural>(
 					new Natural( new[] { 0xFEDCBA98u } ),
 					new Natural( new[] { 0x12345678u } )
 				),
@@ -62,6 +62,76 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[Fact]
 		public void Parse() =>
 			Assert.Equal( new Natural( new[] { 0x112210F4u, 0x7DE98115u } ), Natural.Parse( "1234567890123456789" ) );
+	}
+
+	public class NaturalCtor {
+		private Microsoft.FSharp.Collections.FSharpList<T> ToFSharpList<T>( params T[] list ) {
+			if( 0 == list.Length )
+				return Microsoft.FSharp.Collections.FSharpList<T>.Empty;
+
+			return Microsoft.FSharp.Collections.FSharpList<T>.Cons(
+				list[0],
+				ToFSharpList(
+					System.Linq.Enumerable.ToArray(
+						System.Linq.Enumerable.Skip( list, 1 )
+					)
+				)
+			);
+		}
+
+		[Theory]
+		[InlineData( "0", 0u, 0u, 0u )]
+		[InlineData( "4294967297", 0u, 1u, 1u )]
+		[InlineData( "18446744073709551616", 1u, 0u, 0u )]
+		[InlineData( "18446744073709551617", 1u, 0u, 1u )]
+
+		public void DefaultCtor( string expected, uint a, uint b, uint c ) =>
+			Assert.Equal(
+				Natural.Parse( expected ),
+				new Natural( ToFSharpList( a, b, c ) )
+			);
+
+		[Theory]
+		[InlineData( 0u )]
+		[InlineData( 1u )]
+		[InlineData( 2u )]
+		[InlineData( 5u )]
+		[InlineData( 100u )]
+		public void Uint32Ctor( uint actual ) =>
+			Assert.Equal(
+				new Natural( ToFSharpList( actual ) ),
+				new Natural( actual )
+			);
+
+		[Theory]
+		[InlineData( 0x0000_0000UL, 0x0000_0000UL, 0x0000_0000_0000_0000UL )]
+		[InlineData( 0x0000_0000UL, 0x0000_0001UL, 0x0000_0000_0000_0001UL )]
+		[InlineData( 0x0000_0001UL, 0x0000_0000UL, 0x0000_0001_0000_0000UL )]
+		[InlineData( 0x0000_0001UL, 0x0000_0001UL, 0x0000_0001_0000_0001UL )]
+		[InlineData( 0x1200_0340UL, 0x0560_0078UL, 0x1200_0340_0560_0078UL )]
+		[InlineData( 0x1234_5678UL, 0x9ABC_DEF0UL, 0x1234_5678_9ABC_DEF0UL )]
+		[InlineData( 0xFFFF_0000UL, 0x0000_0000UL, 0xFFFF_0000_0000_0000UL )]
+		[InlineData( 0xFFFF_EEEEUL, 0xDDDD_CCCCUL, 0xFFFF_EEEE_DDDD_CCCCUL )]
+		public void Uint64Ctor( uint expectedHigh, uint expectedLow, ulong actual ) =>
+			Assert.Equal(
+				new Natural( ToFSharpList( expectedHigh, expectedLow ) ),
+				new Natural( actual )
+			);
+
+		[Theory]
+		[InlineData( 0u, 0u, 0u )]
+		[InlineData( 0u, 0u, 1u )]
+		[InlineData( 0u, 1u, 0u )]
+		[InlineData( 0u, 1u, 1u )]
+		[InlineData( 1u, 0u, 0u )]
+		[InlineData( 1u, 0u, 1u )]
+		[InlineData( 1u, 1u, 0u )]
+		[InlineData( 1u, 1u, 1u )]
+		public void Uint32SequenceCtor( uint a, uint b, uint c ) =>
+			Assert.Equal(
+				new Natural( ToFSharpList( a, b, c ) ),
+				new Natural( new[] { a, b, c } )
+			);
 	}
 
 	public class NaturalAnd {
@@ -118,22 +188,28 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0xFu, 0x10100u } ), new Natural( new[] { 0x00010001u } ) ^ new Natural( new[] { 0xFu, 0x00000101u } ) );
 	}
 
-	// C# only allows this for certain types
-	// Need to loop back later and figure out how to convince it
+	// Yes, I know this is called BitwiseNot (~) but is using a LogicalNot (!)
+	// The operator used in the F# is ~~~
+	// When you look in the MSIL, the C# thinks it's !
+	// It has to do with the fact that ~ is VERY limited in C#
+	public class NaturalBitwiseNot {
+		[Theory]
+		[InlineData( 0xFFFFFFFEu, 1u )]
+		[InlineData( 1u, 0xFFFFFFFEu )]
+		public void Sanity( uint l, uint x ) {
+			Assert.Equal(
+				new Natural( new[] { x } ),
+				!new Natural( new[] { l } )
+			);
+		}
 
-	//public class NaturalBitwiseNot {
-	//	[Theory]
-	//	[InlineData( 0xFFFFFFFEu, 1u )]
-	//	[InlineData( 1u, 0xFFFFFFFEu )]
-	//	public void Sanity( uint l, uint x ) {
-	//		Natural tmp = new Natural( new[] { l } );
-	//		Assert.Equal( new Natural( new[] { x } ), ~tmp );
-	//	}
-
-	//	[Fact]
-	//	public void Bigger() =>
-	//		Assert.Equal( new Natural( new[] { 0xF0123456u, 0x789ABCDEu } ), ~new Natural( new[] { 0x0FEDCBA9u, 0x87654321u } ) );
-	//}
+		[Fact]
+		public void Bigger() =>
+			Assert.Equal(
+				new Natural( new[] { 0xF0123456u, 0x789ABCDEu } ),
+				!new Natural( new[] { 0x0FEDCBA9u, 0x87654321u } )
+			);
+	}
 
 	public class NaturalLeftShift {
 		[Theory]
@@ -463,6 +539,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Big() =>
 			Assert.Equal( new Natural( new[] { 0xFEDCBA98u } ), new Natural( new[] { 0x75CD9046u, 0x541D5980u } ) / new Natural( new[] { 0x76543210u } ) );
 	}
+
 	public class NaturalModulo {
 		[Theory]
 		[InlineData( 1u, 1u, 0u )]        // Sanity
@@ -486,7 +563,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			Assert.Equal( new Natural( new[] { 0x12345678u } ), new Natural( new[] { 0x75CD9046u, 0x6651AFF8u } ) % new Natural( new[] { 0x76543210u } ) );
 	}
 
-    public class NaturalDivisionModulo {
+	public class NaturalDivisionModulo {
 		[Theory]
 		[InlineData( 1u, 1u, 1u, 0u )]        // Sanity
 		[InlineData( 0u, 1u, 0u, 0u )]        // Sanity
@@ -494,8 +571,8 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[InlineData( 52u, 5u, 10u, 2u )]      // rev
 		[InlineData( 52u, 10u, 5u, 2u )]      // rev
 		public void Sanity( uint dividend, uint divisor, uint quotient, uint remainder ) =>
-            Assert.Equal(
-				new Tuple<Natural,Natural>(
+			Assert.Equal(
+				new Tuple<Natural, Natural>(
 					new Natural( new[] { quotient } ),
 					new Natural( new[] { remainder } )
 				),
@@ -511,10 +588,10 @@ namespace Freestylecoding.Math.CSharp.Tests {
 				() => Natural.op_DividePercent( Natural.Unit, Natural.Zero )
 			);
 
-        [Fact]
+		[Fact]
 		public void Big() =>
-            Assert.Equal(
-				new Tuple<Natural,Natural>(
+			Assert.Equal(
+				new Tuple<Natural, Natural>(
 					new Natural( new[] { 0xFEDCBA98u } ),
 					new Natural( new[] { 0x12345678u } )
 				),
