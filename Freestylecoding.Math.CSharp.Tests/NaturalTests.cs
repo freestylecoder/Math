@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xunit;
 
 namespace Freestylecoding.Math.CSharp.Tests {
@@ -71,11 +72,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 
 			return Microsoft.FSharp.Collections.FSharpList<T>.Cons(
 				list[0],
-				ToFSharpList(
-					System.Linq.Enumerable.ToArray(
-						System.Linq.Enumerable.Skip( list, 1 )
-					)
-				)
+				ToFSharpList( list.Skip(1).ToArray() )
 			);
 		}
 
@@ -84,7 +81,6 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[InlineData( "4294967297", 0u, 1u, 1u )]
 		[InlineData( "18446744073709551616", 1u, 0u, 0u )]
 		[InlineData( "18446744073709551617", 1u, 0u, 1u )]
-
 		public void DefaultCtor( string expected, uint a, uint b, uint c ) =>
 			Assert.Equal(
 				Natural.Parse( expected ),
@@ -104,14 +100,14 @@ namespace Freestylecoding.Math.CSharp.Tests {
 			);
 
 		[Theory]
-		[InlineData( 0x0000_0000UL, 0x0000_0000UL, 0x0000_0000_0000_0000UL )]
-		[InlineData( 0x0000_0000UL, 0x0000_0001UL, 0x0000_0000_0000_0001UL )]
-		[InlineData( 0x0000_0001UL, 0x0000_0000UL, 0x0000_0001_0000_0000UL )]
-		[InlineData( 0x0000_0001UL, 0x0000_0001UL, 0x0000_0001_0000_0001UL )]
-		[InlineData( 0x1200_0340UL, 0x0560_0078UL, 0x1200_0340_0560_0078UL )]
-		[InlineData( 0x1234_5678UL, 0x9ABC_DEF0UL, 0x1234_5678_9ABC_DEF0UL )]
-		[InlineData( 0xFFFF_0000UL, 0x0000_0000UL, 0xFFFF_0000_0000_0000UL )]
-		[InlineData( 0xFFFF_EEEEUL, 0xDDDD_CCCCUL, 0xFFFF_EEEE_DDDD_CCCCUL )]
+		[InlineData( 0x0000_0000u, 0x0000_0000u, 0x0000_0000_0000_0000UL )]
+		[InlineData( 0x0000_0000u, 0x0000_0001u, 0x0000_0000_0000_0001UL )]
+		[InlineData( 0x0000_0001u, 0x0000_0000u, 0x0000_0001_0000_0000UL )]
+		[InlineData( 0x0000_0001u, 0x0000_0001u, 0x0000_0001_0000_0001UL )]
+		[InlineData( 0x1200_0340u, 0x0560_0078u, 0x1200_0340_0560_0078UL )]
+		[InlineData( 0x1234_5678u, 0x9ABC_DEF0u, 0x1234_5678_9ABC_DEF0UL )]
+		[InlineData( 0xFFFF_0000u, 0x0000_0000u, 0xFFFF_0000_0000_0000UL )]
+		[InlineData( 0xFFFF_EEEEu, 0xDDDD_CCCCu, 0xFFFF_EEEE_DDDD_CCCCUL )]
 		public void Uint64Ctor( uint expectedHigh, uint expectedLow, ulong actual ) =>
 			Assert.Equal(
 				new Natural( ToFSharpList( expectedHigh, expectedLow ) ),
@@ -130,7 +126,7 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		public void Uint32SequenceCtor( uint a, uint b, uint c ) =>
 			Assert.Equal(
 				new Natural( ToFSharpList( a, b, c ) ),
-				new Natural( new[] { a, b, c } )
+				new Natural( new[] { a, b, c }.AsEnumerable<uint>() )
 			);
 	}
 
