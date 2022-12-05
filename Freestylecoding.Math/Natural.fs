@@ -1,10 +1,17 @@
 ﻿namespace Freestylecoding.Math
 
 open System
-    
-type public Natural(data:uint32 list) =
-    member internal Natural.Data = data
 
+type public Natural(data:uint32 list) =
+    let rec Compress (l:uint32 list) : uint32 list =
+        match l with
+        | [] -> [0u]
+        | 0u :: t -> Compress t
+        | _ -> l
+
+    member internal Natural.Data = Compress data
+
+    new() = Natural( [0u] )
     new(data:uint32) = Natural( [data] )
     new(data:uint64) = Natural( [
         Convert.ToUInt32( data >>> 32 );
@@ -16,22 +23,28 @@ type public Natural(data:uint32 list) =
     with
         static member Zero = Natural([0u])
         static member Unit = Natural([1u])
-            
+
+        static member op_Implicit( i:uint32 ) : Natural =
+            Natural( i )
+        static member op_Implicit( l:uint64 ) : Natural =
+            Natural( l )
+
+        static member private BitwiseOperation (f:(uint32 -> uint32 -> uint32)) (left:Natural) (right:Natural) : Natural =
+            let (l,r) = Helpers.normalize left.Data right.Data
+            Natural( List.map2 f l r )
+
         // Bitwise Operators
         static member (&&&) (left:Natural, right:Natural) : Natural =
-            let (l,r) = Helpers.normalize left.Data right.Data
-            Natural( List.map2 (fun x y -> x &&& y) l r |> Helpers.compress )
+            Natural.BitwiseOperation (fun x y -> x &&& y) left right
 
         static member (|||) (left:Natural, right:Natural) : Natural =
-            let (l,r) = Helpers.normalize left.Data right.Data
-            Natural( List.map2 (fun x y -> x ||| y) l r |> Helpers.compress )
+            Natural.BitwiseOperation (fun x y -> x ||| y) left right
 
         static member (^^^) (left:Natural, right:Natural) : Natural =
-            let (l,r) = Helpers.normalize left.Data right.Data
-            Natural( List.map2 (fun x y -> x ^^^ y) l r |> Helpers.compress )
+            Natural.BitwiseOperation (fun x y -> x ^^^ y) left right
 
         static member (~~~) (right:Natural) : Natural =
-            Natural( List.map (fun x -> ~~~ x) right.Data |> Helpers.compress )
+            Natural( List.map (fun x -> ~~~ x) right.Data )
 
         static member (<<<) (left:Natural, (right:int)) : Natural =
             let bitsToShift = right % 32
@@ -42,7 +55,7 @@ type public Natural(data:uint32 list) =
             let overflowList = (List.map (fun x -> (overflowBits &&& x) >>> (32 - bitsToShift) ) left.Data) @ [0u]
             let result = List.map2 (fun x y -> x ||| y) shiftedList overflowList
 
-            Natural( Helpers.compress( result ) @ (List.init listElementsToShift (fun i -> 0u)) )
+            Natural( result @ (List.init listElementsToShift (fun i -> 0u)) )
 
         static member (>>>) (left:Natural, right:int) : Natural =
             let rec chomp n l =
@@ -66,7 +79,6 @@ type public Natural(data:uint32 list) =
             let result =
                 List.map2 (fun x y -> x ||| y) shiftedList underflowList
                 |> chomp 1
-                |> Helpers.compress
 
             Natural( result )
 
@@ -118,11 +130,11 @@ type public Natural(data:uint32 list) =
                 let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
                 let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
                 match overflows with
-                | _ when [0u] = Helpers.compress overflows -> rawSums
+                | _ when Natural.Zero = Natural( overflows ) -> rawSums
                 | _ -> operation ( rawSums, overflows )
 
             let result = operation ( Helpers.normalize left.Data right.Data )
-            Natural( Helpers.compress result )
+            Natural( result )
 
         static member (-) (left:Natural, right:Natural) : Natural =
             if( left < right ) then raise (new OverflowException())
@@ -133,7 +145,7 @@ type public Natural(data:uint32 list) =
             let cascadeUnderflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) rawDifferences.Tail underflows.Tail) @ [0u]
             let result = List.map3 (fun x y z -> x - y - z ) rawDifferences underflows cascadeUnderflows
 
-            Natural( Helpers.compress result )
+            Natural( result )
 
         static member (*) (left:Natural, right:Natural) : Natural =
             let rec magic value bitsToShiftLeft =

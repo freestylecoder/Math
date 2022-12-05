@@ -10,7 +10,11 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Freestylecoding.Math", "Fre
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Freestylecoding.Math.FSharp.Tests", "Freestylecoding.Math.FSharp.Tests\Freestylecoding.Math.FSharp.Tests.fsproj", "{E2CA849E-0953-4444-887E-9DB794C6396D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Freestylecoding.Math.CSharp.Tests", "Freestylecoding.Math.CSharp.Tests\Freestylecoding.Math.CSharp.Tests.csproj", "{FC135325-8108-42B6-8D26-07BE3A8AE78A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Freestylecoding.Math.CSharp.Tests", "Freestylecoding.Math.CSharp.Tests\Freestylecoding.Math.CSharp.Tests.csproj", "{FC135325-8108-42B6-8D26-07BE3A8AE78A}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freestylecoding.Math.Linear", "Freestylecoding.Math.Linear\Freestylecoding.Math.Linear.fsproj", "{13689690-C88B-4F40-9210-5D5E8ABCD898}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freestylecoding.Math.Linear.FSharp.Tests", "Freestylecoding.Math.Linear.FSharp.Tests\Freestylecoding.Math.Linear.FSharp.Tests.fsproj", "{52350999-17D4-4989-8D0D-9E32FAD3BB95}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +42,14 @@ Global
 		{FC135325-8108-42B6-8D26-07BE3A8AE78A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC135325-8108-42B6-8D26-07BE3A8AE78A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC135325-8108-42B6-8D26-07BE3A8AE78A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13689690-C88B-4F40-9210-5D5E8ABCD898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13689690-C88B-4F40-9210-5D5E8ABCD898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13689690-C88B-4F40-9210-5D5E8ABCD898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13689690-C88B-4F40-9210-5D5E8ABCD898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,7 +3,18 @@ using System.Linq;
 using Xunit;
 
 namespace Freestylecoding.Math.CSharp.Tests {
+	public class ignore {
+		[Fact]
+		public void blah() {
+			Assert.Equal(
+				Natural.Zero,
+				typeof( Natural )
+					.GetProperty( "Zero", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public )
+					.GetValue( null )
+			);
 
+		}
+	}
 	// NOTE: The sanity tests are here to do low level tests of a few parts
 	// This lets me isolate those tests so I can use those parts in the rest of the tests
 	//
@@ -63,6 +74,39 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[Fact]
 		public void Parse() =>
 			Assert.Equal( new Natural( new[] { 0x112210F4u, 0x7DE98115u } ), Natural.Parse( "1234567890123456789" ) );
+	}
+
+	public class NaturalImplicit {
+		private Microsoft.FSharp.Collections.FSharpList<T> ToFSharpList<T>( params T[] list ) {
+			if( 0 == list.Length )
+				return Microsoft.FSharp.Collections.FSharpList<T>.Empty;
+
+			return Microsoft.FSharp.Collections.FSharpList<T>.Cons(
+				list[0],
+				ToFSharpList( list.Skip(1).ToArray() )
+			);
+		}
+
+        [Theory]
+        [InlineData(   0u )]
+        [InlineData(   1u )]
+        [InlineData(   2u )]
+        [InlineData(   5u )]
+        [InlineData( 100u )]
+        public void Uint32( uint actual ) =>
+            Assert.Equal( new Natural( actual ), actual );
+
+        [Theory]
+        [InlineData( 0x0000_0000u, 0x0000_0000u, 0x0000_0000_0000_0000uL )]
+        [InlineData( 0x0000_0000u, 0x0000_0001u, 0x0000_0000_0000_0001uL )]
+        [InlineData( 0x0000_0001u, 0x0000_0000u, 0x0000_0001_0000_0000uL )]
+        [InlineData( 0x0000_0001u, 0x0000_0001u, 0x0000_0001_0000_0001uL )]
+        [InlineData( 0x1200_0340u, 0x0560_0078u, 0x1200_0340_0560_0078uL )]
+        [InlineData( 0x1234_5678u, 0x9ABC_DEF0u, 0x1234_5678_9ABC_DEF0uL )]
+        [InlineData( 0xFFFF_0000u, 0x0000_0000u, 0xFFFF_0000_0000_0000uL )]
+        [InlineData( 0xFFFF_EEEEu, 0xDDDD_CCCCu, 0xFFFF_EEEE_DDDD_CCCCuL )]
+        public void Uint64( uint expectedHigh, uint expectedLow, ulong actual ) =>
+            Assert.Equal( new Natural( new[] { expectedHigh, expectedLow } ), actual );
 	}
 
 	public class NaturalCtor {
