@@ -429,6 +429,28 @@ module Real =
                 Real( Real.Parse( s ), Integer.Parse( e ) )
             )
 
+        [<Theory>]
+        [<InlineData(   0f,   "0"   )>]
+        [<InlineData(   0.1f, "0.1" )>]
+        [<InlineData(   2f,   "2"   )>]
+        [<InlineData(  30f,   "30"  )>]
+        let Float (f:float32) r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( f )
+            )
+
+        [<Theory>]
+        [<InlineData(   0.0,   "0"   )>]
+        [<InlineData(   0.1, "0.1" )>]
+        [<InlineData(   2.0,   "2"   )>]
+        [<InlineData(  30.0,   "30"  )>]
+        let Double (d:float) r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real( d )
+            )
+
     module Equality =
         [<Theory>]
         [<InlineData( " 0", " 0", true )>]
@@ -827,7 +849,172 @@ module Real =
                 Real.Parse( "0.5" ) /% Real.Parse( "0.5" )
             )
 
-    module Negation =
+    module Pow =
+        [<Theory>]
+        [<InlineData( "0", "0", "1" )>] // Sanity
+        [<InlineData( "1", "0", "1" )>] // Sanity
+        [<InlineData( "2", "0", "1" )>] // Sanity
+        [<InlineData( "0", "1", "0" )>] // Sanity
+        [<InlineData( "1", "1", "1" )>] // Sanity
+        [<InlineData( "2", "1", "2" )>] // Sanity
+        let Sanity b e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real.Pow( Real.Parse( b ), Natural.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData( "0", "2", " 0" )>] // Sanity
+        [<InlineData( "1", "2", " 1" )>] // Sanity
+        [<InlineData( "2", "2", " 4" )>] // Sanity
+        [<InlineData( "3", "2", " 9" )>] // Sanity
+        [<InlineData( "4", "2", "16" )>] // Sanity
+        [<InlineData( "5", "2", "25" )>] // Sanity
+        [<InlineData( "6", "2", "36" )>] // Sanity
+        [<InlineData( "7", "2", "49" )>] // Sanity
+        [<InlineData( "8", "2", "64" )>] // Sanity
+        [<InlineData( "9", "2", "81" )>] // Sanity
+        let Squares b e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real.Pow( Real.Parse( b ), Natural.Parse( e ) )
+            )
+
+        [<Theory>]
+        [<InlineData( "0", "3", "  0" )>] // Sanity
+        [<InlineData( "1", "3", "  1" )>] // Sanity
+        [<InlineData( "2", "3", "  8" )>] // Sanity
+        [<InlineData( "3", "3", " 27" )>] // Sanity
+        [<InlineData( "4", "3", " 64" )>] // Sanity
+        [<InlineData( "5", "3", "125" )>] // Sanity
+        [<InlineData( "6", "3", "216" )>] // Sanity
+        [<InlineData( "7", "3", "343" )>] // Sanity
+        [<InlineData( "8", "3", "512" )>] // Sanity
+        [<InlineData( "9", "3", "729" )>] // Sanity
+        let Cubes b e r =
+            Assert.Equal(
+                Real.Parse( r ),
+                Real.Pow( Real.Parse( b ), Natural.Parse( e ) )
+            )
+
+        [<Fact>]
+        let Large () =
+            Assert.Equal(
+                Real.Parse( "931322574615478515625" ),
+                Real.Pow( Real.Parse( "5" ), Natural.Parse( "30" ) )
+            )
+
+        [<Fact>]
+        let Weird () =
+            Assert.Equal(
+                Real.Parse( "4.141059695365510017391152776845" ),
+                Real.Pow( Real.Parse( "2" ), Real.Parse( "2.05" ) )
+            )
+
+    module Root =
+        [<Theory>]
+        [<InlineData( "2", " 1", "1" )>] // Sanity
+        [<InlineData( "2", " 4", "2" )>] // Sanity
+        [<InlineData( "2", " 9", "3" )>] // Sanity
+        [<InlineData( "3", " 1", "1" )>] // Sanity
+        [<InlineData( "3", " 8", "2" )>] // Sanity
+        [<InlineData( "3", "27", "3" )>] // Sanity
+        let Sanity index radicand answer =
+            Assert.Equal(
+                Real.Parse( answer ),
+                Real.Root( Natural.Parse( index ), Real.Parse( radicand ) )
+            )
+
+        //[<Theory>]
+        //[<InlineData( "0", "2", " 0" )>] // Sanity
+        //[<InlineData( "1", "2", " 1" )>] // Sanity
+        //[<InlineData( "2", "2", " 4" )>] // Sanity
+        //[<InlineData( "3", "2", " 9" )>] // Sanity
+        //[<InlineData( "4", "2", "16" )>] // Sanity
+        //[<InlineData( "5", "2", "25" )>] // Sanity
+        //[<InlineData( "6", "2", "36" )>] // Sanity
+        //[<InlineData( "7", "2", "49" )>] // Sanity
+        //[<InlineData( "8", "2", "64" )>] // Sanity
+        //[<InlineData( "9", "2", "81" )>] // Sanity
+        //let Squares b e r =
+        //    Assert.Equal(
+        //        Real.Parse( r ),
+        //        Real.Pow( Real.Parse( b ), Natural.Parse( e ) )
+        //    )
+
+        //[<Theory>]
+        //[<InlineData( "0", "3", "  0" )>] // Sanity
+        //[<InlineData( "1", "3", "  1" )>] // Sanity
+        //[<InlineData( "2", "3", "  8" )>] // Sanity
+        //[<InlineData( "3", "3", " 27" )>] // Sanity
+        //[<InlineData( "4", "3", " 64" )>] // Sanity
+        //[<InlineData( "5", "3", "125" )>] // Sanity
+        //[<InlineData( "6", "3", "216" )>] // Sanity
+        //[<InlineData( "7", "3", "343" )>] // Sanity
+        //[<InlineData( "8", "3", "512" )>] // Sanity
+        //[<InlineData( "9", "3", "729" )>] // Sanity
+        //let Cubes b e r =
+        //    Assert.Equal(
+        //        Real.Parse( r ),
+        //        Real.Pow( Real.Parse( b ), Natural.Parse( e ) )
+        //    )
+
+        //[<Fact>]
+        //let Large () =
+        //    Assert.Equal(
+        //        Real.Parse( "931322574615478515625" ),
+        //        Real.Pow( Real.Parse( "5" ), Natural.Parse( "30" ) )
+        //    )
+
+    module Exp =
+        [<Theory>]
+        [<InlineData( "-1  ", " 0.367879441171442321595523770163" )>] // Sanity
+        [<InlineData( "-0.5", " 0.606530659712633423603799534991" )>] // Sanity
+        [<InlineData( " 0  ", " 1" )>] // Sanity
+        [<InlineData( " 1  ", " 2.718281828459045235360287471353" )>] // Sanity
+        [<InlineData( " 1.5", " 4.481689070338064822602055460119" )>] // Sanity
+        [<InlineData( " 2  ", " 7.389056098930650227230427460575" )>] // Sanity
+        [<InlineData( " 2.5", "12.182493960703473438070175951167" )>] // Sanity
+        let Sanity exp answer =
+            Assert.Equal(
+                Real.Parse( answer ),
+                Real.Exp( Real.Parse( exp ) )
+            )
+
+        [<Fact>]
+        let E () =
+            Assert.Equal(
+                Real.Parse( "2.718281828459045235360287471353" ),
+                Real.E
+            )
+
+        [<Theory>]
+        [<InlineData(  5, "2.71828" )>]
+        [<InlineData( 10, "2.7182818284" )>]
+        [<InlineData( 20, "2.71828182845904523536" )>]
+        [<InlineData( 30, "2.718281828459045235360287471353" )>]
+        [<InlineData( 37, "2.7182818284590452353602874713532651905" )>]
+        let ECalc (precision:int) answer =
+            Assert.Equal(
+                Real.Parse( answer ),
+                Real.ECalc( Integer( precision ) )
+            )
+
+    module Log =
+        [<Theory>]
+        [<InlineData( "0.5", "-0.69314718055994530941723212145818" )>] // Sanity
+        [<InlineData( "1  ", " 0" )>] // Sanity
+        [<InlineData( "1.5", " 0.40546510810816438197801311546435" )>] // Sanity
+        [<InlineData( "2  ", " 0.69314718055994530941723212145818" )>] // Sanity
+        [<InlineData( "2.5", " 0.91629073187415506518352721176801" )>] // Sanity
+        [<InlineData( "3  ", " 1.0986122886681096913952452369225" )>] // Sanity
+        let Sanity x answer =
+            Assert.Equal(
+                Real.Parse( answer ),
+                Real.LogN( Real.Parse( x ) )
+            )
+
+   module Negation =
         [<Theory>]
         [<InlineData(  "1", "-1" )>] // Sanity
         [<InlineData( "-1", " 1" )>] // Sanity

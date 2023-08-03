@@ -14,6 +14,32 @@ type public Real(significand:Integer, exponent:Integer) =
         then ( Integer.Zero, Integer.Zero )
         else normalize significand exponent
 
+    let internalParse (s:string) : Real =
+        if String.IsNullOrWhiteSpace s then raise (new System.ArgumentNullException())
+
+        let expSplit = s.Split( 'e', 'E' )
+        let (sigStr,exp) = 
+            match expSplit.Length with
+            | 1 -> ( expSplit.[0], Integer.Zero )
+            | 2 -> ( expSplit.[0], Integer.Parse( expSplit.[1] ) )
+            | _ -> raise (new FormatException())
+
+        let parts = sigStr.Split '.'
+        let signif =
+            match parts.Length with
+            | 1 ->
+                Real( Integer.Parse( parts.[0] ), Integer.Zero )
+            | 2 ->
+                if Integer.Parse( parts.[1] ).Negative then raise (new FormatException())
+                Real(
+                    Integer.Parse( $"{parts.[0]}{parts.[1]}" ),
+                    -Integer( parts.[1].Length )
+                )
+            | _ ->
+                raise (new FormatException())
+
+        signif * Real( Integer.Unit, exp )
+            
     member internal Real.Significand = s
     member internal Real.Exponent = e
 
@@ -37,9 +63,42 @@ type public Real(significand:Integer, exponent:Integer) =
     new( significand:Rational, exponent:Integer ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ), exponent )
     new( significand:Rational, exponent:Natural ) = Real( Real( significand.Numerator ) / Real( significand.Denominator ), exponent )
 
+    new( float:float32 ) =
+        let s = float.ToString( "R" )
+        let parts = s.Split '.'
+
+        match parts.Length with
+        | 1 ->
+            Real( Integer.Parse( parts.[0] ), Integer.Zero )
+        | _ ->
+            if Integer.Parse( parts.[1] ).Negative then raise (new FormatException())
+            Real(
+                Integer.Parse( $"{parts.[0]}{parts.[1]}" ),
+                -Integer( parts.[1].Length )
+            )
+
+    new( double:float ) =
+        let s = double.ToString( "R" )
+        let parts = s.Split '.'
+
+        match parts.Length with
+        | 1 ->
+            Real( Integer.Parse( parts.[0] ), Integer.Zero )
+        | _ ->
+            if Integer.Parse( parts.[1] ).Negative then raise (new FormatException())
+            Real(
+                Integer.Parse( $"{parts.[0]}{parts.[1]}" ),
+                -Integer( parts.[1].Length )
+            )
+
+
     with
         static member Zero = Real( Integer.Zero, Integer.Zero )
         static member Unit = Real( Integer.Unit, Integer.Zero )
+        static member One = Real( Integer.Unit, Integer.Zero )
+
+        static member E = Real( Natural( [34u; 1329465128u; 679922920u; 604288761u] ), Integer( -30 ) )
+ 
         static member internal MaxPrecision = 30
 
         static member op_Implicit(integer:Integer) : Real =
@@ -64,6 +123,9 @@ type public Real(significand:Integer, exponent:Integer) =
             else value
 
         static member private PrecisionFactor = Real.ExpandExp( Integer( Real.MaxPrecision ) )
+
+        static member private Abs( value:Real ) : Real =
+            Real( Integer( value.Significand.Data, false ), value.Exponent )
 
         // Comparison Operators
         static member op_Equality (left:Real, right:Real) : bool =
@@ -172,6 +234,80 @@ type public Real(significand:Integer, exponent:Integer) =
         static member (%) (left:Real, right:Real) : Real =
             let (_,r) = left /% right
             r
+
+        // See https://youtu.be/cbGB__V8MNk for where I got this idea
+        static member Pow (``base``:Real, exp:Natural) : Real =
+            let rec SquareMultiply (innerBase:Real) (innerExp:Natural) =
+                match innerExp with
+                | z when z = Natural.Unit -> innerBase
+                | _ ->
+                    let previous = SquareMultiply innerBase (innerExp >>> 1)
+                    if Natural.Zero = ( innerExp &&& Natural.Unit )
+                    then previous * previous
+                    else ( previous * previous ) * ``base``
+
+            match exp with
+            | z when z = Natural.Zero -> Real.Unit
+            | u when u = Natural.Unit -> ``base``
+            | _ -> SquareMultiply ``base`` exp
+
+        static member ECalc ( precision:Integer ) : Real =
+            let precisionFactor = Real( Real.ExpandExp( precision ) )
+            let rec series (index:Natural) (factorial:Natural) (guess:Real) =
+                let f = index * factorial
+                let iter = guess + ( Real.Unit / Real( f ) )
+                if Real( Integer.Unit, ( -precision ) ) > Real.Abs( iter - guess )
+                    then Real.Truncate( iter * precisionFactor ) / precisionFactor
+                    else series (index + Natural.Unit) f iter
+
+            series (Natural( 2u )) Natural.Unit (Real( 2, 0 ))
+
+        static member Exp (x:Real) : Real =
+            let rec series (index:Natural) (factorial:Natural) (power:Real) (guess:Real) =
+                let f = index * factorial
+                let p = power * x
+                let iter = guess + ( p / Real( f ) )
+                if Real( Integer.Unit, Integer( -Real.MaxPrecision ) ) > Real.Abs( iter - guess )
+                    then Real.Truncate( iter * Real( Real.PrecisionFactor ) ) / Real( Real.PrecisionFactor )
+                    else series (index + Natural.Unit) f p iter
+
+            series (Natural( 2u )) Natural.Unit x (Real.Unit + x)
+
+        static member LogN (x:Real) : Real =
+            let rec NewtonsMethod (guess:Real) =
+                let e = Real.Exp( guess )
+                let iter = guess + ( Real( 2, 0 ) * ( ( x - e ) / ( x + e ) ) )
+                if Real( Integer.Unit, Integer( -Real.MaxPrecision ) ) > Real.Abs( iter - guess )
+                    then Real.Truncate( iter * Real( Real.PrecisionFactor ) ) / Real( Real.PrecisionFactor )
+                    else NewtonsMethod iter
+
+            NewtonsMethod Real.Zero
+
+        static member Root(index:Natural, radicand:Real) : Real =
+            let a = Real( index - Natural.Unit ) / Real( index )
+            let b = radicand / Real( index )
+            
+            let rec NewtonsMethod (guess:Real) =
+                let iter = ( a * guess ) + ( b / Real.Pow( guess, index - Natural.Unit ) )
+                if Real( Integer.Unit, Integer( -Real.MaxPrecision ) ) > Real.Abs( iter - guess )
+                    then Real.Truncate( iter * Real( Real.PrecisionFactor ) ) / Real( Real.PrecisionFactor )
+                    else NewtonsMethod iter
+
+            //let guess = Real.Unit
+            //let iter1 = ( a * guess ) + ( b / Real.Pow( guess, index - Natural.Unit ) )
+            //let iter2 = ( a * iter1 ) + ( b / Real.Pow( iter1, index - Natural.Unit ) )
+            //let iter3 = ( a * iter2 ) + ( b / Real.Pow( iter2, index - Natural.Unit ) )
+            //let iter4 = ( a * iter3 ) + ( b / Real.Pow( iter3, index - Natural.Unit ) )
+            //let iter5 = ( a * iter4 ) + ( b / Real.Pow( iter4, index - Natural.Unit ) )
+            //iter5
+            NewtonsMethod Real.Unit
+
+        static member Pow (``base``:Real, exp:Real) : Real =
+            if Real.Zero > ``base``
+            then raise (System.ArgumentOutOfRangeException( "base", "Base must be positive" ))
+
+            let partial = Real.Pow( ``base``, Natural( exp.Significand.Data ) )
+            partial * Real.Root( Real.ExpandExp( -exp.Exponent ), ``base`` )
 
         // Unary
         static member (~-) (input:Real) : Real =

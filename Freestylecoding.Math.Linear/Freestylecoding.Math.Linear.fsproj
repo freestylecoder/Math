@@ -1,9 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<VersionSuffix>DBG</VersionSuffix>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<VersionSuffix></VersionSuffix>
+	</PropertyGroup>
+
+	<PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarnOn>3390;$(WarnOn)</WarnOn>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Chris Gardner</Authors>
+    <PackageOutputPath>C:\dev\NuGet\Local\$(AssemblyName)</PackageOutputPath>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <Version>$(AssemblyVersion)-$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <ItemGroup>
