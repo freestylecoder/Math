@@ -384,6 +384,12 @@ module Natural =
             Assert.Equal( Natural ([s]), l + r )
     
         [<Fact>]
+        let Simple () =
+            let l = Natural.Zero
+            let r = Natural.Unit
+            Assert.Equal( Natural.Unit, l+r)
+
+        [<Fact>]
         let Overflow () =
             let l = Natural ([System.UInt32.MaxValue])
             let r = Natural ([3u])

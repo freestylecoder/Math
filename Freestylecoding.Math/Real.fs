@@ -250,7 +250,7 @@ type public Real(significand:Integer, exponent:Integer) =
             | z when z = Natural.Zero -> Real.Unit
             | u when u = Natural.Unit -> ``base``
             | _ -> SquareMultiply ``base`` exp
-
+(*
         static member ECalc ( precision:Integer ) : Real =
             let precisionFactor = Real( Real.ExpandExp( precision ) )
             let rec series (index:Natural) (factorial:Natural) (guess:Real) =
@@ -308,7 +308,7 @@ type public Real(significand:Integer, exponent:Integer) =
 
             let partial = Real.Pow( ``base``, Natural( exp.Significand.Data ) )
             partial * Real.Root( Real.ExpandExp( -exp.Exponent ), ``base`` )
-
+*)
         // Unary
         static member (~-) (input:Real) : Real =
             Real(

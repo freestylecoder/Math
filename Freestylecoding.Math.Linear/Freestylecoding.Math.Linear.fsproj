@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Freestylecoding.Math\Freestylecoding.Math.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.400" />
+  </ItemGroup>
+
 </Project>

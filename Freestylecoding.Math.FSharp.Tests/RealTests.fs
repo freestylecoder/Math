@@ -848,7 +848,7 @@ module Real =
                 ( Real.Parse( "1" ), Real.Parse( "0" ) ),
                 Real.Parse( "0.5" ) /% Real.Parse( "0.5" )
             )
-
+(*
     module Pow =
         [<Theory>]
         [<InlineData( "0", "0", "1" )>] // Sanity
@@ -1013,8 +1013,8 @@ module Real =
                 Real.Parse( answer ),
                 Real.LogN( Real.Parse( x ) )
             )
-
-   module Negation =
+*)
+    module Negation =
         [<Theory>]
         [<InlineData(  "1", "-1" )>] // Sanity
         [<InlineData( "-1", " 1" )>] // Sanity

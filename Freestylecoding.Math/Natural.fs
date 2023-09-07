@@ -2,15 +2,160 @@
 
 open System
 open System.Numerics
+open System.Globalization
 
 type public Natural(data:uint32 list) =
-    let rec Compress (l:uint32 list) : uint32 list =
+    static let rec _compress (l:uint32 list) : uint32 list =
         match l with
         | [] -> [0u]
-        | 0u :: t -> Compress t
+        | 0u :: t -> _compress t
         | _ -> l
 
-    member internal Natural.Data = Compress data
+    static let _bitwiseOperation (f:(uint32 -> uint32 -> uint32)) (left:Natural) (right:Natural) : Natural =
+        let (l,r) = Helpers.normalize left.Data right.Data
+        Natural( List.map2 f l r )
+
+    // NOTE: All the base operators are declared here
+    // This allows us to have all the externally visible operators, interfaces, etc
+    //   reference the same code for optimising/debugging purposes
+    static let _bitwiseAnd (left:Natural) (right:Natural) : Natural =
+        _bitwiseOperation (fun x y -> x &&& y) left right
+
+    static let _bitwiseOr (left:Natural) (right:Natural) : Natural =
+        _bitwiseOperation (fun x y -> x ||| y) left right
+
+    static let _bitwiseXor (left:Natural) (right:Natural) : Natural =
+        _bitwiseOperation (fun x y -> x ^^^ y) left right
+
+    static let _bitwiseNot (operand:Natural) : Natural =
+        Natural( List.map (fun x -> ~~~ x) operand.Data )
+
+    static let _leftShift (totalBitsToShift:int32) (operand:Natural) : Natural =
+        let bitsToShift = totalBitsToShift % 32
+        let listElementsToShift = totalBitsToShift / 32
+        let overflowBits = ~~~(System.UInt32.MaxValue >>> bitsToShift)
+
+        let shiftedList = 0u :: (List.map (fun x -> x <<< bitsToShift) operand.Data)
+        let overflowList = (List.map (fun x -> (overflowBits &&& x) >>> (32 - bitsToShift) ) operand.Data) @ [0u]
+        let result = List.map2 (fun x y -> x ||| y) shiftedList overflowList
+
+        Natural( result @ (List.init listElementsToShift (fun i -> 0u)) )
+
+    static let _rightShift (totalBitsToShift:int32) (operand:Natural) : Natural =
+        let rec chomp n l =
+            match n with
+            | x when x > (List.length l) -> [0u]
+            | x when x = (List.length l) -> []
+            | _ ->
+                (List.head l) :: chomp n (List.tail l)
+
+        let bitsToShift = totalBitsToShift % 32
+        let listElementsToShift = totalBitsToShift / 32
+        let underflowBits = ~~~(System.UInt32.MaxValue <<< bitsToShift)
+
+        let trimmedList = 
+            match listElementsToShift with
+            | 0 -> operand.Data
+            | _ -> chomp listElementsToShift operand.Data
+
+        let shiftedList = (List.map (fun x -> x >>> bitsToShift) trimmedList) @ [0u]
+        let underflowList = 0u :: (List.map (fun x -> (underflowBits &&& x) <<< (32 - bitsToShift) ) trimmedList)
+        let result =
+            List.map2 (fun x y -> x ||| y) shiftedList underflowList
+            |> chomp 1
+
+        Natural( result )
+
+    static let _equality (left:Natural) (right:Natural) : bool =
+        let (l,r) = Helpers.normalize left.Data right.Data
+        List.map2 (fun x y -> x = y) l r
+        |> List.reduce (fun x y -> x && y)
+
+    static let _greaterThan (left:Natural) (right:Natural) : bool =
+        let rec gt l (r:uint32 list) =
+            match l with
+            | [] -> false
+            | h::t ->
+                if h = r.Head then gt t r.Tail
+                else h > r.Head
+
+        match left.Data.Length - right.Data.Length with
+        | x when x > 0 -> true
+        | x when x < 0 -> false
+        | _ -> gt left.Data right.Data
+
+    static let _lessThan (left:Natural) (right:Natural) : bool =
+        let rec lt l (r:uint32 list) =
+            match l with
+            | [] -> false
+            | h::t ->
+                if h = r.Head then lt t r.Tail
+                else h < r.Head
+
+        match left.Data.Length - right.Data.Length with
+        | x when x < 0 -> true
+        | x when x > 0 -> false
+        | _ -> lt left.Data right.Data
+
+    static let _add (left:Natural) (right:Natural) : Natural = 
+        let rec operation (l:uint32 list, r:uint32 list) : uint32 list =
+            let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
+            let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
+            match overflows with
+            | _ when Natural.Zero = Natural( overflows ) -> rawSums
+            | _ -> operation ( rawSums, overflows )
+
+        let result = operation ( Helpers.normalize left.Data right.Data )
+        Natural( result )
+
+    static let _subtract (left:Natural) (right:Natural) : Natural =
+        if( left < right ) then raise (new OverflowException())
+
+        let (l,r) = Helpers.normalize left.Data right.Data
+        let rawDifferences = 0u :: (List.map2 (fun x y -> x - y) l r)
+        let underflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) @ [0u]
+        let cascadeUnderflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) rawDifferences.Tail underflows.Tail) @ [0u]
+        let result = List.map3 (fun x y z -> x - y - z ) rawDifferences underflows cascadeUnderflows
+
+        Natural( result )
+
+    static let _multiply (left:Natural) (right:Natural) : Natural =
+        let rec magic value bitsToShiftLeft =
+            match value with
+            | x when Natural.Zero = x ->
+                []
+            | _ ->
+                match (_bitwiseAnd Natural.Unit value) with
+                | z when (_equality z Natural.Zero) ->
+                    magic (_rightShift 1 value) (bitsToShiftLeft+1)
+                | u when u = Natural.Unit ->
+                    (_leftShift bitsToShiftLeft left) :: (magic (_rightShift 1 value) (bitsToShiftLeft+1))
+                | _ -> failwith "not possible (bit has value other than 0 or 1)"
+
+        magic right 0
+        |> List.sum
+            
+    static let _divideModulo (left:Natural) (right:Natural) : Natural*Natural =
+        let rec op bit =
+            let factor = _leftShift bit right
+            if _greaterThan factor left then
+                (Natural.Zero,left)
+            else
+                let (quotient,remainder) = op (bit + 1)
+
+                if _greaterThan factor remainder then
+                    (quotient,remainder)
+                else
+                    ((_add quotient (_leftShift bit Natural.Unit)),(_subtract remainder factor))
+
+        match right with
+        | z when _equality z Natural.Zero -> raise (new DivideByZeroException())
+        | u when _equality u Natural.Unit -> (left,Natural.Zero)
+        | r when _equality r left -> (Natural.Unit,Natural.Zero)
+        | _ ->
+            op 0
+
+    member internal Natural.Data = _compress data
 
     new() = Natural( [0u] )
     new(data:uint32) = Natural( [data] )
@@ -30,169 +175,64 @@ type public Natural(data:uint32 list) =
         static member op_Implicit( l:uint64 ) : Natural =
             Natural( l )
 
-        static member private BitwiseOperation (f:(uint32 -> uint32 -> uint32)) (left:Natural) (right:Natural) : Natural =
-            let (l,r) = Helpers.normalize left.Data right.Data
-            Natural( List.map2 f l r )
-
         // Bitwise Operators
         static member (&&&) (left:Natural, right:Natural) : Natural =
-            Natural.BitwiseOperation (fun x y -> x &&& y) left right
+            _bitwiseAnd left right
 
         static member (|||) (left:Natural, right:Natural) : Natural =
-            Natural.BitwiseOperation (fun x y -> x ||| y) left right
+            _bitwiseOr left right
 
         static member (^^^) (left:Natural, right:Natural) : Natural =
-            Natural.BitwiseOperation (fun x y -> x ^^^ y) left right
+            _bitwiseXor left right
 
         static member (~~~) (right:Natural) : Natural =
-            Natural( List.map (fun x -> ~~~ x) right.Data )
+            _bitwiseNot right
 
         static member (<<<) (left:Natural, (right:int)) : Natural =
-            let bitsToShift = right % 32
-            let listElementsToShift = right / 32
-            let overflowBits = ~~~(System.UInt32.MaxValue >>> bitsToShift)
-
-            let shiftedList = 0u :: (List.map (fun x -> x <<< bitsToShift) left.Data)
-            let overflowList = (List.map (fun x -> (overflowBits &&& x) >>> (32 - bitsToShift) ) left.Data) @ [0u]
-            let result = List.map2 (fun x y -> x ||| y) shiftedList overflowList
-
-            Natural( result @ (List.init listElementsToShift (fun i -> 0u)) )
+            _leftShift right left
 
         static member (>>>) (left:Natural, right:int) : Natural =
-            let rec chomp n l =
-                match n with
-                | x when x > (List.length l) -> [0u]
-                | x when x = (List.length l) -> []
-                | _ ->
-                    (List.head l) :: chomp n (List.tail l)
-
-            let bitsToShift = right % 32
-            let listElementsToShift = right / 32
-            let underflowBits = ~~~(System.UInt32.MaxValue <<< bitsToShift)
-
-            let trimmedList = 
-                match listElementsToShift with
-                | 0 -> left.Data
-                | _ -> chomp listElementsToShift left.Data
-
-            let shiftedList = (List.map (fun x -> x >>> bitsToShift) trimmedList) @ [0u]
-            let underflowList = 0u :: (List.map (fun x -> (underflowBits &&& x) <<< (32 - bitsToShift) ) trimmedList)
-            let result =
-                List.map2 (fun x y -> x ||| y) shiftedList underflowList
-                |> chomp 1
-
-            Natural( result )
+            _rightShift right left
 
         // Comparison Operators
         static member op_Equality (left:Natural, right:Natural) : bool =
-            let (l,r) = Helpers.normalize left.Data right.Data
-            List.map2 (fun x y -> x = y) l r
-            |> List.reduce (fun x y -> x && y)
+            _equality left right
  
         static member op_GreaterThan (left:Natural, right:Natural) : bool =
-            let rec gt l (r:uint32 list) =
-                match l with
-                | [] -> false
-                | h::t ->
-                    if h = r.Head then gt t r.Tail
-                    else h > r.Head
-
-            match left.Data.Length - right.Data.Length with
-            | x when x > 0 -> true
-            | x when x < 0 -> false
-            | _ -> gt left.Data right.Data
+            _greaterThan left right
 
         static member op_LessThan (left:Natural, right:Natural) : bool =
-            let rec lt l (r:uint32 list) =
-                match l with
-                | [] -> false
-                | h::t ->
-                    if h = r.Head then lt t r.Tail
-                    else h < r.Head
-
-            match left.Data.Length - right.Data.Length with
-            | x when x < 0 -> true
-            | x when x > 0 -> false
-            | _ -> lt left.Data right.Data
+            _lessThan left right
 
         static member op_GreaterThanOrEqual (left:Natural, right:Natural) : bool =
-            (left = right) || (left > right)
+            (_equality left right) || (_greaterThan left right)
 
         static member op_LessThanOrEqual (left:Natural, right:Natural) : bool =
-            (left = right) || (left < right)
+            (_equality left right) || (_lessThan left right)
 
         static member op_Inequality (left:Natural, right:Natural) : bool =
-            not (left = right)
+            not (_equality left right)
  
         // Arithmetic Operators
         // Binary
-        static let Add (left:Natural) (right:Natural) : Natural = 
-            let rec operation (l:uint32 list, r:uint32 list) : uint32 list =
-                let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
-                let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
-                match overflows with
-                | _ when Natural.Zero = Natural( overflows ) -> rawSums
-                | _ -> operation ( rawSums, overflows )
-
-            let result = operation ( Helpers.normalize left.Data right.Data )
-            Natural( result )
-
         static member (+) (left:Natural, right:Natural) : Natural =
-            Add left right
-
+            _add left right
+ 
         static member (-) (left:Natural, right:Natural) : Natural =
-            if( left < right ) then raise (new OverflowException())
-
-            let (l,r) = Helpers.normalize left.Data right.Data
-            let rawDifferences = 0u :: (List.map2 (fun x y -> x - y) l r)
-            let underflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) @ [0u]
-            let cascadeUnderflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) rawDifferences.Tail underflows.Tail) @ [0u]
-            let result = List.map3 (fun x y z -> x - y - z ) rawDifferences underflows cascadeUnderflows
-
-            Natural( result )
+            _subtract left right
 
         static member (*) (left:Natural, right:Natural) : Natural =
-            let rec magic value bitsToShiftLeft =
-                match value with
-                | x when Natural.Zero = x ->
-                    []
-                | _ ->
-                    match Natural.Unit &&& value with
-                    | z when z = Natural.Zero ->
-                        magic (value>>>1) (bitsToShiftLeft+1)
-                    | u when u = Natural.Unit ->
-                        (left<<<bitsToShiftLeft) :: (magic (value>>>1) (bitsToShiftLeft+1))
-                    | _ -> failwith "not possible (bit has value other than 0 or 1)"
-
-            magic right 0
-            |> List.sum
+            _multiply left right
             
         static member (/%) (left:Natural, right:Natural) : Natural*Natural =
-            let rec op bit =
-                let factor = right <<< bit
-                if factor > left then
-                    (Natural.Zero,left)
-                else
-                    let (quotient,remainder) = op (bit + 1)
-
-                    if factor > remainder then
-                        (quotient,remainder)
-                    else
-                        (quotient+(Natural.Unit<<<bit),remainder-factor)
-
-            match right with
-            | z when z = Natural.Zero -> raise (new DivideByZeroException())
-            | u when u = Natural.Unit -> (left,Natural.Zero)
-            | r when r = left -> (Natural.Unit,Natural.Zero)
-            | _ ->
-                op 0
+            _divideModulo left right
 
         static member (/) (left:Natural, right:Natural) : Natural =
-            let (q,_) = left /% right
+            let (q,_) = _divideModulo left right
             q
 
         static member (%) (left:Natural, right:Natural) : Natural =
-            let (_,r) = left /% right
+            let (_,r) = _divideModulo left right
             r
 
         // Unary
@@ -200,9 +240,9 @@ type public Natural(data:uint32 list) =
         // .NET Object Overrides
         override left.Equals( right ) =
             match right.GetType() with
-            | t when t = typeof<Natural> -> Natural.op_Equality(left, right :?> Natural)
-            | t when t = typeof<uint32> -> Natural.op_Equality(left, Natural( right :?> uint32 ) )
-            | t when t = typeof<uint64> -> Natural.op_Equality(left, Natural( right :?> uint64 ) )
+            | t when t = typeof<Natural> -> _equality left (right :?> Natural)
+            | t when t = typeof<uint32> -> _equality left (Natural( right :?> uint32 ))
+            | t when t = typeof<uint64> -> _equality left (Natural( right :?> uint64 ))
             | _ -> false
 
         override this.GetHashCode() =
@@ -217,10 +257,10 @@ type public Natural(data:uint32 list) =
                 match n with
                 | z when z = Natural.Zero -> []
                 | _ ->
-                    let (q,r) = n /% Natural([10u])
+                    let (q,r) = _divideModulo n (Natural([10u]))
                     Convert.ToChar(r.Data.Head + 48u) :: (f q)
 
-            if Natural.Zero = this then
+            if _equality Natural.Zero this then
                 "0"
             else
                 String.Concat(
@@ -234,10 +274,10 @@ type public Natural(data:uint32 list) =
             member left.CompareTo right = 
                 match right.GetType() with
                 | t when t = typeof<Natural> ->
-                    match Natural.op_Equality(left, right :?> Natural) with
+                    match _equality left (right :?> Natural) with
                     | true -> 0
                     | false ->
-                        match Natural.op_GreaterThan(left, right :?> Natural) with
+                        match _greaterThan left (right :?> Natural) with
                         | true -> 1
                         | false -> -1
                 | _ -> raise (new ArgumentException())
@@ -258,170 +298,353 @@ type public Natural(data:uint32 list) =
             |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
             |> Array.sum
 
-        interface IUnsignedNumber<Natural> with
-            // IEquatable<Natural>
-            member this.Equals(other: Natural): bool = 
-                this = other
+        //interface IUnsignedNumber<Natural> with
+        interface IEquatable<Natural> with
+            member this.Equals( that:Natural ) : bool = 
+                _equality this that
 
-            // IFormatable
-            member this.ToString(format: string, formatProvider: IFormatProvider): string = 
-                raise (System.NotImplementedException())
+        interface IEqualityOperators<Natural,Natural,bool> with
+            static member op_Inequality( left, right ) =
+                not (_equality left right)
+            static member op_Equality( left, right ) =
+                _equality left right
 
-            // IParsable<Natural>
-            member this.Parse(s: string, provider: IFormatProvider): Natural = 
-                raise (System.NotImplementedException())
-            member this.TryParse(s: string, provider: IFormatProvider, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
+        interface IAdditionOperators<Natural,Natural,Natural> with
+            static member (+) (left:Natural, right:Natural) : Natural = 
+                _add left right
+            static member op_CheckedAddition (left:Natural, right:Natural) : Natural = 
+                // Naturals don't overflow, and addation can't underflow
+                _add left right
 
-            // ISpanFormatable : IFormatable
-            member this.TryFormat(destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
-                raise (System.NotImplementedException())
-
-            // ISpanParsable<Natural>
-            member this.Parse(s: ReadOnlySpan<char>, provider: IFormatProvider): Natural = 
-                raise (System.NotImplementedException())
-            member this.TryParse(s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-
-            // IAdditionOperators<Natural,Natural,Natural>
-            static member (+)(left:Natural, right:Natural) : Natural = 
-                Add left right
-            member this.op_CheckedAddition(left: Natural, right: Natural): Natural = 
-                Add left right
-
-            // IAdditiveIdentity<Natural,Natural>
-            member this.AdditiveIdentity
+        interface IAdditiveIdentity<Natural,Natural> with
+            static member AdditiveIdentity
                 with get () = Natural.Zero
 
-            // IDecrementOperators<Natural>
-            member this.op_CheckedDecrement(value: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.op_Decrement( value:Natural ) : Natural =
-                raise (System.NotImplementedException())
-            //member this.(~--)(value: Natural): Natural = 
-            //    raise (System.NotImplementedException())
+        interface IIncrementOperators<Natural> with
+            static member op_CheckedIncrement ( value:Natural ) : Natural = 
+                IAdditionOperators.op_CheckedAddition( value, Natural.Unit )
+            static member op_Increment( value:Natural ) : Natural = 
+                IAdditionOperators.op_Addition( value, Natural.Unit )
 
-            // IDivisionOperators<Natural,Natural,Natural>
-            member this.op_CheckedDivision(left: Natural, right: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.(/)(left:Natural, right:Natural) : Natural = 
-                raise (System.NotImplementedException())
+        interface ISubtractionOperators<Natural,Natural,Natural> with
+            // Both of these throw an OverflowException
+            // After a bit of research, I found an example in the Decimal type
+            // A Decimal does not have a valid internal state on an Overflow/Underflow
+            // As such, it always throws on an Overflow/Underflow
+            static member op_CheckedSubtraction(left:Natural, right:Natural) : Natural = 
+                _subtract left right
+            static member (-) (left:Natural, right:Natural) : Natural = 
+                _subtract left right
 
-            // IEqualityOperators<Natural,Natural,bool>
-            member this.(=)(left: Natural, right: Natural): bool = 
-                raise (System.NotImplementedException())
-            member this.(<>)(left: Natural, right: Natural): bool = 
-                raise (System.NotImplementedException())
-
-            // IIncrementOperators<Natural>
-            member this.op_CheckedIncrement(value: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.op_Increment(value: Natural): Natural = 
-                raise (System.NotImplementedException())
-            //member this.(~++)(value: Natural): Natural = 
-            //    raise (System.NotImplementedException())
-
-            // IMultiplicativeIdentity<Natural,Natural>
-            member this.MultiplicativeIdentity
-                with get () = raise (System.NotImplementedException())
-                
-            // IMultiplyOperators<Natural,Natural,Natural>
-            member this.op_CheckedMultiply(left: Natural, right: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.(*)(left:Natural, right:Natural) : Natural = 
-                left * right
-
-            // INumberBase<Natural>
-            member this.One
-                with get () = Natural.Unit
-            member this.Radix 
-                with get () = 2
-            member this.Zero
-                with get () = Natural.Zero
-
-            member this.Abs(value: Natural): Natural = 
-                Natural( value.Data )
-            member this.CreateChecked(value: 'TOther): Natural = 
-                raise (System.NotImplementedException())
-            member this.CreateSaturating(value: 'TOther): Natural = 
-                raise (System.NotImplementedException())
-            member this.CreateTruncating(value: 'TOther): Natural = 
-                raise (System.NotImplementedException())
-            member this.IsCanonical(value:Natural) : bool = true
-            member this.IsComplexNumber(value:Natural) : bool = false
-            member this.IsEvenInteger(value: Natural): bool = 
-                raise (System.NotImplementedException())
-            member this.IsFinite(value:Natural) : bool = true
-            member this.IsImaginaryNumber(value:Natural) : bool = false
-            member this.IsInfinity(value:Natural) : bool = false
-            member this.IsInteger(value:Natural) : bool = 
-                raise (System.NotImplementedException())
-            member this.IsNaN(value:Natural) : bool = false
-            member this.IsNegative(value:Natural) : bool = false
-            member this.IsNegativeInfinity(value:Natural) : bool = false
-            member this.IsNormal(value: Natural): bool = 
-                raise (System.NotImplementedException())
-            member this.IsOddInteger(value: Natural): bool = 
-                raise (System.NotImplementedException())
-            member this.IsPositive(value:Natural) : bool = true
-            member this.IsPositiveInfinity(value:Natural) : bool = false
-            member this.IsRealNumber(value:Natural) : bool = true
-            member this.IsSubnormal(value: Natural): bool = 
-                raise (System.NotImplementedException())
-            member this.IsZero(value:Natural) : bool = value = Natural.Zero
-            member this.MaxMagnitude(x: Natural, y: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.MaxMagnitudeNumber(x: Natural, y: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.MinMagnitude(x: Natural, y: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.MinMagnitudeNumber(x: Natural, y: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.Parse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-                raise (System.NotImplementedException())
-            member this.Parse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-                raise (System.NotImplementedException())
-            member this.TryConvertFromChecked(value: 'TOther, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryConvertFromSaturating(value: 'TOther, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryConvertFromTruncating(value: 'TOther, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryConvertToChecked(value: Natural, result: byref<'TOther>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryConvertToSaturating(value: Natural, result: byref<'TOther>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryConvertToTruncating(value: Natural, result: byref<'TOther>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryParse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-            member this.TryParse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-                raise (System.NotImplementedException())
-
-            // ISubtractionOperators<Natural,Natural,Natural>
-            member this.op_CheckedSubtraction(left: Natural, right: Natural): Natural = 
-                raise (System.NotImplementedException())
-            member this.(-)(left:Natural, right:Natural) : Natural = 
-                left - right
-
-            // IUnaryNegationOperators<Natural,Natural>
-            member this.op_CheckedUnaryNegation( value:Natural ) : Natural = 
+        interface IDecrementOperators<Natural> with
+            static member op_Decrement(value:Natural) : Natural =
+                _subtract value Natural.Unit
+            static member op_CheckedDecrement( value: Natural ): Natural = 
+                _subtract value Natural.Unit
+ 
+        interface IUnaryNegationOperators<Natural,Natural> with
+            static member op_CheckedUnaryNegation( value:Natural ) : Natural = 
                 raise ( System.OverflowException() )
-            member this.(~-)(value: Natural): Natural = 
+            static member (~-)( value: Natural ) : Natural = 
                 raise ( System.OverflowException() )
-
-            // IUnaryPlusOperators<Natural,Natural>
-            member this.(~+)(value:Natural) : Natural = 
+        
+        interface IUnaryPlusOperators<Natural,Natural> with
+            static member (~+)( value:Natural ) : Natural = 
                 value
 
+        interface IMultiplyOperators<Natural,Natural,Natural> with
+            static member op_CheckedMultiply( left: Natural, right: Natural ) : Natural = 
+                _multiply left right
+            static member (*)( left:Natural, right:Natural ) : Natural = 
+                _multiply left right
+
+        interface IMultiplicativeIdentity<Natural,Natural> with
+            static member MultiplicativeIdentity
+                with get () = Natural.Unit
+
+        interface IDivisionOperators<Natural,Natural,Natural> with
+            static member op_CheckedDivision( left: Natural, right: Natural ) : Natural =
+                let (q,_) = _divideModulo left right
+                q
+            static member (/)( left:Natural, right:Natural ) : Natural = 
+                let (q,_) = _divideModulo left right
+                q
+
+        interface IFormattable with
+            member this.ToString( format:string, formatProvider:IFormatProvider ) : string =
+                let trimStart (c:char) (s:string) : string = s.TrimStart( c )
+
+                let parseFormatString (f:string) =
+                    match f with
+                    | null -> ('G', None)
+                    | _ ->
+                        match f.Trim() with
+                        | x when x.Length = 0 -> ('G', None)
+                        | x when x.Length = 1 -> (x[0], None)
+                        | _ -> (f[0], Some( Int32.Parse(f.Substring(1)) ))
+
+                let (specifier, precision) = parseFormatString format
+                let numberFormatInfo =
+                    if null = formatProvider
+                    then CultureInfo.CurrentCulture.NumberFormat
+                    else formatProvider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
+
+                let processSeparators rawString (groupSizesArray:int array) groupSeparator decimalDigits decimalSeparator =
+                    // Yes, this is nasty. It works, but that doesn't mean I like how it did it
+                    let reverseString (s:string) = string( (s.ToCharArray()) |> Array.rev )
+                    let separator = reverseString groupSeparator
+
+                    let mutable groupSize =
+                        if 0 = groupSizesArray.Length
+                        then 0
+                        else Array.head groupSizesArray
+                    let mutable groupSizes =
+                        if 0 = groupSizesArray.Length
+                        then [|0|]
+                        else Array.tail groupSizesArray
+                    let mutable reversedString = reverseString rawString
+                    let mutable i = groupSize
+
+                    while ( i < reversedString.Length ) && ( 0 <> groupSize ) do
+                        reversedString <- reversedString.Insert( i, separator )
+                        
+                        if 1 < groupSizes.Length
+                        then
+                            groupSize <- Array.head groupSizes
+                            groupSizes <- Array.tail groupSizes
+                            ()
+
+                        i <- i + groupSize + separator.Length
+
+                    let suffix =
+                        match precision with
+                        | None -> $"{decimalSeparator}{string( '0', decimalDigits )}"
+                        | Some( 0 ) -> String.Empty
+                        | Some( l ) -> $"{decimalSeparator}{string( '0', l )}"
+
+                    $"{reverseString reversedString}{suffix}"
+
+                match specifier with
+                // General and Round-trip
+                | 'G' | 'g' | 'R' | 'r' ->
+                    this.ToString()
+
+                // Binary
+                | 'B' | 'b' ->
+                    let binaryResult = 
+                        this.Data
+                        |> List.map ( fun ui -> ui.ToString( "B32" ) )
+                        |> List.toArray
+                        |> String.concat ""
+                        |> trimStart '0'
+
+                    match precision with
+                    | None -> binaryResult
+                    | Some( p ) ->
+                        if binaryResult.Length < p
+                        then $"{string( '0', p - binaryResult.Length )}{binaryResult}"
+                        else binaryResult
+                    
+                // Currency
+                | 'C' | 'c' ->
+                    let s =
+                        processSeparators
+                            (this.ToString())
+                            numberFormatInfo.CurrencyGroupSizes
+                            numberFormatInfo.CurrencyGroupSeparator
+                            numberFormatInfo.CurrencyDecimalDigits
+                            numberFormatInfo.CurrencyDecimalSeparator
+
+                    match numberFormatInfo.CurrencyPositivePattern with
+                    | 0 -> $"{numberFormatInfo.CurrencySymbol}{s}"
+                    | 1 -> $"{s}{numberFormatInfo.CurrencySymbol}"
+                    | 2 -> $"{numberFormatInfo.CurrencySymbol} {s}"
+                    | 3 -> $"{s} {numberFormatInfo.CurrencySymbol}"
+                    | _ -> raise (System.FormatException())
+
+                // Decimal
+                | 'D' | 'd' ->
+                    let result = this.ToString()
+                    match precision with
+                    | Some( p ) ->
+                        if p > result.Length
+                        then String('0', p - result.Length) + result
+                        else result
+                    | None -> result
+
+                // Exponetial
+                | 'E' | 'e' ->
+                    let decimalPlaces =
+                        match precision with
+                        | Some( p ) -> p
+                        | None -> 6
+
+                    let rawString = this.ToString()
+                    let exponent = rawString.Length - 1
+
+                    let truncString = 
+                        match decimalPlaces - exponent with
+                        | p when p > 0 -> $"{rawString}{string('0', p)}" // Pad Zeros
+                        | n when n < 0 ->
+                            // Check for rounding
+                            match rawString[decimalPlaces+1] with
+                            | '5' | '6' | '7' | '8' | '9' ->
+                                // Rounding
+                                ( Natural.Parse( rawString.Substring( decimalPlaces ) ) + Natural.Unit ).ToString()
+                            | _ ->
+                                // Rounding not required
+                                rawString.Substring( decimalPlaces )
+                        | _ -> rawString // Nothing to do
+
+                    $"{truncString.Insert( 1, numberFormatInfo.NumberDecimalSeparator )}{specifier}{numberFormatInfo.PositiveSign}{exponent:D3}"
+
+                // Fixed-point
+                | 'F' | 'f' ->
+                    let decimalZeros =
+                        match precision with
+                        | Some( i ) -> i
+                        | None -> numberFormatInfo.NumberDecimalDigits
+                    $"{this}{numberFormatInfo.NumberDecimalSeparator}{String( '0', decimalZeros )}"
+
+                // Number
+                | 'N' | 'n' ->
+                    processSeparators
+                        (this.ToString())
+                        numberFormatInfo.NumberGroupSizes
+                        numberFormatInfo.NumberGroupSeparator
+                        numberFormatInfo.NumberDecimalDigits
+                        numberFormatInfo.NumberDecimalSeparator
+
+                // Percent
+                | 'P' | 'p' ->
+                    let s =
+                        processSeparators
+                            (this.ToString())
+                            numberFormatInfo.PercentGroupSizes
+                            numberFormatInfo.PercentGroupSeparator
+                            numberFormatInfo.PercentDecimalDigits
+                            numberFormatInfo.PercentDecimalSeparator
+
+                    match numberFormatInfo.PercentPositivePattern with
+                    | 0 -> $"{s} {numberFormatInfo.PercentSymbol}"
+                    | 1 -> $"{s}{numberFormatInfo.PercentSymbol}"
+                    | 2 -> $"{numberFormatInfo.PercentSymbol}{s}"
+                    | 3 -> $"{numberFormatInfo.PercentSymbol} {s}"
+                    | _ -> raise (System.FormatException())
+
+                // Hexadecimal
+                | 'X' | 'x' ->
+                    let hexResult =
+                        this.Data
+                        |> List.map ( fun ui -> ui.ToString( $"{specifier}8" ).Substring( 2 ) )
+                        |> List.toArray
+                        |> String.concat ""
+                        |> trimStart '0'
+ 
+                    let paddedHexResult =
+                        match precision with
+                        | None -> hexResult
+                        | Some( p ) ->
+                            if hexResult.Length < p
+                            then $"{string( '0', p - hexResult.Length )}{hexResult}"
+                            else hexResult
+
+                    $"0{specifier}" + paddedHexResult
+
+                | _ -> raise ( System.FormatException( $"{specifier} is not a valid format specifier" ) )
+        
+        //    // IParsable<Natural>
+        //    member this.Parse(s:string, provider:IFormatProvider) : Natural = 
+        //        Natural.Parse( s )
+        //        //raise (System.NotImplementedException())
+        //    member this.TryParse(s: string, provider: IFormatProvider, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //
+        //    // ISpanFormatable : IFormatable
+        //    member this.TryFormat(destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
+        //        raise (System.NotImplementedException())
+        //
+        //    // ISpanParsable<Natural>
+        //    member this.Parse(s: ReadOnlySpan<char>, provider: IFormatProvider): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryParse(s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //
+        //    // INumberBase<Natural>
+        //    member this.One
+        //        with get () = Natural.Unit
+        //    member this.Radix 
+        //        with get () = 2
+        //    member this.Zero
+        //        with get () = Natural.Zero
+        //
+        //    member this.Abs(value: Natural): Natural = 
+        //        Natural( value.Data )
+        //    member this.CreateChecked(value: 'TOther): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.CreateSaturating(value: 'TOther): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.CreateTruncating(value: 'TOther): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsCanonical(value:Natural) : bool = true
+        //    member this.IsComplexNumber(value:Natural) : bool = false
+        //    member this.IsEvenInteger(value: Natural): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsFinite(value:Natural) : bool = true
+        //    member this.IsImaginaryNumber(value:Natural) : bool = false
+        //    member this.IsInfinity(value:Natural) : bool = false
+        //    member this.IsInteger(value:Natural) : bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsNaN(value:Natural) : bool = false
+        //    member this.IsNegative(value:Natural) : bool = false
+        //    member this.IsNegativeInfinity(value:Natural) : bool = false
+        //    member this.IsNormal(value: Natural): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsOddInteger(value: Natural): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsPositive(value:Natural) : bool = true
+        //    member this.IsPositiveInfinity(value:Natural) : bool = false
+        //    member this.IsRealNumber(value:Natural) : bool = true
+        //    member this.IsSubnormal(value: Natural): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.IsZero(value:Natural) : bool = value = Natural.Zero
+        //    member this.MaxMagnitude(x: Natural, y: Natural): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.MaxMagnitudeNumber(x: Natural, y: Natural): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.MinMagnitude(x: Natural, y: Natural): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.MinMagnitudeNumber(x: Natural, y: Natural): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.Parse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.Parse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertFromChecked(value: 'TOther, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertFromSaturating(value: 'TOther, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertFromTruncating(value: 'TOther, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertToChecked(value: Natural, result: byref<'TOther>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertToSaturating(value: Natural, result: byref<'TOther>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryConvertToTruncating(value: Natural, result: byref<'TOther>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryParse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+        //    member this.TryParse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
+        //        raise (System.NotImplementedException())
+
         interface IBitwiseOperators<Natural,Natural,Natural> with
-            static member (&&&)( left, right ) =
+            static member (&&&) (left:Natural, right:Natural) : Natural =
                 left &&& right
-            static member (|||)( left, right ) =
+            static member (|||) (left:Natural, right:Natural) : Natural =
                 left ||| right
-            static member op_OnesComplement( left ) =
-                ~~~left
-            static member (^^^)( left, right ) =
+            static member op_OnesComplement (value:Natural) : Natural =
+                ~~~value
+            static member (^^^) (left:Natural, right:Natural) : Natural =
                 left ^^^ right
 
         //interface IShiftOperators<Natural,int,Natural> with
@@ -432,12 +655,6 @@ type public Natural(data:uint32 list) =
         //    static member op_UnsignedRightShift( left, right ) =
         //        left >>> right
 
-        //interface IEqualityOperators<Natural,Natural,bool> with
-        //    static member op_Inequality( left, right ) =
-        //        left <> right
-        //    static member op_Equality( left, right ) =
-        //        left = right
-
         //interface IComparisonOperators<Natural,Natural,bool> with
         //    static member op_LessThan( left, right ) =
         //        left < right
@@ -447,32 +664,6 @@ type public Natural(data:uint32 list) =
         //        left > right
         //    static member op_GreaterThanOrEqual( left, right ) =
         //        left >= right
-
-        //interface IAdditionOperators<Natural,Natural,Natural> with
-        //    static member op_Addition(left, right) =
-        //        left + right
-        //    static member op_CheckedAddition(left, right) = 
-        //        left + right
-
-        //interface IAdditiveIdentity<Natural,Natural> with
-        //    static member AdditiveIdentity = Natural.Zero
-
-        //interface ISubtractionOperators<Natural,Natural,Natural> with
-        //    static member op_Subtraction(left, right) =
-        //        if
-        //            left < right
-        //        then
-        //            Natural( Array.create right.Data.Length UInt32.MaxValue |> Array.toList ) - ( right - left )
-        //        else
-        //            left - right
-        //    static member op_CheckedSubtraction(left, right) = 
-        //        left - right
-
-        //interface IDecrementOperators<Natural> with
-        //    static member op_Decrement(value:Natural) : Natural =
-        //        Natural.op_Subtraction( value, Natural.Unit )
-        //    static member op_CheckedDecrement( value: Natural ): Natural = 
-        //        ISubtractionOperators<Natural,Natural,Natural>.op_CheckedSubtraction( value, Natural.Unit )
 
         //interface IUnsignedNumber<Natural> with
         //    // IAdditionOperators<Natural,Natural,Natural>
