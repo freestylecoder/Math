@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Natural\Sanity.fs" />
     <Compile Include="RealTests.fs" />
     <Compile Include="RationalTests.fs" />
     <Compile Include="IntegerTests.fs" />

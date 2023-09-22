@@ -158,6 +158,7 @@ type public Natural(data:uint32 list) =
     member internal Natural.Data = _compress data
 
     new() = Natural( [0u] )
+    new(data:Natural) = Natural( data.Data )
     new(data:uint32) = Natural( [data] )
     new(data:uint64) = Natural( [
         Convert.ToUInt32( data >>> 32 );
@@ -272,12 +273,12 @@ type public Natural(data:uint32 list) =
         // IComparable (for .NET) 
         interface IComparable with
             member left.CompareTo right = 
-                match right.GetType() with
-                | t when t = typeof<Natural> ->
-                    match _equality left (right :?> Natural) with
+                match right with
+                | :? Natural as n ->
+                    match _equality left n with
                     | true -> 0
                     | false ->
-                        match _greaterThan left (right :?> Natural) with
+                        match _greaterThan left n with
                         | true -> 1
                         | false -> -1
                 | _ -> raise (new ArgumentException())
@@ -553,107 +554,228 @@ type public Natural(data:uint32 list) =
 
                 | _ -> raise ( System.FormatException( $"{specifier} is not a valid format specifier" ) )
         
-        //    // IParsable<Natural>
-        //    member this.Parse(s:string, provider:IFormatProvider) : Natural = 
-        //        Natural.Parse( s )
-        //        //raise (System.NotImplementedException())
-        //    member this.TryParse(s: string, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //
-        //    // ISpanFormatable : IFormatable
-        //    member this.TryFormat(destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
-        //        raise (System.NotImplementedException())
-        //
-        //    // ISpanParsable<Natural>
-        //    member this.Parse(s: ReadOnlySpan<char>, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //
-        //    // INumberBase<Natural>
-        //    member this.One
-        //        with get () = Natural.Unit
-        //    member this.Radix 
-        //        with get () = 2
-        //    member this.Zero
-        //        with get () = Natural.Zero
-        //
-        //    member this.Abs(value: Natural): Natural = 
-        //        Natural( value.Data )
-        //    member this.CreateChecked(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.CreateSaturating(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.CreateTruncating(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsCanonical(value:Natural) : bool = true
-        //    member this.IsComplexNumber(value:Natural) : bool = false
-        //    member this.IsEvenInteger(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsFinite(value:Natural) : bool = true
-        //    member this.IsImaginaryNumber(value:Natural) : bool = false
-        //    member this.IsInfinity(value:Natural) : bool = false
-        //    member this.IsInteger(value:Natural) : bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsNaN(value:Natural) : bool = false
-        //    member this.IsNegative(value:Natural) : bool = false
-        //    member this.IsNegativeInfinity(value:Natural) : bool = false
-        //    member this.IsNormal(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsOddInteger(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsPositive(value:Natural) : bool = true
-        //    member this.IsPositiveInfinity(value:Natural) : bool = false
-        //    member this.IsRealNumber(value:Natural) : bool = true
-        //    member this.IsSubnormal(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsZero(value:Natural) : bool = value = Natural.Zero
-        //    member this.MaxMagnitude(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MaxMagnitudeNumber(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MinMagnitude(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MinMagnitudeNumber(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromChecked(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromSaturating(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromTruncating(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToChecked(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToSaturating(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToTruncating(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
+        interface ISpanFormattable with
+            member this.TryFormat( destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider ) : bool = 
+                let formattedString = (this :> IFormattable).ToString( format.ToString(), provider )
+ 
+                if destination.Length < formattedString.Length
+                then 
+                    charsWritten <- destination.Length
+                    formattedString
+                        .Substring( 0, destination.Length )
+                        .AsSpan()
+                        .CopyTo( destination )
+                    false
+                else
+                    charsWritten <- formattedString.Length
+                    formattedString
+                        .AsSpan()
+                        .CopyTo( destination )
+                    true
+
+        interface IParsable<Natural> with
+            /// <inheritdoc/>
+            /// <remarks>
+            ///     This method behaves similar to <see cref="System.UInt64.Parse(string, IFormatProvider?)"/>.
+            ///     The exception is this method also allows <see cref="System.Globalization.NumberFormatInfo.NumberGroupSeparator"/>
+            /// </remarks>
+            static member Parse( s:string, provider:IFormatProvider ) : Natural = 
+                if String.IsNullOrWhiteSpace( s )
+                then raise (System.ArgumentNullException( nameof( s ) ))
+
+                let numberFormatInfo =
+                    if null = provider
+                    then CultureInfo.CurrentCulture.NumberFormat
+                    else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
+
+                let processedString =
+                    s
+                        .Replace( numberFormatInfo.NumberGroupSeparator, "" )
+                        .Replace( numberFormatInfo.PositiveSign, "" )
+                        .Trim()
+
+                if processedString.StartsWith( numberFormatInfo.NegativeSign )
+                then raise (System.OverflowException())
+
+                if Array.exists ( fun c -> Char.IsAsciiDigit( c ) |> not ) (processedString.ToCharArray())
+                then raise (System.FormatException())
+
+                Natural.Parse( processedString )
+            static member TryParse( s: string, provider: IFormatProvider, result: byref<Natural> ): bool = 
+                try
+                    result <- IParsable.Parse( s, provider )
+                    true
+                with _ ->
+                    result <- Natural.Zero
+                    false
+        
+        interface ISpanParsable<Natural> with
+            static member Parse( s: ReadOnlySpan<char>, provider: IFormatProvider ) : Natural = 
+                IParsable.Parse( s.ToString(), provider )
+            static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
+                IParsable.TryParse( s.ToString(), provider, ref result )
+        
+        interface INumberBase<Natural> with
+            static member One
+                with get () = Natural.Unit
+            static member Radix 
+                with get () = 2
+            static member Zero
+                with get () = Natural.Zero
+
+            static member Abs( value:Natural ) : Natural = 
+                Natural( value.Data )
+
+            static member CreateChecked( value:'TOther ) : Natural = 
+                // By definition of the interface, we know 'TOther is an INumberBase<'TOther>
+                let inline IsNegative x = (^x: (static member IsNegative: ^x -> bool)( x ))
+                let inline IsInteger x = (^x: (static member IsInteger: ^x -> bool)( x ))
+
+                // Being an INumberBase, we also know it's IFormattable
+                let inline tostr x = (^x: (member ToString: string * IFormatProvider -> string)( x, "", null ))
+
+                if IsNegative value
+                then raise (System.OverflowException())
+
+                if IsInteger value
+                then Natural.Parse( value.ToString() )
+                else raise (System.NotSupportedException())
+
+                //match value with
+                //| :? Natural as n -> Natural( n )
+                //| :? uint32 as ui -> Natural( ui )
+                //| :? uint64 as ul -> Natural( ul )
+                //| :? INumberBase<'TOther> as nb ->
+                //    if IsNegative nb
+                //    then raise (System.OverflowException())
+                //    raise (System.NotSupportedException())
+                //| _ ->
+                //    raise (System.NotSupportedException())
+            static member CreateSaturating( value:'TOther ) : Natural = 
+                // By definition of the interface, we know 'TOther is a INumberBase<'TOther>
+                let inline IsNegative x = (^x: (static member IsNegative: ^x -> bool)( x ))
+                let inline IsInteger x = (^x: (static member IsInteger: ^x -> bool)( x ))
+
+                if IsInteger value |> not
+                then raise (System.NotSupportedException())
+
+                if IsNegative value
+                then Natural.Zero
+                else Natural.Parse( value.ToString() )
+            static member CreateTruncating( value: 'TOther ) : Natural = 
+                raise (System.NotImplementedException())
+
+            static member IsCanonical( value:Natural ) : bool =
+                true
+            static member IsComplexNumber( value:Natural ) : bool =
+                false
+            static member IsEvenInteger( value: Natural ) : bool = 
+                _bitwiseAnd Natural.Unit value
+                |> _equality Natural.Zero
+            static member IsFinite( value:Natural ) : bool =
+                true
+            static member IsImaginaryNumber( value:Natural ) : bool =
+                _equality Natural.Zero value
+            static member IsInfinity( value:Natural ) : bool =
+                false
+            static member IsInteger( value:Natural ) : bool =
+                true
+            static member IsNaN( value:Natural ) : bool =
+                false
+            static member IsNegative( value:Natural ) : bool =
+                false
+            static member IsNegativeInfinity( value:Natural ) : bool =
+                false
+            static member IsNormal( value: Natural ): bool = 
+                true
+            static member IsOddInteger( value: Natural ) : bool = 
+                _bitwiseAnd Natural.Unit value
+                |> _equality Natural.Unit
+            static member IsPositive( value:Natural ) : bool =
+                true
+            static member IsPositiveInfinity( value:Natural ) : bool =
+                false
+            static member IsRealNumber( value:Natural ) : bool =
+                true
+            static member IsSubnormal( value: Natural ): bool = 
+                false
+            static member IsZero( value:Natural ) : bool =
+                _equality Natural.Zero value
+
+            static member MaxMagnitude( x: Natural, y: Natural ) : Natural = 
+                if _greaterThan x y
+                then x
+                else y
+            static member MaxMagnitudeNumber( x: Natural, y: Natural ) : Natural = 
+                if _greaterThan x y
+                then x
+                else y
+            static member MinMagnitude( x: Natural, y: Natural ) : Natural = 
+                if _lessThan x y
+                then x
+                else y
+            static member MinMagnitudeNumber( x: Natural, y: Natural ) : Natural = 
+                if _lessThan x y
+                then x
+                else y
+
+            static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
+                let mutable span = Span<char>( s.ToArray() )
+
+                span <-
+                    if style.HasFlag(NumberStyles.AllowLeadingWhite)
+                    then span.TrimStart()
+                    else span
+
+                span <-
+                    if style.HasFlag(NumberStyles.AllowTrailingWhite)
+                    then span.TrimEnd()
+                    else span
+
+                //style.HasFlag(NumberStyles.AllowLeadingSign)
+                raise (System.NotImplementedException())
+            static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
+                INumberBase.Parse( s.AsSpan(), style, provider )
+            static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
+                try
+                    result <- INumberBase.Parse( s, style, provider )
+                    true
+                with _ ->
+                    result <- Natural.Zero
+                    false
+            static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
+                INumberBase.TryParse( s.AsSpan(), style, provider, ref result )
+
+            static member TryConvertFromChecked( value:'TOther, result:byref<Natural> ) : bool = 
+                raise (System.NotImplementedException())
+            static member TryConvertFromSaturating( value:'TOther, result:byref<Natural> ) : bool = 
+                raise (System.NotImplementedException())
+            static member TryConvertFromTruncating( value:'TOther, result:byref<Natural> ) : bool = 
+                raise (System.NotImplementedException())
+            static member TryConvertToChecked( value:Natural, result:byref<'TOther> ) : bool = 
+                raise (System.NotImplementedException())
+            static member TryConvertToSaturating( value:Natural, result:byref<'TOther> ) : bool = 
+                raise (System.NotImplementedException())
+            static member TryConvertToTruncating( value:Natural, result:byref<'TOther> ) : bool = 
+                raise (System.NotImplementedException())
 
         interface IBitwiseOperators<Natural,Natural,Natural> with
-            static member (&&&) (left:Natural, right:Natural) : Natural =
-                left &&& right
-            static member (|||) (left:Natural, right:Natural) : Natural =
-                left ||| right
-            static member op_OnesComplement (value:Natural) : Natural =
-                ~~~value
-            static member (^^^) (left:Natural, right:Natural) : Natural =
-                left ^^^ right
+            static member (&&&) ( left:Natural, right:Natural ) : Natural =
+                _bitwiseAnd left right
+            static member (|||) ( left:Natural, right:Natural ) : Natural =
+                _bitwiseOr left right
+            static member op_OnesComplement ( value:Natural ) : Natural =
+                _bitwiseNot value
+            static member (^^^) ( left:Natural, right:Natural ) : Natural =
+                _bitwiseXor left right
 
-        //interface IShiftOperators<Natural,int,Natural> with
-        //    static member (<<<)( left, right ) =
-        //        left <<< right
-        //    static member (>>>)( left, right ) =
-        //        left >>> right
-        //    static member op_UnsignedRightShift( left, right ) =
-        //        left >>> right
+        interface IShiftOperators<Natural,int,Natural> with
+            static member (<<<) ( left:Natural, right:int ) : Natural =
+                _leftShift right left
+            static member (>>>) ( left:Natural, right:int ) : Natural =
+                _rightShift right left
+            static member op_UnsignedRightShift( left:Natural, right:int ) : Natural =
+                _rightShift right left
 
         //interface IComparisonOperators<Natural,Natural,bool> with
         //    static member op_LessThan( left, right ) =
@@ -677,10 +799,10 @@ type public Natural(data:uint32 list) =
         //
         //        let result = operation ( Helpers.normalize left.Data right.Data )
         //        Natural( result )
-
+        //
         //    member this.op_CheckedAddition(left: Natural, right: Natural): Natural = 
         //        left + right
-
+        //
         //    member this.(*)(left: Natural, right: Natural): Natural = 
         //        Natural.op_Multiply( left, right )
         //    member this.(-)(left: Natural, right: Natural): Natural = 
