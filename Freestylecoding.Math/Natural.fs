@@ -165,6 +165,8 @@ type public Natural(data:uint32 list) =
         Convert.ToUInt32( data &&& 0xFFFF_FFFFUL )
     ] )
 
+    // This exists to be nice to C#
+    // F# sequences are C# IEnumerables
     new(data:uint32 seq) = Natural( Seq.toList( data ) )
 
     with
