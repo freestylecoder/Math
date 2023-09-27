@@ -18,6 +18,8 @@
     <Compile Include="Natural\Constants.fs" />
     <Compile Include="Natural\Implicit.fs" />
     <Compile Include="Natural\BitwiseOperators.fs" />
+    <Compile Include="Natural\ComparisonOperators.fs" />
+    <Compile Include="Natural\ArithmeticOperators.fs" />
   </ItemGroup>
 
   <ItemGroup>
