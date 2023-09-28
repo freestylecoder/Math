@@ -20,6 +20,7 @@
     <Compile Include="Natural\BitwiseOperators.fs" />
     <Compile Include="Natural\ComparisonOperators.fs" />
     <Compile Include="Natural\ArithmeticOperators.fs" />
+    <Compile Include="Natural\ObjectOverrides.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -241,18 +241,18 @@ type public Natural(data:uint32 list) =
         // Unary
 
         // .NET Object Overrides
-        override left.Equals( right ) =
-            match right.GetType() with
-            | t when t = typeof<Natural> -> _equality left (right :?> Natural)
-            | t when t = typeof<uint32> -> _equality left (Natural( right :?> uint32 ))
-            | t when t = typeof<uint64> -> _equality left (Natural( right :?> uint64 ))
+        override this.Equals( that ) =
+            match that with
+            | :? Natural as n -> _equality this n
+            | :? uint32 as ui -> _equality this (Natural( ui ))
+            | :? uint64 as ul -> _equality this (Natural( ul ))
             | _ -> false
 
         override this.GetHashCode() =
-            let n:Natural = this
             let v =
-                List.rev n.Data
-                |> List.head
+                this.Data
+                |> List.fold ( fun acc i -> acc ^^^ i ) 0u
+
             v.GetHashCode()
 
         override this.ToString() =
@@ -274,15 +274,19 @@ type public Natural(data:uint32 list) =
 
         // IComparable (for .NET) 
         interface IComparable with
-            member left.CompareTo right = 
-                match right with
-                | :? Natural as n ->
-                    match _equality left n with
+            member this.CompareTo that =
+                let doWork left right =
+                    match _equality left right with
                     | true -> 0
                     | false ->
-                        match _greaterThan left n with
+                        match _greaterThan left right with
                         | true -> 1
                         | false -> -1
+
+                match that with
+                | :? Natural as n -> doWork this n
+                | :? UInt32 as ui -> doWork this (Natural( ui ))
+                | :? UInt64 as ul -> doWork this (Natural( ul ))
                 | _ -> raise (new ArgumentException())
 
         // Other things we need that require previous operators
