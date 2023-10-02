@@ -21,6 +21,10 @@
     <Compile Include="Natural\ComparisonOperators.fs" />
     <Compile Include="Natural\ArithmeticOperators.fs" />
     <Compile Include="Natural\ObjectOverrides.fs" />
+    <Compile Include="Natural\Comparable.fs" />
+    <Compile Include="Natural\EquatableNatural.fs" />
+    <Compile Include="Natural\EqualityOperators.fs" />
+    <Compile Include="Natural\AdditionOperators.fs" />
   </ItemGroup>
 
   <ItemGroup>

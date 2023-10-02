@@ -47,7 +47,7 @@ type public ObjectEquals() =
     [<InlineData(  1l  )>]
     [<InlineData(  1f  )>]
     [<InlineData(  1.0 )>]
-    member public this.Large (obj:System.Object) =
+    member public this.OtherTypes (obj:System.Object) =
         Assert.False( Natural.Unit.Equals( obj ) )
 
 type public ObjectGetHashCode() =

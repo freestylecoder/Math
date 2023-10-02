@@ -241,7 +241,7 @@ type public Natural(data:uint32 list) =
         // Unary
 
         // .NET Object Overrides
-        override this.Equals( that ) =
+        override this.Equals( that:Object ) =
             match that with
             | :? Natural as n -> _equality this n
             | :? uint32 as ui -> _equality this (Natural( ui ))
@@ -273,6 +273,7 @@ type public Natural(data:uint32 list) =
                 )
 
         // IComparable (for .NET) 
+        member this.CompareTo that = (this :> IComparable).CompareTo( that )
         interface IComparable with
             member this.CompareTo that =
                 let doWork left right =
@@ -287,7 +288,7 @@ type public Natural(data:uint32 list) =
                 | :? Natural as n -> doWork this n
                 | :? UInt32 as ui -> doWork this (Natural( ui ))
                 | :? UInt64 as ul -> doWork this (Natural( ul ))
-                | _ -> raise (new ArgumentException())
+                | _ -> raise (new ArgumentException( "obj is not the same type as this instance." ))
 
         // Other things we need that require previous operators
         static member Parse (s:string) =
@@ -320,7 +321,7 @@ type public Natural(data:uint32 list) =
             static member (+) (left:Natural, right:Natural) : Natural = 
                 _add left right
             static member op_CheckedAddition (left:Natural, right:Natural) : Natural = 
-                // Naturals don't overflow, and addation can't underflow
+                // Naturals don't overflow, and addition can't underflow
                 _add left right
 
         interface IAdditiveIdentity<Natural,Natural> with
