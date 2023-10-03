@@ -358,7 +358,7 @@ type public Natural(data:uint32 list) =
         
         interface IUnaryPlusOperators<Natural,Natural> with
             static member (~+)( value:Natural ) : Natural = 
-                value
+                Natural( value )
 
         interface IMultiplyOperators<Natural,Natural,Natural> with
             static member op_CheckedMultiply( left: Natural, right: Natural ) : Natural = 

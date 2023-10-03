@@ -25,6 +25,15 @@
     <Compile Include="Natural\EquatableNatural.fs" />
     <Compile Include="Natural\EqualityOperators.fs" />
     <Compile Include="Natural\AdditionOperators.fs" />
+    <Compile Include="Natural\AdditiveIdentity.fs" />
+    <Compile Include="Natural\IncrementOperators.fs" />
+    <Compile Include="Natural\SubtractionOperators.fs" />
+    <Compile Include="Natural\DecrementOperators.fs" />
+    <Compile Include="Natural\UnaryNegationOperators.fs" />
+    <Compile Include="Natural\UnaryPlusOperators.fs" />
+    <Compile Include="Natural\MultiplyOperators.fs" />
+    <Compile Include="Natural\MultiplicativeIdentity.fs" />
+    <Compile Include="Natural\DivisionOperators.fs" />
   </ItemGroup>
 
   <ItemGroup>
