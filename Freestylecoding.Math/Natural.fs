@@ -399,7 +399,7 @@ type public Natural(data:uint32 list) =
 
                 let processSeparators rawString (groupSizesArray:int array) groupSeparator decimalDigits decimalSeparator =
                     // Yes, this is nasty. It works, but that doesn't mean I like how it did it
-                    let reverseString (s:string) = string( (s.ToCharArray()) |> Array.rev )
+                    let reverseString (s:string) = String( (s.ToCharArray()) |> Array.rev )
                     let separator = reverseString groupSeparator
 
                     let mutable groupSize =
@@ -416,7 +416,7 @@ type public Natural(data:uint32 list) =
                     while ( i < reversedString.Length ) && ( 0 <> groupSize ) do
                         reversedString <- reversedString.Insert( i, separator )
                         
-                        if 1 < groupSizes.Length
+                        if 0 < groupSizes.Length
                         then
                             groupSize <- Array.head groupSizes
                             groupSizes <- Array.tail groupSizes
@@ -426,9 +426,9 @@ type public Natural(data:uint32 list) =
 
                     let suffix =
                         match precision with
-                        | None -> $"{decimalSeparator}{string( '0', decimalDigits )}"
+                        | None -> $"{decimalSeparator}{String( '0', decimalDigits )}"
                         | Some( 0 ) -> String.Empty
-                        | Some( l ) -> $"{decimalSeparator}{string( '0', l )}"
+                        | Some( l ) -> $"{decimalSeparator}{String( '0', l )}"
 
                     $"{reverseString reversedString}{suffix}"
 
@@ -480,7 +480,7 @@ type public Natural(data:uint32 list) =
                         else result
                     | None -> result
 
-                // Exponetial
+                // Exponential
                 | 'E' | 'e' ->
                     let decimalPlaces =
                         match precision with
@@ -492,16 +492,20 @@ type public Natural(data:uint32 list) =
 
                     let truncString = 
                         match decimalPlaces - exponent with
-                        | p when p > 0 -> $"{rawString}{string('0', p)}" // Pad Zeros
+                        | p when p > 0 -> rawString.PadRight( decimalPlaces + 1, '0' )
                         | n when n < 0 ->
+                            // At this point, we know we're getting a substring
+                            // So, just make sure we have plenty of zeros to deal with everything
+                            let paddedString = rawString.PadRight( exponent + decimalPlaces, '0' )
+
                             // Check for rounding
-                            match rawString[decimalPlaces+1] with
+                            match paddedString[decimalPlaces+1] with
                             | '5' | '6' | '7' | '8' | '9' ->
                                 // Rounding
-                                ( Natural.Parse( rawString.Substring( decimalPlaces ) ) + Natural.Unit ).ToString()
+                                ( Natural.Parse( paddedString.Substring( 0, decimalPlaces+1 ) ) + Natural.Unit ).ToString()
                             | _ ->
                                 // Rounding not required
-                                rawString.Substring( decimalPlaces )
+                                paddedString.Substring( 0, decimalPlaces+1 )
                         | _ -> rawString // Nothing to do
 
                     $"{truncString.Insert( 1, numberFormatInfo.NumberDecimalSeparator )}{specifier}{numberFormatInfo.PositiveSign}{exponent:D3}"
@@ -527,7 +531,7 @@ type public Natural(data:uint32 list) =
                 | 'P' | 'p' ->
                     let s =
                         processSeparators
-                            (this.ToString())
+                            $"{this}00"
                             numberFormatInfo.PercentGroupSizes
                             numberFormatInfo.PercentGroupSeparator
                             numberFormatInfo.PercentDecimalDigits
@@ -544,20 +548,17 @@ type public Natural(data:uint32 list) =
                 | 'X' | 'x' ->
                     let hexResult =
                         this.Data
-                        |> List.map ( fun ui -> ui.ToString( $"{specifier}8" ).Substring( 2 ) )
+                        |> List.map ( fun ui -> ui.ToString( $"{specifier}8" ) )
                         |> List.toArray
                         |> String.concat ""
                         |> trimStart '0'
  
-                    let paddedHexResult =
-                        match precision with
-                        | None -> hexResult
-                        | Some( p ) ->
-                            if hexResult.Length < p
-                            then $"{string( '0', p - hexResult.Length )}{hexResult}"
-                            else hexResult
-
-                    $"0{specifier}" + paddedHexResult
+                    match precision with
+                    | None -> hexResult
+                    | Some( p ) ->
+                        if hexResult.Length < p
+                        then $"{String( '0', p - hexResult.Length )}{hexResult}"
+                        else hexResult
 
                 | _ -> raise ( System.FormatException( $"{specifier} is not a valid format specifier" ) )
         

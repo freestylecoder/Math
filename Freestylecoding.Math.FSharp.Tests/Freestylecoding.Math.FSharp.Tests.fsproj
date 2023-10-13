@@ -34,6 +34,7 @@
     <Compile Include="Natural\MultiplyOperators.fs" />
     <Compile Include="Natural\MultiplicativeIdentity.fs" />
     <Compile Include="Natural\DivisionOperators.fs" />
+    <Compile Include="Natural\Formattable.fs" />
   </ItemGroup>
 
   <ItemGroup>
