@@ -450,7 +450,7 @@ type public Natural(data:uint32 list) =
                     | None -> binaryResult
                     | Some( p ) ->
                         if binaryResult.Length < p
-                        then $"{string( '0', p - binaryResult.Length )}{binaryResult}"
+                        then $"{String( '0', p - binaryResult.Length )}{binaryResult}"
                         else binaryResult
                     
                 // Currency
@@ -623,6 +623,14 @@ type public Natural(data:uint32 list) =
             static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
                 IParsable.TryParse( s.ToString(), provider, ref result )
         
+        interface IUtf8SpanParsable<Natural> with
+            static member Parse( s: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
+                raise (new System.NotImplementedException())
+                IParsable.Parse( s.ToString(), provider )
+            static member TryParse( s: ReadOnlySpan<byte>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
+                raise (new System.NotImplementedException())
+                IParsable.TryParse( s.ToString(), provider, ref result )
+        
         interface INumberBase<Natural> with
             static member One
                 with get () = Natural.Unit
@@ -727,32 +735,40 @@ type public Natural(data:uint32 list) =
                 then x
                 else y
 
+            //static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
+            //    let mutable span = Span<char>( s.ToArray() )
+            //
+            //    span <-
+            //        if style.HasFlag(NumberStyles.AllowLeadingWhite)
+            //        then span.TrimStart()
+            //        else span
+            //
+            //    span <-
+            //        if style.HasFlag(NumberStyles.AllowTrailingWhite)
+            //        then span.TrimEnd()
+            //        else span
+            //
+            //    //style.HasFlag(NumberStyles.AllowLeadingSign)
+            //    raise (System.NotImplementedException())
+            //static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
+            //    INumberBase.Parse( s.AsSpan(), style, provider )
+            //static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
+            //    try
+            //        result <- INumberBase.Parse( s, style, provider )
+            //        true
+            //    with _ ->
+            //        result <- Natural.Zero
+            //        false
+            //static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
+            //    INumberBase.TryParse( s.AsSpan(), style, provider, ref result )
             static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                let mutable span = Span<char>( s.ToArray() )
-
-                span <-
-                    if style.HasFlag(NumberStyles.AllowLeadingWhite)
-                    then span.TrimStart()
-                    else span
-
-                span <-
-                    if style.HasFlag(NumberStyles.AllowTrailingWhite)
-                    then span.TrimEnd()
-                    else span
-
-                //style.HasFlag(NumberStyles.AllowLeadingSign)
                 raise (System.NotImplementedException())
             static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                INumberBase.Parse( s.AsSpan(), style, provider )
+                raise (System.NotImplementedException())
             static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
-                try
-                    result <- INumberBase.Parse( s, style, provider )
-                    true
-                with _ ->
-                    result <- Natural.Zero
-                    false
+                raise (System.NotImplementedException())
             static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
-                INumberBase.TryParse( s.AsSpan(), style, provider, ref result )
+                raise (System.NotImplementedException())
 
             static member TryConvertFromChecked( value:'TOther, result:byref<Natural> ) : bool = 
                 raise (System.NotImplementedException())

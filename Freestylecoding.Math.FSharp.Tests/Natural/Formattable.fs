@@ -31,7 +31,7 @@ type public Formattable() =
         )
 
     [<Theory>]
-    [<InlineData( "B", Skip = "Not Supported until dotnet8" )>]
+    [<InlineData( "B" )>]//, Skip = "Not Supported until dotnet8" )>]
     [<InlineData( "C" )>]
     [<InlineData( "D" )>]
     [<InlineData( "E" )>]
@@ -41,7 +41,7 @@ type public Formattable() =
     [<InlineData( "P" )>]
     [<InlineData( "R" )>]
     [<InlineData( "D" )>]
-    [<InlineData( "b", Skip = "Not Supported until dotnet8" )>]
+    [<InlineData( "b" )>]//, Skip = "Not Supported until dotnet8" )>]
     [<InlineData( "c" )>]
     [<InlineData( "d" )>]
     [<InlineData( "e" )>]
@@ -176,7 +176,7 @@ type public Formattable() =
             Assert.Equal( "18EE90FF6C373E0EE4E3F0AD2", Formattable.Format( large, "X", culture ) )
             Assert.Equal( "18ee90ff6c373e0ee4e3f0ad2", Formattable.Format( large, "x", culture ) )
 
-    [<Fact( Skip = "Not Supported until dotnet8" )>]
+    [<Fact>]
     member public this.Binary () =
         Assert.Equal(
             "1001001100101100000001011010010",
@@ -205,41 +205,41 @@ type public Formattable() =
             Formattable.Format( large, "b", null )
         )
 
-    [<Fact( Skip = "Not Supported until dotnet8" )>]
+    [<Fact>]
     member public this.Binary_Precision () =
         Assert.Equal(  "1001001100101100000001011010010", Formattable.Format( small,  "B0", null ) )
         Assert.Equal(  "1001001100101100000001011010010", Formattable.Format( small,  "B8", null ) )
         Assert.Equal(  "1001001100101100000001011010010", Formattable.Format( small, "B16", null ) )
         Assert.Equal( "01001001100101100000001011010010", Formattable.Format( small, "B32", null ) )
 
-    [<Fact( Skip = "Not Supported until dotnet8" )>]
+    [<Fact>]
     member public this.Binary_IgnoreFormatProvider () =
         for culture in cultures do
             Assert.Equal(
                 "1001001100101100000001011010010",
-                Formattable.Format( small, "X", culture )
+                Formattable.Format( small, "B", culture )
             )
             Assert.Equal(
                 "1001001100101100000001011010010",
-                Formattable.Format( small, "x", culture )
+                Formattable.Format( small, "b", culture )
             )
 
             Assert.Equal(
                 "1010101101010100101010011000110011101011000111110000101011010010",
-                Formattable.Format( medium, "X", culture )
+                Formattable.Format( medium, "B", culture )
             )
             Assert.Equal(
                 "1010101101010100101010011000110011101011000111110000101011010010",
-                Formattable.Format( medium, "x", culture )
+                Formattable.Format( medium, "b", culture )
             )
 
             Assert.Equal(
                 "1100011101110100100001111111101101100001101110011111000001110111001001110001111110000101011010010",
-                Formattable.Format( large, "X", culture )
+                Formattable.Format( large, "B", culture )
             )
             Assert.Equal(
                 "1100011101110100100001111111101101100001101110011111000001110111001001110001111110000101011010010",
-                Formattable.Format( large, "x", culture )
+                Formattable.Format( large, "b", culture )
             )
 
     [<Fact>]
