@@ -14,7 +14,6 @@
     <Compile Include="RealTests.fs" />
     <Compile Include="RationalTests.fs" />
     <Compile Include="IntegerTests.fs" />
-    <Compile Include="NaturalTests.fs" />
     <Compile Include="Natural\Constants.fs" />
     <Compile Include="Natural\Implicit.fs" />
     <Compile Include="Natural\BitwiseOperators.fs" />
@@ -36,6 +35,7 @@
     <Compile Include="Natural\DivisionOperators.fs" />
     <Compile Include="Natural\Formattable.fs" />
     <Compile Include="Natural\SpanFormattable.fs" />
+    <Compile Include="Natural\Parse.fs" />
   </ItemGroup>
 
   <ItemGroup>

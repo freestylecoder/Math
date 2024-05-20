@@ -88,7 +88,7 @@ type public AdditionOperators() =
         )
 
     // NOTE: The "Checked" tests are commentted out because they are not calling the correct operator
-    //  I cannot figure out who to force F# to call the correct one
+    //  I cannot figure out how to force F# to call the correct one
     //  We need to really make sure the C# side of the tests do call the right one
 
     //static member CheckedAdd( this:'T when 'T :> System.Numerics.IAdditionOperators<'T,'T,'T>, that:'T ) : 'T =

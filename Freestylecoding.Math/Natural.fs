@@ -1,6 +1,7 @@
 ﻿namespace Freestylecoding.Math
 
 open System
+open System.Linq
 open System.Numerics
 open System.Globalization
 
@@ -273,7 +274,6 @@ type public Natural(data:uint32 list) =
                 )
 
         // IComparable (for .NET) 
-        member this.CompareTo that = (this :> IComparable).CompareTo( that )
         interface IComparable with
             member this.CompareTo that =
                 let doWork left right =
@@ -289,27 +289,21 @@ type public Natural(data:uint32 list) =
                 | :? UInt32 as ui -> doWork this (Natural( ui ))
                 | :? UInt64 as ul -> doWork this (Natural( ul ))
                 | _ -> raise (new ArgumentException( "obj is not the same type as this instance." ))
+        member this.CompareTo that =
+            (this :> IComparable).CompareTo( that )
 
         // Other things we need that require previous operators
-        static member Parse (s:string) =
-            // Yes, I know this is super inefficient
-            // That's why it's currently local to this function and not part of the type
-            let rec pow n e =
-                match e with
-                | 0 -> Natural.Unit
-                | _ -> n * (pow n (e-1))
-
-            s.ToCharArray()
-            |> Array.rev
-            |> Array.map (fun c -> Convert.ToUInt32(c) - 48u )
-            |> Array.map (fun u -> Natural([u]))
-            |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
-            |> Array.sum
+        static member private Parse<'T when 'T :> System.Numerics.INumberBase<'T>> (s:string) : 'T =
+            'T.Parse( s, NumberStyles.Integer, CultureInfo.CurrentCulture.NumberFormat)
+        static member Parse (s:string) : Natural =
+            Natural.Parse<Natural>( s )
 
         //interface IUnsignedNumber<Natural> with
         interface IEquatable<Natural> with
             member this.Equals( that:Natural ) : bool = 
                 _equality this that
+        member this.Equals( that:Natural ) : bool =
+            (this :> IEquatable<Natural>).Equals( that )
 
         interface IEqualityOperators<Natural,Natural,bool> with
             static member op_Inequality( left, right ) =
@@ -561,7 +555,9 @@ type public Natural(data:uint32 list) =
                         else hexResult
 
                 | _ -> raise ( System.FormatException( $"{specifier} is not a valid format specifier" ) )
-        
+        member this.ToString( format:string, formatProvider:IFormatProvider ) : string =
+            (this :> IFormattable).ToString( format, formatProvider )
+
         interface ISpanFormattable with
             member this.TryFormat( destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider ) : bool = 
                 let formattedString = (this :> IFormattable).ToString( format.ToString(), provider )
@@ -603,7 +599,10 @@ type public Natural(data:uint32 list) =
                         .Trim()
 
                 if processedString.StartsWith( numberFormatInfo.NegativeSign )
-                then raise (System.OverflowException())
+                then
+                    // Special edge case where "-0" is allowed
+                    if not (String.Equals( processedString, $"{numberFormatInfo.NegativeSign}0" ))
+                    then raise (System.OverflowException())
 
                 if Array.exists ( fun c -> Char.IsAsciiDigit( c ) |> not ) (processedString.ToCharArray())
                 then raise (System.FormatException())
@@ -764,7 +763,92 @@ type public Natural(data:uint32 list) =
             static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
                 raise (System.NotImplementedException())
             static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                raise (System.NotImplementedException())
+                // Yes, I know this is super inefficient
+                // That's why it's currently local to this function and not part of the type
+                let rec pow n e =
+                    match e with
+                    | 0 -> Natural.Unit
+                    | _ -> n * (pow n (e-1))
+            
+                let numberFormatInfo =
+                    if null = provider
+                    then CultureInfo.CurrentCulture.NumberFormat
+                    else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
+
+                let HasFlag (flag:NumberStyles) : bool =
+                    flag = (style &&& flag)
+
+                let isUnicodeDecimalDigit (c:char) =
+                    CharUnicodeInfo.GetUnicodeCategory( c ) = UnicodeCategory.DecimalDigitNumber
+
+                // Before anyone says anything...
+                // I know some of these match statements could perfectly valid if statements
+                // I like that formatting because it's like an error check in the beginning
+                // and all the "real" code is in one block after it
+                let CleanLeadingWhitespace (str:string) : string =
+                    match HasFlag NumberStyles.AllowLeadingWhite with
+                    | false -> str
+                    | true ->
+                        str.TrimStart()
+
+                let CleanTrailingWhitespace (str:string) : string =
+                    match HasFlag NumberStyles.AllowTrailingWhite with
+                    | false -> str
+                    | true ->
+                        str.TrimEnd()
+
+                let mutable isNegative = false
+                let mutable isPositive = false
+                let CleanLeadingSign (str:string) : string =
+                    match HasFlag NumberStyles.AllowLeadingSign with
+                    | false -> str
+                    | true ->
+                        let leadingChars = String(
+                            str
+                                .TakeWhile( fun c -> not (isUnicodeDecimalDigit c) )
+                                .ToArray()
+                            )
+                        let leadingLength = leadingChars.Length
+                        isNegative <- leadingChars.Contains( numberFormatInfo.NegativeSign )
+                        isPositive <- leadingChars.Contains( numberFormatInfo.PositiveSign )
+
+                        String.Concat(
+                            leadingChars
+                                .Replace( numberFormatInfo.NegativeSign, String.Empty )
+                                .Replace( numberFormatInfo.PositiveSign, String.Empty ),
+                            str.Substring( leadingLength )
+                        )
+
+                let trimmedString =
+                    s
+                    |> CleanLeadingWhitespace
+                    |> CleanTrailingWhitespace
+                    |> CleanLeadingSign
+                    //match style &&& AllowWhitespace with
+                    //| both when both = AllowWhitespace -> s.Trim()
+                    //| left when left = NumberStyles.AllowLeadingWhite -> s.TrimStart()
+                    //| right when right = NumberStyles.AllowTrailingWhite -> s.TrimEnd()
+                    //| _ -> s
+
+                if isNegative && isPositive
+                then raise (System.FormatException())
+
+                if not (String.forall isUnicodeDecimalDigit trimmedString)
+                then raise (System.FormatException())
+
+                let result =
+                    trimmedString.ToCharArray()
+                    |> Array.rev
+                    |> Array.map (fun c -> CharUnicodeInfo.GetDigitValue( c ))
+                    |> Array.map (fun i -> Natural([Convert.ToUInt32(i)]))
+                    |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
+                    |> Array.sum
+
+                if isNegative && not (result = Natural.Zero)
+                then raise (System.OverflowException())
+
+                result
+
             static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
                 raise (System.NotImplementedException())
             static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
