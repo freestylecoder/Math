@@ -114,6 +114,8 @@ type public Parse() =
 
     [<Fact>]
     member public this.DisallowBothLeading () =
+        // I would like for this to be a theory with the two cases separate
+        // However, I can't do string interpolation in an attribute
         Assert.IsType<System.FormatException>(
             Record.Exception(
                 fun () -> Natural.Parse( $"{currentCulture.PositiveSign}{currentCulture.NegativeSign}0" ) |> ignore
