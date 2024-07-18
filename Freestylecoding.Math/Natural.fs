@@ -156,6 +156,85 @@ type public Natural(data:uint32 list) =
         | _ ->
             op 0
 
+    static let _parse (s:ReadOnlySpan<char>) (style:NumberStyles) (provider:IFormatProvider) : Natural = 
+        let powersOf2 = Seq.unfold (fun state -> Some( state, _leftShift 1 state )) Natural.Unit
+        let powersOf10 = Seq.unfold (fun state -> Some( state, _add (_leftShift 3 state) (_leftShift 1 state) )) Natural.Unit
+        let powersOf16 = Seq.unfold (fun state -> Some( state, _leftShift 4 state )) Natural.Unit
+
+        let pow10n e =
+            let (quot,rem) = _divideModulo e (Natural( UInt32.MaxValue >>> 1 ))
+            let maxPowerOf10 =
+                if _greaterThan quot Natural.Zero
+                then _multiply quot (powersOf10.ElementAt( Int32.MaxValue ))
+                else Natural.Unit
+
+            _multiply maxPowerOf10 (powersOf10.ElementAt( Convert.ToInt32( rem.Data.Head ) ))
+
+        let hasFlag (flag:NumberStyles) : bool =
+            flag = (style &&& flag)
+
+        match ((hasFlag NumberStyles.AllowBinarySpecifier),(hasFlag NumberStyles.AllowHexSpecifier)) with
+        | (true,true) ->
+            raise (System.ArgumentException( "With the AllowHexSpecifier or AllowBinarySpecifier bit set in the enum bit field, the only other valid bits that can be combined into the enum value must be AllowLeadingWhite and AllowTrailingWhite.", nameof( style )))
+        | (true,false) ->
+            if s.ContainsAnyExcept( '0', '1' )
+            then raise (System.FormatException())
+                    
+            s.ToSeq()
+            |> Seq.rev
+            |> Seq.map (fun c -> if '0' = c then Natural.Zero else Natural.Unit )
+            |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf2
+            |> Seq.sum
+        | (false,true) ->
+            if s.ContainsAnyExcept( "0123456789abcdefABCDEF".AsSpan() )
+            then raise (System.FormatException())
+                    
+            s.ToSeq()
+            |> Seq.rev
+            |> Seq.map (fun c -> Natural(Convert.ToUInt32(c.ToString(), 16)))
+            |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf16
+            |> Seq.sum
+        | _ ->
+            let listToNatural (l:char list) : Natural =
+                l
+                |> List.rev
+                |> List.map (fun c -> Natural([Convert.ToUInt32(CharUnicodeInfo.GetNumericValue(c))]))
+                |> List.toSeq
+                |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf10
+                |> Seq.sum
+
+            let numberFormatInfo =
+                if null = provider
+                then CultureInfo.CurrentCulture.NumberFormat
+                else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
+
+            let parseBuddy = ParseBuddy( style, numberFormatInfo )
+            parseBuddy.Parse( s )
+
+            let decFactor = powersOf10.ElementAt( parseBuddy.Decimal.Length )
+            let natWhole =
+                seq { parseBuddy.WholeNumber; parseBuddy.Decimal }
+                |> List.concat
+                |> listToNatural
+
+            let natExp = listToNatural parseBuddy.Exponent
+            let expFactor = pow10n natExp
+
+            let (q,r) =
+                if parseBuddy.IsExpNegative
+                then _divideModulo natWhole ( _multiply expFactor decFactor )
+                else _divideModulo ( _multiply natWhole expFactor ) decFactor
+                
+            if _greaterThan r Natural.Zero
+            then raise (System.OverflowException())
+                
+            if parseBuddy.IsNegative && ( q > Natural.Zero )
+            then raise (System.OverflowException())
+
+            q
+
+    static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
+
     member internal Natural.Data = _compress data
 
     new() = Natural( [0u] )
@@ -292,11 +371,8 @@ type public Natural(data:uint32 list) =
         member this.CompareTo that =
             (this :> IComparable).CompareTo( that )
 
-        // Other things we need that require previous operators
-        static member private Parse<'T when 'T :> System.Numerics.INumberBase<'T>> (s:string) : 'T =
-            'T.Parse( s, NumberStyles.Integer, CultureInfo.CurrentCulture.NumberFormat)
         static member Parse (s:string) : Natural =
-            Natural.Parse<Natural>( s )
+            _parse (s.AsSpan()) _defaultNumberStyle CultureInfo.CurrentCulture.NumberFormat
 
         //interface IUnsignedNumber<Natural> with
         interface IEquatable<Natural> with
@@ -583,31 +659,8 @@ type public Natural(data:uint32 list) =
             ///     This method behaves similar to <see cref="System.UInt64.Parse(string, IFormatProvider?)"/>.
             ///     The exception is this method also allows <see cref="System.Globalization.NumberFormatInfo.NumberGroupSeparator"/>
             /// </remarks>
-            static member Parse( s:string, provider:IFormatProvider ) : Natural = 
-                if String.IsNullOrWhiteSpace( s )
-                then raise (System.ArgumentNullException( nameof( s ) ))
-
-                let numberFormatInfo =
-                    if null = provider
-                    then CultureInfo.CurrentCulture.NumberFormat
-                    else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
-
-                let processedString =
-                    s
-                        .Replace( numberFormatInfo.NumberGroupSeparator, "" )
-                        .Replace( numberFormatInfo.PositiveSign, "" )
-                        .Trim()
-
-                if processedString.StartsWith( numberFormatInfo.NegativeSign )
-                then
-                    // Special edge case where "-0" is allowed
-                    if not (String.Equals( processedString, $"{numberFormatInfo.NegativeSign}0" ))
-                    then raise (System.OverflowException())
-
-                if Array.exists ( fun c -> Char.IsAsciiDigit( c ) |> not ) (processedString.ToCharArray())
-                then raise (System.FormatException())
-
-                Natural.Parse( processedString )
+            static member Parse( s:string, provider:IFormatProvider ) : Natural =
+                _parse (s.AsSpan()) _defaultNumberStyle provider
             static member TryParse( s: string, provider: IFormatProvider, result: byref<Natural> ): bool = 
                 try
                     result <- IParsable.Parse( s, provider )
@@ -618,14 +671,16 @@ type public Natural(data:uint32 list) =
         
         interface ISpanParsable<Natural> with
             static member Parse( s: ReadOnlySpan<char>, provider: IFormatProvider ) : Natural = 
-                IParsable.Parse( s.ToString(), provider )
+                _parse s _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
                 IParsable.TryParse( s.ToString(), provider, ref result )
         
         interface IUtf8SpanParsable<Natural> with
-            static member Parse( s: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
-                raise (new System.NotImplementedException())
-                IParsable.Parse( s.ToString(), provider )
+            static member Parse( utf8text: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
+                let utf16text = Span<Char>( ( Array.create utf8text.Length '\u0000' ) )
+                let mutable x = 0
+                System.Text.Unicode.Utf8.ToUtf16( utf8text, utf16text, &x, &x, true, true ) |> ignore
+                _parse utf16text _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<byte>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
                 raise (new System.NotImplementedException())
                 IParsable.TryParse( s.ToString(), provider, ref result )
@@ -734,120 +789,10 @@ type public Natural(data:uint32 list) =
                 then x
                 else y
 
-            //static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-            //    let mutable span = Span<char>( s.ToArray() )
-            //
-            //    span <-
-            //        if style.HasFlag(NumberStyles.AllowLeadingWhite)
-            //        then span.TrimStart()
-            //        else span
-            //
-            //    span <-
-            //        if style.HasFlag(NumberStyles.AllowTrailingWhite)
-            //        then span.TrimEnd()
-            //        else span
-            //
-            //    //style.HasFlag(NumberStyles.AllowLeadingSign)
-            //    raise (System.NotImplementedException())
-            //static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-            //    INumberBase.Parse( s.AsSpan(), style, provider )
-            //static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
-            //    try
-            //        result <- INumberBase.Parse( s, style, provider )
-            //        true
-            //    with _ ->
-            //        result <- Natural.Zero
-            //        false
-            //static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
-            //    INumberBase.TryParse( s.AsSpan(), style, provider, ref result )
             static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                raise (System.NotImplementedException())
+                _parse s style provider
             static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                // Yes, I know this is super inefficient
-                // That's why it's currently local to this function and not part of the type
-                let rec pow n e =
-                    match e with
-                    | 0 -> Natural.Unit
-                    | _ -> n * (pow n (e-1))
-            
-                let numberFormatInfo =
-                    if null = provider
-                    then CultureInfo.CurrentCulture.NumberFormat
-                    else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
-
-                let HasFlag (flag:NumberStyles) : bool =
-                    flag = (style &&& flag)
-
-                let isUnicodeDecimalDigit (c:char) =
-                    CharUnicodeInfo.GetUnicodeCategory( c ) = UnicodeCategory.DecimalDigitNumber
-
-                // Before anyone says anything...
-                // I know some of these match statements could perfectly valid if statements
-                // I like that formatting because it's like an error check in the beginning
-                // and all the "real" code is in one block after it
-                let CleanLeadingWhitespace (str:string) : string =
-                    match HasFlag NumberStyles.AllowLeadingWhite with
-                    | false -> str
-                    | true ->
-                        str.TrimStart()
-
-                let CleanTrailingWhitespace (str:string) : string =
-                    match HasFlag NumberStyles.AllowTrailingWhite with
-                    | false -> str
-                    | true ->
-                        str.TrimEnd()
-
-                let mutable isNegative = false
-                let mutable isPositive = false
-                let CleanLeadingSign (str:string) : string =
-                    match HasFlag NumberStyles.AllowLeadingSign with
-                    | false -> str
-                    | true ->
-                        let leadingChars = String(
-                            str
-                                .TakeWhile( fun c -> not (isUnicodeDecimalDigit c) )
-                                .ToArray()
-                            )
-                        let leadingLength = leadingChars.Length
-                        isNegative <- leadingChars.Contains( numberFormatInfo.NegativeSign )
-                        isPositive <- leadingChars.Contains( numberFormatInfo.PositiveSign )
-
-                        String.Concat(
-                            leadingChars
-                                .Replace( numberFormatInfo.NegativeSign, String.Empty )
-                                .Replace( numberFormatInfo.PositiveSign, String.Empty ),
-                            str.Substring( leadingLength )
-                        )
-
-                let trimmedString =
-                    s
-                    |> CleanLeadingWhitespace
-                    |> CleanTrailingWhitespace
-                    |> CleanLeadingSign
-                    //match style &&& AllowWhitespace with
-                    //| both when both = AllowWhitespace -> s.Trim()
-                    //| left when left = NumberStyles.AllowLeadingWhite -> s.TrimStart()
-                    //| right when right = NumberStyles.AllowTrailingWhite -> s.TrimEnd()
-                    //| _ -> s
-
-                if isNegative && isPositive
-                then raise (System.FormatException())
-
-                if not (String.forall isUnicodeDecimalDigit trimmedString)
-                then raise (System.FormatException())
-
-                let result =
-                    trimmedString.ToCharArray()
-                    |> Array.rev
-                    |> Array.map (fun c -> CharUnicodeInfo.GetDigitValue( c ))
-                    |> Array.map (fun i -> Natural([Convert.ToUInt32(i)]))
-                    |> Array.mapi (fun i n -> n * (pow (Natural([10u])) i))
-                    |> Array.sum
-
-                if isNegative && not (result = Natural.Zero)
-                then raise (System.OverflowException())
-
-                result
+                _parse (s.AsSpan()) style provider
 
             static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
                 raise (System.NotImplementedException())

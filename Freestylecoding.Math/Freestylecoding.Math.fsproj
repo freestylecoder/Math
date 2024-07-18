@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ReadOnlySpanExtensions.fs" />
     <Compile Include="Helpers.fs" />
+    <Compile Include="ParseBuddy.fs" />
     <Compile Include="Natural.fs" />
     <Compile Include="Integer.fs" />
     <Compile Include="Rational.fs" />
