@@ -54,9 +54,12 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
         let leading = span.Slice( 0, firstDigit )        
         if leading.ContainsAnyExcept( $"{formatInfo.PositiveSign}{formatInfo.NegativeSign}{formatInfo.CurrencySymbol}(".AsSpan() )
         then raise (System.FormatException())
-        
+
+        // That null character is there because of Utf8 (byte) encoding
+        // If a character can't convert, we get extra null characters
+        // this strips it off
         let trailing = span.Slice( lastDigit + 1 )
-        if trailing.ContainsAnyExcept( $"{formatInfo.PositiveSign}{formatInfo.NegativeSign}{formatInfo.CurrencySymbol})".AsSpan() )
+        if trailing.ContainsAnyExcept( $"{formatInfo.PositiveSign}{formatInfo.NegativeSign}{formatInfo.CurrencySymbol}\u0000)".AsSpan() )
         then raise (System.FormatException())
 
         let leadingPositive = hasSymbol formatInfo.PositiveSign leading

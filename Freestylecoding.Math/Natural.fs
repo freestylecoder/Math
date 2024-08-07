@@ -374,6 +374,9 @@ type public Natural(data:uint32 list) =
         static member Parse (s:string) : Natural =
             _parse (s.AsSpan()) _defaultNumberStyle CultureInfo.CurrentCulture.NumberFormat
 
+        static member Parse (s:string, style:System.Globalization.NumberStyles) : Natural =
+            _parse (s.AsSpan()) style CultureInfo.CurrentCulture.NumberFormat
+
         //interface IUnsignedNumber<Natural> with
         interface IEquatable<Natural> with
             member this.Equals( that:Natural ) : bool = 
