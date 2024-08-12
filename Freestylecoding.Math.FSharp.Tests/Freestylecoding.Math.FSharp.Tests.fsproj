@@ -36,6 +36,7 @@
     <Compile Include="Natural\Formattable.fs" />
     <Compile Include="Natural\SpanFormattable.fs" />
     <Compile Include="Natural\Parse.fs" />
+    <Compile Include="Natural\TryParse.fs" />
   </ItemGroup>
 
   <ItemGroup>

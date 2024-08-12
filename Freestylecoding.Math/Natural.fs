@@ -6,6 +6,9 @@ open System.Numerics
 open System.Globalization
 
 type public Natural(data:uint32 list) =
+    static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
+    static let _defaultFormatProvider = CultureInfo.CurrentCulture.NumberFormat
+
     static let rec _compress (l:uint32 list) : uint32 list =
         match l with
         | [] -> [0u]
@@ -205,7 +208,7 @@ type public Natural(data:uint32 list) =
 
             let numberFormatInfo =
                 if null = provider
-                then CultureInfo.CurrentCulture.NumberFormat
+                then _defaultFormatProvider
                 else provider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
 
             let parseBuddy = ParseBuddy( style, numberFormatInfo )
@@ -233,7 +236,13 @@ type public Natural(data:uint32 list) =
 
             q
 
-    static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
+    static let _tryParse (s:ReadOnlySpan<Char>) (style:NumberStyles) (provider:IFormatProvider) (result:byref<Natural>) : bool =
+        try
+            result <- _parse s style provider
+            true
+        with _ ->
+            result <- Natural.Zero
+            false
 
     member internal Natural.Data = _compress data
 
@@ -372,10 +381,19 @@ type public Natural(data:uint32 list) =
             (this :> IComparable).CompareTo( that )
 
         static member Parse (s:string) : Natural =
-            _parse (s.AsSpan()) _defaultNumberStyle CultureInfo.CurrentCulture.NumberFormat
-
+            _parse (s.AsSpan()) _defaultNumberStyle _defaultFormatProvider
         static member Parse (s:string, style:System.Globalization.NumberStyles) : Natural =
-            _parse (s.AsSpan()) style CultureInfo.CurrentCulture.NumberFormat
+            _parse (s.AsSpan()) style _defaultFormatProvider
+
+        static member TryParse( s:string, result:byref<Natural>) : bool =
+            _tryParse (s.AsSpan()) _defaultNumberStyle _defaultFormatProvider &result
+        static member TryParse( s:ReadOnlySpan<Char>, result:byref<Natural>) : bool =
+            _tryParse s _defaultNumberStyle _defaultFormatProvider &result
+        static member TryParse( s:ReadOnlySpan<Byte>, result:byref<Natural>) : bool =
+            let utf16text = Span<Char>( ( Array.create s.Length '\u0000' ) )
+            let mutable x = 0
+            System.Text.Unicode.Utf8.ToUtf16( s, utf16text, &x, &x, true, true ) |> ignore
+            _tryParse utf16text _defaultNumberStyle _defaultFormatProvider &result
 
         //interface IUnsignedNumber<Natural> with
         interface IEquatable<Natural> with
@@ -467,7 +485,7 @@ type public Natural(data:uint32 list) =
                 let (specifier, precision) = parseFormatString format
                 let numberFormatInfo =
                     if null = formatProvider
-                    then CultureInfo.CurrentCulture.NumberFormat
+                    then _defaultFormatProvider
                     else formatProvider.GetFormat( typeof<NumberFormatInfo> ) :?> NumberFormatInfo
 
                 let processSeparators rawString (groupSizesArray:int array) groupSeparator decimalDigits decimalSeparator =
@@ -665,18 +683,13 @@ type public Natural(data:uint32 list) =
             static member Parse( s:string, provider:IFormatProvider ) : Natural =
                 _parse (s.AsSpan()) _defaultNumberStyle provider
             static member TryParse( s: string, provider: IFormatProvider, result: byref<Natural> ): bool = 
-                try
-                    result <- IParsable.Parse( s, provider )
-                    true
-                with _ ->
-                    result <- Natural.Zero
-                    false
+                _tryParse (s.AsSpan()) _defaultNumberStyle provider &result
         
         interface ISpanParsable<Natural> with
             static member Parse( s: ReadOnlySpan<char>, provider: IFormatProvider ) : Natural = 
                 _parse s _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
-                IParsable.TryParse( s.ToString(), provider, ref result )
+                _tryParse s _defaultNumberStyle provider &result
         
         interface IUtf8SpanParsable<Natural> with
             static member Parse( utf8text: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
@@ -685,8 +698,10 @@ type public Natural(data:uint32 list) =
                 System.Text.Unicode.Utf8.ToUtf16( utf8text, utf16text, &x, &x, true, true ) |> ignore
                 _parse utf16text _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<byte>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
-                raise (new System.NotImplementedException())
-                IParsable.TryParse( s.ToString(), provider, ref result )
+                let utf16text = Span<Char>( ( Array.create s.Length '\u0000' ) )
+                let mutable x = 0
+                System.Text.Unicode.Utf8.ToUtf16( s, utf16text, &x, &x, true, true ) |> ignore
+                _tryParse utf16text _defaultNumberStyle provider &result
         
         interface INumberBase<Natural> with
             static member One
@@ -798,9 +813,9 @@ type public Natural(data:uint32 list) =
                 _parse (s.AsSpan()) style provider
 
             static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
-                raise (System.NotImplementedException())
+                _tryParse s style provider &result
             static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
-                raise (System.NotImplementedException())
+                _tryParse (s.AsSpan()) style provider &result
 
             static member TryConvertFromChecked( value:'TOther, result:byref<Natural> ) : bool = 
                 raise (System.NotImplementedException())
