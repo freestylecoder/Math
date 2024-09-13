@@ -30,6 +30,24 @@ type public Constructors() =
         Assert.Equal( expected, Natural( expected ) )
 
     [<Theory>]
+    [<InlineData(   0uy )>]
+    [<InlineData(   1uy )>]
+    [<InlineData(   2uy )>]
+    [<InlineData(   5uy )>]
+    [<InlineData( 100uy )>]
+    member public this.Uint8Ctro (actual:uint8) =
+        Assert.Equal( Natural( [uint32 actual] ), Natural( actual ) )
+
+    [<Theory>]
+    [<InlineData(   0us )>]
+    [<InlineData(   1us )>]
+    [<InlineData(   2us )>]
+    [<InlineData(   5us )>]
+    [<InlineData( 100us )>]
+    member public this.Uint16Ctro (actual:uint16) =
+        Assert.Equal( Natural( [uint32 actual] ), Natural( actual ) )
+
+    [<Theory>]
     [<InlineData(   0u )>]
     [<InlineData(   1u )>]
     [<InlineData(   2u )>]
@@ -49,6 +67,17 @@ type public Constructors() =
     [<InlineData( 0xFFFF_EEEEu, 0xDDDD_CCCCu, 0xFFFF_EEEE_DDDD_CCCCuL )>]
     member public this.Uint64Ctor (expectedHigh:uint32) (expectedLow:uint32) (actual:uint64) =
         Assert.Equal( Natural( [expectedHigh; expectedLow] ), Natural( actual ) )
+
+    [<Theory>]
+    [<InlineData( 0x0000_0000u, 0x0000_0000u, 0x0000_0000u, 0x0000_0000u, 0x0000_0000_0000_0000uL, 0x0000_0000_0000_0000uL )>]
+    [<InlineData( 0x0000_0000u, 0x0000_0000u, 0x0000_0000u, 0x0000_0001u, 0x0000_0000_0000_0000uL, 0x0000_0000_0000_0001uL )>]
+    [<InlineData( 0x0000_0000u, 0x0000_0000u, 0x0000_0001u, 0x0000_0000u, 0x0000_0000_0000_0000uL, 0x0000_0001_0000_0000uL )>]
+    [<InlineData( 0x0000_0000u, 0x0000_0001u, 0x0000_0000u, 0x0000_0000u, 0x0000_0000_0000_0001uL, 0x0000_0000_0000_0000uL )>]
+    [<InlineData( 0x0000_0001u, 0x0000_0000u, 0x0000_0000u, 0x0000_0000u, 0x0000_0001_0000_0000uL, 0x0000_0000_0000_0000uL )>]
+    [<InlineData( 0x0000_0001u, 0x0000_0001u, 0x0000_0001u, 0x0000_0001u, 0x0000_0001_0000_0001uL, 0x0000_0001_0000_0001uL )>]
+    [<InlineData( 0x1200_0340u, 0x0560_0078u, 0x1234_5678u, 0x9ABC_DEF0u, 0x1200_0340_0560_0078uL, 0x1234_5678_9ABC_DEF0uL )>]
+    member public this.Uint128Ctor (i0:uint32) (i1:uint32) (i2:uint32) (i3:uint32) (l0:uint64) (l1:uint64) =
+        Assert.Equal( Natural( [i0; i1; i2; i3] ), Natural( System.UInt128( l0, l1 ) ) )
 
     [<Theory>]
     [<InlineData( 0u, 0u, 0u )>]

@@ -4,13 +4,13 @@ open Xunit
 open Freestylecoding.Math
 
 type public Formattable() =
-    let small  = Natural( [0x4996_02D2u] )
+    let small  = Natural( [0x4996_02D2u] ) :> System.IFormattable
     let smallStr = "1234567890"
 
-    let medium = Natural( [0xAB54_A98Cu; 0xEB1F_0AD2u] )
+    let medium = Natural( [0xAB54_A98Cu; 0xEB1F_0AD2u] ) :> System.IFormattable
     let mediumStr = "12345678901234567890"
 
-    let large  = Natural( [0x0000_0001u; 0x8EE9_0FF6u; 0xC373_E0EEu; 0x4E3F_0AD2u] )
+    let large  = Natural( [0x0000_0001u; 0x8EE9_0FF6u; 0xC373_E0EEu; 0x4E3F_0AD2u] ) :> System.IFormattable
     let largeStr = "123456789012345678901234567890"
 
     let usCulture = System.Globalization.CultureInfo( "en-US" ) // US
@@ -20,11 +20,12 @@ type public Formattable() =
 
     let cultures = [| usCulture; ukCulture; frCulture; luCulture|]
 
+    let one = Natural.Unit :> System.IFormattable
     [<Fact>]
     member public this.Sanity () =
         Assert.Equal(
             "1",
-            Natural.Unit.ToString( null,  null )
+            one.ToString( null,  null )
         )
 
     [<Theory>]
@@ -261,25 +262,27 @@ type public Formattable() =
 
     [<Fact>]
     member public this.Currency_FormatProvider () =
-        Assert.Equal( "$1,234.00",  Natural( 1234u ).ToString( "C",  usCulture ) )
-        Assert.Equal( "£1,234.00",  Natural( 1234u ).ToString( "C",  ukCulture ) )
-        Assert.Equal( "1 234,00 €", Natural( 1234u ).ToString( "C",  frCulture ) )
-        Assert.Equal( "1.234,00 €", Natural( 1234u ).ToString( "C",  luCulture ) )
+        let testVal = Natural( 1234u ) :> System.IFormattable
+        Assert.Equal( "$1,234.00",  testVal.ToString( "C",  usCulture ) )
+        Assert.Equal( "£1,234.00",  testVal.ToString( "C",  ukCulture ) )
+        Assert.Equal( "1 234,00 €", testVal.ToString( "C",  frCulture ) )
+        Assert.Equal( "1.234,00 €", testVal.ToString( "C",  luCulture ) )
 
     [<Fact>]
     member public this.Currency_Patterns () =
+        let testVal = Natural( 1234u ) :> System.IFormattable
         let custom = System.Globalization.CultureInfo( "en-US" ).NumberFormat
         custom.CurrencyPositivePattern <- 0
-        Assert.Equal( "$1,234.00",  Natural( 1234u ).ToString( "C",  custom ) )
+        Assert.Equal( "$1,234.00",  testVal.ToString( "C",  custom ) )
 
         custom.CurrencyPositivePattern <- 1
-        Assert.Equal( "1,234.00$",  Natural( 1234u ).ToString( "C",  custom ) )
+        Assert.Equal( "1,234.00$",  testVal.ToString( "C",  custom ) )
 
         custom.CurrencyPositivePattern <- 2
-        Assert.Equal( "$ 1,234.00",  Natural( 1234u ).ToString( "C",  custom ) )
+        Assert.Equal( "$ 1,234.00",  testVal.ToString( "C",  custom ) )
 
         custom.CurrencyPositivePattern <- 3
-        Assert.Equal( "1,234.00 $",  Natural( 1234u ).ToString( "C",  custom ) )
+        Assert.Equal( "1,234.00 $",  testVal.ToString( "C",  custom ) )
 
     [<Fact>]
     member public this.Currency_GroupSizes () =
@@ -309,10 +312,11 @@ type public Formattable() =
 
     [<Fact>]
     member public this.FixedPoint_FormatProvider () =
-        Assert.Equal( "1234.00",  Natural( 1234u ).ToString( "F",  usCulture ) )
-        Assert.Equal( "1234.000", Natural( 1234u ).ToString( "F",  ukCulture ) )
-        Assert.Equal( "1234,000", Natural( 1234u ).ToString( "F",  frCulture ) )
-        Assert.Equal( "1234,000", Natural( 1234u ).ToString( "F",  luCulture ) )
+        let testVal = Natural( 1234u ) :> System.IFormattable
+        Assert.Equal( "1234.00",  testVal.ToString( "F",  usCulture ) )
+        Assert.Equal( "1234.000", testVal.ToString( "F",  ukCulture ) )
+        Assert.Equal( "1234,000", testVal.ToString( "F",  frCulture ) )
+        Assert.Equal( "1234,000", testVal.ToString( "F",  luCulture ) )
 
     [<Fact>]
     member public this.Number () =
@@ -336,10 +340,11 @@ type public Formattable() =
 
     [<Fact>]
     member public this.Number_FormatProvider () =
-        Assert.Equal( "1,234.00",  Natural( 1234u ).ToString( "N",  usCulture ) )
-        Assert.Equal( "1,234.000", Natural( 1234u ).ToString( "N",  ukCulture ) )
-        Assert.Equal( "1 234,000", Natural( 1234u ).ToString( "N",  frCulture ) )
-        Assert.Equal( "1.234,000", Natural( 1234u ).ToString( "N",  luCulture ) )
+        let testVal = Natural( 1234u ) :> System.IFormattable
+        Assert.Equal( "1,234.00",  testVal.ToString( "N",  usCulture ) )
+        Assert.Equal( "1,234.000", testVal.ToString( "N",  ukCulture ) )
+        Assert.Equal( "1 234,000", testVal.ToString( "N",  frCulture ) )
+        Assert.Equal( "1.234,000", testVal.ToString( "N",  luCulture ) )
 
     [<Fact>]
     member public this.Number_GroupSizes () =
@@ -369,25 +374,27 @@ type public Formattable() =
 
     [<Fact>]
     member public this.Percent_FormatProvider () =
-        Assert.Equal( "123,400.00%",   Natural( 1234u ).ToString( "P",  usCulture ) )
-        Assert.Equal( "123,400.000%",  Natural( 1234u ).ToString( "P",  ukCulture ) )
-        Assert.Equal( "123 400,000 %", Natural( 1234u ).ToString( "P",  frCulture ) )
-        Assert.Equal( "123.400,000 %", Natural( 1234u ).ToString( "P",  luCulture ) )
+        let testVal = Natural( 1234u ) :> System.IFormattable
+        Assert.Equal( "123,400.00%",   testVal.ToString( "P",  usCulture ) )
+        Assert.Equal( "123,400.000%",  testVal.ToString( "P",  ukCulture ) )
+        Assert.Equal( "123 400,000 %", testVal.ToString( "P",  frCulture ) )
+        Assert.Equal( "123.400,000 %", testVal.ToString( "P",  luCulture ) )
 
     [<Fact>]
     member public this.Percent_Patterns () =
+        let testVal = Natural( 1234u ) :> System.IFormattable
         let custom = System.Globalization.CultureInfo( "en-US" ).NumberFormat
         custom.PercentPositivePattern <- 0
-        Assert.Equal( "123,400.00 %",  Natural( 1234u ).ToString( "P",  custom ) )
+        Assert.Equal( "123,400.00 %",  testVal.ToString( "P",  custom ) )
 
         custom.PercentPositivePattern <- 1
-        Assert.Equal( "123,400.00%",  Natural( 1234u ).ToString( "P",  custom ) )
+        Assert.Equal( "123,400.00%",  testVal.ToString( "P",  custom ) )
 
         custom.PercentPositivePattern <- 2
-        Assert.Equal( "%123,400.00",  Natural( 1234u ).ToString( "P",  custom ) )
+        Assert.Equal( "%123,400.00",  testVal.ToString( "P",  custom ) )
 
         custom.PercentPositivePattern <- 3
-        Assert.Equal( "% 123,400.00",  Natural( 1234u ).ToString( "P",  custom ) )
+        Assert.Equal( "% 123,400.00",  testVal.ToString( "P",  custom ) )
 
     [<Fact>]
     member public this.Percent_GroupSizes () =
@@ -428,7 +435,7 @@ type public Formattable() =
     member public this.UnknownFormatSpecifier () =
         let exc = Record.Exception(
             fun () ->
-                Natural.Unit.ToString( "Z",  null )
+                one.ToString( "Z",  null )
                 |> ignore
         )
 

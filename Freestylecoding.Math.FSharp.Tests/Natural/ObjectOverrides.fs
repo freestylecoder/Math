@@ -31,24 +31,59 @@ type public ObjectEquals() =
         )
 
     [<Fact>]
-    member public this.SupportsUInt32 () =
-        Assert.True(
-            Natural.Unit.Equals( 1u )
-        )
+    member public this.HardcodedTypes () =
+        Assert.True( Natural.Unit.Equals( byte   1 ) )
+        Assert.True( Natural.Unit.Equals( uint16 1 ) )
+        Assert.True( Natural.Unit.Equals( uint32 1 ) )
+        Assert.True( Natural.Unit.Equals( uint64 1 ) )
+
+        Assert.True( Natural.Unit.Equals( System.UInt128( 0uL, 1uL ) ) )
+        Assert.True( Natural.Unit.Equals( System.Numerics.BigInteger 1 ) )
 
     [<Fact>]
-    member public this.SupportsUInt64 () =
-        Assert.True(
-            Natural.Unit.Equals( 1ul )
-        )
+    member public this.IntegralTypes () =
+        Assert.True( Natural.Unit.Equals( sbyte 1 ) )
+        Assert.True( Natural.Unit.Equals( int16 1 ) )
+        Assert.True( Natural.Unit.Equals( int32 1 ) )
+        Assert.True( Natural.Unit.Equals( int64 1 ) )
 
-    [<Theory>]
-    [<InlineData(  1   )>]
-    [<InlineData(  1l  )>]
-    [<InlineData(  1f  )>]
-    [<InlineData(  1.0 )>]
-    member public this.OtherTypes (obj:System.Object) =
-        Assert.False( Natural.Unit.Equals( obj ) )
+        Assert.True( Natural.Unit.Equals( System.Int128( 0uL, 1uL ) ) )
+
+    [<Fact>]
+    member public this.FloatingTypes () =
+        Assert.True( Natural.Unit.Equals( float32 1 ) )
+        Assert.True( Natural.Unit.Equals( float   1 ) )
+        Assert.True( Natural.Unit.Equals( decimal 1 ) )
+
+        Assert.True( Natural.Unit.Equals( System.Numerics.Complex( 1, 0 ) ) )
+
+    [<Fact>]
+    member public this.NotNumber () =
+        Assert.False( Natural.Unit.Equals( "1" ) )
+        Assert.False( Natural.Unit.Equals( true ) )
+
+    [<Fact>]
+    member public this.NegativeIntegralTypes () =
+        Assert.False( Natural.Unit.Equals( sbyte -1 ) )
+        Assert.False( Natural.Unit.Equals( int16 -1 ) )
+        Assert.False( Natural.Unit.Equals( int32 -1 ) )
+        Assert.False( Natural.Unit.Equals( int64 -1 ) )
+
+        Assert.False( Natural.Unit.Equals( -System.Int128( 0uL, 1uL ) ) )
+
+    [<Fact>]
+    member public this.FloatingTypesWithDecimals () =
+        Assert.False( Natural.Unit.Equals( float32 1.1 ) )
+        Assert.False( Natural.Unit.Equals( float   1.1 ) )
+        Assert.False( Natural.Unit.Equals( decimal 1.1 ) )
+
+        Assert.False( Natural.Unit.Equals( System.Numerics.Complex( 1.1, 0 ) ) )
+
+    [<Fact>]
+    member public this.Imaginary () =
+        // I'm making an assumption that an imaginary number is not an integer
+        // This explicitly checks that assumption
+        Assert.False( Natural.Unit.Equals( System.Numerics.Complex( 1, 1 ) ) )
 
 type public ObjectGetHashCode() =
     [<Fact>]

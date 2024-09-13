@@ -22,65 +22,73 @@ type public Comparable() =
             | _ -> raise (System.Exception( "Not Possible" ))
 
         Assert.True(
-            test (Natural( [left] ).CompareTo( Natural( [right] )) )
+            test ((Natural( [left] ) :> System.IComparable).CompareTo( Natural( [right] )) )
         )
 
     [<Fact>]
     member public this.Equals () =
         let ui = System.Convert.ToUInt32( System.Random().Next() )
-        let left = Natural( ui )
+        let left = Natural( ui ) :> System.IComparable
         let right = Natural( ui )
         Assert.True( eq (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.GreaterThan () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
         let right = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) )
         Assert.True( gt (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.LessThan () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) ) :> System.IComparable
         let right = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) )
         Assert.True( lt (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.EqualsUInt32 () =
         let ui = System.Convert.ToUInt32( System.Random().Next() )
-        let left = Natural( ui )
+        let left = Natural( ui ) :> System.IComparable
         let right = ui
         Assert.True( eq (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.GreaterThanUInt32 () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
         let right = System.Convert.ToUInt32( System.Random().Next( 1000 ) )
         Assert.True( gt (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.LessThanUInt32 () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) ) :> System.IComparable
         let right = System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) )
         Assert.True( lt (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.EqualsUInt64 () =
         let ul = System.Convert.ToUInt64( System.Random().Next() )
-        let left = Natural( ul )
+        let left = Natural( ul ) :> System.IComparable
         let right = ul
         Assert.True( eq (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.GreaterThanUInt64 () =
-        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000, 2000 ) ) )
+        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
         let right = System.Convert.ToUInt64( System.Random().Next( 1000 ) )
         Assert.True( gt (left.CompareTo( right )) )
 
     [<Fact>]
     member public this.LessThanUInt64 () =
-        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000 ) ) )
+        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000 ) ) ) :> System.IComparable
         let right = System.Convert.ToUInt64( System.Random().Next( 1000, 2000 ) )
         Assert.True( lt (left.CompareTo( right )) )
+
+    member public this.AllowImplicitConversionTypes () =
+        let one = Natural.Unit :> System.IComparable
+        Assert.True( eq (one.CompareTo( 1uy )) )
+        Assert.True( eq (one.CompareTo( 1us )) )
+        Assert.True( eq (one.CompareTo( 1ul )) )
+        Assert.True( eq (one.CompareTo( 1uL )) )
+        Assert.True( eq (one.CompareTo( System.UInt128.One )) )
 
     [<Theory>]
     [<InlineData( 1  )>]
@@ -88,9 +96,10 @@ type public Comparable() =
     [<InlineData( 1F )>]
     [<InlineData( 1.0 )>]
     member public this.Incompatible value =
+        let one = Natural.Unit :> System.IComparable
         let exc = Record.Exception(
             fun () ->
-                Natural.Unit.CompareTo( value )
+                one.CompareTo( value )
                 |> ignore
         )
         Assert.NotNull( exc )

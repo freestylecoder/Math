@@ -248,11 +248,21 @@ type public Natural(data:uint32 list) =
 
     new() = Natural( [0u] )
     new(data:Natural) = Natural( data.Data )
+    new(data:uint8 ) = Natural( [uint32 data] )
+    new(data:uint16) = Natural( [uint32 data] )
     new(data:uint32) = Natural( [data] )
     new(data:uint64) = Natural( [
         Convert.ToUInt32( data >>> 32 );
         Convert.ToUInt32( data &&& 0xFFFF_FFFFUL )
     ] )
+    new(data:UInt128) =
+        let down x : uint32 = UInt128.op_Explicit( ( data >>> x ) &&& 0xFFFF_FFFFUL )
+        Natural( [
+            down 96;
+            down 64;
+            down 32;
+            down  0
+        ] )
 
     // This exists to be nice to C#
     // F# sequences are C# IEnumerables
@@ -262,10 +272,46 @@ type public Natural(data:uint32 list) =
         static member Zero = Natural( [0u] )
         static member Unit = Natural( [1u] )
 
+        // In bound implicit up casts
+        static member op_Implicit( y:uint8 ) : Natural =
+            Natural( y )
+        static member op_Implicit( s:uint16 ) : Natural =
+            Natural( s )
         static member op_Implicit( i:uint32 ) : Natural =
             Natural( i )
-        static member op_Implicit( l:uint64 ) : Natural =
-            Natural( l )
+        static member op_Implicit( L:uint64 ) : Natural =
+            Natural( L )
+        static member op_Implicit( LL:UInt128 ) : Natural =
+            Natural( LL )
+
+        // Out bound implicit up cast
+        static member op_Implicit( n:Natural ) : BigInteger =
+            BigInteger(
+                ReadOnlySpan<Byte>(
+                    n.Data
+                        |> List.map (fun ui -> List.map (fun b -> b &&& 0xFFu) [ ui >>> 24; ui >>> 16; ui >>> 8; ui])
+                        |> List.collect (fun i -> i)
+                        |> List.map (fun ui -> Convert.ToByte(ui))
+                        |> List.toArray
+                ),
+                true,
+                true
+            )
+
+        // In bound explicit checked side cast
+        static member op_Explicit( bi:BigInteger ) : Natural =
+            if BigInteger.IsNegative( bi )
+            then raise (System.OverflowException())
+
+            let bitMask = BigInteger( UInt32.MaxValue )
+            let rec ChunkBigInteger (x:BigInteger) =
+                if x > bitMask
+                then
+                    (uint32 (x &&& bitMask)) :: (ChunkBigInteger (x >>> 32))
+                else
+                    [ uint32 x ]
+
+            Natural( (List.rev (ChunkBigInteger bi)) )
 
         // Bitwise Operators
         static member (&&&) (left:Natural, right:Natural) : Natural =
@@ -330,12 +376,94 @@ type public Natural(data:uint32 list) =
         // Unary
 
         // .NET Object Overrides
+        static member private Equals( this:Natural, that:obj ) =
+            let thatType = that.GetType()
+
+            let IsNumberBase (t:Type) =
+                t
+                    .GetInterfaces()
+                    .Select( fun t -> t.Name )
+                    .Any( fun s -> s.Contains( "INumberBase" ) )
+
+            let IsPositive (t:Type) =
+                let method = 
+                    t
+                        .GetMethods(
+                            Reflection.BindingFlags.Public |||
+                            // If it's an unsigned type, IsPositive is private
+                            Reflection.BindingFlags.NonPublic |||
+                            Reflection.BindingFlags.Static |||
+                            Reflection.BindingFlags.FlattenHierarchy
+                        )
+                        .First( fun m -> m.Name.EndsWith( "IsPositive" ) )
+
+                match method with
+                | null -> false
+                | _ -> 
+                    match method.Invoke( null, [| that |] ) with
+                    | :? bool as b -> b
+                    | _ -> false
+
+            let IsInteger (t:Type) =
+                let methods = 
+                    t
+                        .GetMethods(
+                            Reflection.BindingFlags.Public |||
+                            // If it's an integer type, IsInteger is private
+                            Reflection.BindingFlags.NonPublic |||
+                            Reflection.BindingFlags.Static |||
+                            Reflection.BindingFlags.FlattenHierarchy
+                        )
+                let method = 
+                    methods
+                        .First( fun m -> m.Name.Contains( "IsInteger" ) )
+
+                match method with
+                | null -> false
+                | _ -> 
+                    match method.Invoke( null, [| that |] ) with
+                    | :? bool as b -> b
+                    | _ -> false
+
+            let CreateChecked (t:Type) =
+                let genericMethod = 
+                    typeof<INumberBase<Natural>>
+                        .GetMethods()
+                        .First( fun m -> m.Name.EndsWith( "CreateChecked" ) )
+
+                let method =
+                    genericMethod.MakeGenericMethod( [| t.UnderlyingSystemType |])
+
+                match method with
+                | null -> Natural.Zero
+                | _ -> 
+                    match method.Invoke( null, [| that |] ) with
+                    | :? Natural as n -> n
+                    | _ -> Natural.Zero
+
+            IsNumberBase thatType
+            &&
+            IsPositive thatType
+            &&
+            IsInteger thatType
+            &&
+            _equality this (CreateChecked thatType)
+
         override this.Equals( that:Object ) =
             match that with
-            | :? Natural as n -> _equality this n
-            | :? uint32 as ui -> _equality this (Natural( ui ))
-            | :? uint64 as ul -> _equality this (Natural( ul ))
-            | _ -> false
+            | :? Natural    as  n  -> _equality this n
+            | :? byte       as  b  -> _equality this (Natural(  b  ))
+            | :? uint16     as us  -> _equality this (Natural( us  ))
+            | :? uint32     as ui  -> _equality this (Natural( ui  ))
+            | :? uint64     as uL  -> _equality this (Natural( uL  ))
+            | :? UInt128    as uLL -> _equality this (Natural( uLL ))
+            | :? BigInteger as bi  ->
+                if BigInteger.IsNegative bi
+                then false
+                else _equality this (Natural.op_Explicit bi)
+            | _ ->
+                // We only worry about using reflection after we get the easy ones
+                Natural.Equals( this, that )
 
         override this.GetHashCode() =
             let v =
@@ -372,13 +500,17 @@ type public Natural(data:uint32 list) =
                         | true -> 1
                         | false -> -1
 
+                // This is only supposted to handle the exact same type
+                // As such, I'm only handling the types I support implicit conversion from
+                // This is already more than it should handle
                 match that with
-                | :? Natural as n -> doWork this n
-                | :? UInt32 as ui -> doWork this (Natural( ui ))
-                | :? UInt64 as ul -> doWork this (Natural( ul ))
+                | :? Natural as n   -> doWork this n
+                | :? Byte    as uy  -> doWork this (Natural uy )
+                | :? UInt16  as us  -> doWork this (Natural us )
+                | :? UInt32  as ui  -> doWork this (Natural ui )
+                | :? UInt64  as ul  -> doWork this (Natural ul )
+                | :? UInt128 as uLL -> doWork this (Natural uLL)
                 | _ -> raise (new ArgumentException( "obj is not the same type as this instance." ))
-        member this.CompareTo that =
-            (this :> IComparable).CompareTo( that )
 
         static member Parse (s:string) : Natural =
             _parse (s.AsSpan()) _defaultNumberStyle _defaultFormatProvider
@@ -399,8 +531,6 @@ type public Natural(data:uint32 list) =
         interface IEquatable<Natural> with
             member this.Equals( that:Natural ) : bool = 
                 _equality this that
-        member this.Equals( that:Natural ) : bool =
-            (this :> IEquatable<Natural>).Equals( that )
 
         interface IEqualityOperators<Natural,Natural,bool> with
             static member op_Inequality( left, right ) =
@@ -421,9 +551,9 @@ type public Natural(data:uint32 list) =
 
         interface IIncrementOperators<Natural> with
             static member op_CheckedIncrement ( value:Natural ) : Natural = 
-                IAdditionOperators.op_CheckedAddition( value, Natural.Unit )
-            static member op_Increment( value:Natural ) : Natural = 
-                IAdditionOperators.op_Addition( value, Natural.Unit )
+                IAdditionOperators<Natural,Natural,Natural>.op_CheckedAddition( value, Natural.Unit )
+            static member op_Increment( value:Natural ) : Natural =
+                _add value Natural.Unit
 
         interface ISubtractionOperators<Natural,Natural,Natural> with
             // Both of these throw an OverflowException
@@ -652,8 +782,6 @@ type public Natural(data:uint32 list) =
                         else hexResult
 
                 | _ -> raise ( System.FormatException( $"{specifier} is not a valid format specifier" ) )
-        member this.ToString( format:string, formatProvider:IFormatProvider ) : string =
-            (this :> IFormattable).ToString( format, formatProvider )
 
         interface ISpanFormattable with
             member this.TryFormat( destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider ) : bool = 
@@ -692,6 +820,8 @@ type public Natural(data:uint32 list) =
                 _tryParse s _defaultNumberStyle provider &result
         
         interface IUtf8SpanParsable<Natural> with
+            // INumberBase<T> handles ALL the ReadOnlySpan<byte> cases
+            // Unfortunately, F# has no way to access them
             static member Parse( utf8text: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
                 let utf16text = Span<Char>( ( Array.create utf8text.Length '\u0000' ) )
                 let mutable x = 0
@@ -714,44 +844,14 @@ type public Natural(data:uint32 list) =
             static member Abs( value:Natural ) : Natural = 
                 Natural( value.Data )
 
-            static member CreateChecked( value:'TOther ) : Natural = 
-                // By definition of the interface, we know 'TOther is an INumberBase<'TOther>
-                let inline IsNegative x = (^x: (static member IsNegative: ^x -> bool)( x ))
-                let inline IsInteger x = (^x: (static member IsInteger: ^x -> bool)( x ))
-
-                // Being an INumberBase, we also know it's IFormattable
-                let inline tostr x = (^x: (member ToString: string * IFormatProvider -> string)( x, "", null ))
-
-                if IsNegative value
-                then raise (System.OverflowException())
-
-                if IsInteger value
-                then Natural.Parse( value.ToString() )
-                else raise (System.NotSupportedException())
-
-                //match value with
-                //| :? Natural as n -> Natural( n )
-                //| :? uint32 as ui -> Natural( ui )
-                //| :? uint64 as ul -> Natural( ul )
-                //| :? INumberBase<'TOther> as nb ->
-                //    if IsNegative nb
-                //    then raise (System.OverflowException())
-                //    raise (System.NotSupportedException())
-                //| _ ->
-                //    raise (System.NotSupportedException())
-            static member CreateSaturating( value:'TOther ) : Natural = 
-                // By definition of the interface, we know 'TOther is a INumberBase<'TOther>
-                let inline IsNegative x = (^x: (static member IsNegative: ^x -> bool)( x ))
-                let inline IsInteger x = (^x: (static member IsInteger: ^x -> bool)( x ))
-
-                if IsInteger value |> not
-                then raise (System.NotSupportedException())
-
-                if IsNegative value
-                then Natural.Zero
-                else Natural.Parse( value.ToString() )
-            static member CreateTruncating( value: 'TOther ) : Natural = 
-                raise (System.NotImplementedException())
+            // These are not implemented because they are virtual in the interface
+            // The default versions are just fine, as they use the "Try" versions
+            //static member CreateChecked<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther ) : Natural = 
+            //    raise (System.NotImplementedException( "CreateChecked" ))
+            //static member CreateSaturating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther ) : Natural = 
+            //    raise (System.NotImplementedException( "CreateSaturating" ))
+            //static member CreateTruncating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value: 'TOther ) : Natural = 
+            //    raise (System.NotImplementedException( "CreateTruncating" ))
 
             static member IsCanonical( value:Natural ) : bool =
                 true
@@ -763,7 +863,9 @@ type public Natural(data:uint32 list) =
             static member IsFinite( value:Natural ) : bool =
                 true
             static member IsImaginaryNumber( value:Natural ) : bool =
-                _equality Natural.Zero value
+                // Technically, 0 is an imaginary number
+                // Keeping this a const false to match UInt64
+                false
             static member IsInfinity( value:Natural ) : bool =
                 false
             static member IsInteger( value:Natural ) : bool =
@@ -817,18 +919,172 @@ type public Natural(data:uint32 list) =
             static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
                 _tryParse (s.AsSpan()) style provider &result
 
-            static member TryConvertFromChecked( value:'TOther, result:byref<Natural> ) : bool = 
-                raise (System.NotImplementedException())
-            static member TryConvertFromSaturating( value:'TOther, result:byref<Natural> ) : bool = 
-                raise (System.NotImplementedException())
-            static member TryConvertFromTruncating( value:'TOther, result:byref<Natural> ) : bool = 
-                raise (System.NotImplementedException())
-            static member TryConvertToChecked( value:Natural, result:byref<'TOther> ) : bool = 
-                raise (System.NotImplementedException())
-            static member TryConvertToSaturating( value:Natural, result:byref<'TOther> ) : bool = 
-                raise (System.NotImplementedException())
-            static member TryConvertToTruncating( value:Natural, result:byref<'TOther> ) : bool = 
-                raise (System.NotImplementedException())
+            static member TryConvertFromChecked<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther, result:byref<Natural> ) : bool = 
+                // HACK: The F# type coersion system wouldn't pattern match on the generic type
+                // It generates a FS0008 at compile time
+                let quickCheck (v:obj) : Option<Natural> =
+                    match v with
+                    | :? Natural  as n  -> Some( Natural( n ) )
+                    | :? uint8   as uy  -> Some( Natural( uy ) )
+                    | :? uint16  as us  -> Some( Natural( us ) )
+                    | :? uint32  as ui  -> Some( Natural( ui ) )
+                    | :? uint64  as uL  -> Some( Natural( uL ) )
+                    | :? UInt128 as uLL -> Some( Natural( uLL ) )
+                    | :? Complex as c ->
+                        // NOTE: I know "R" (aka, Round-trip) is not recommended for doubles
+                        // The reason it's not recommended is because it messes up decimals
+                        // We know this has no decimals, so I can get ALL the whole numbers
+                        if Complex.IsRealNumber( c ) && Double.IsPositive( c.Real ) && Double.IsInteger( c.Real )
+                        then Some( Natural.Parse( c.Real.ToString( "R" ), NumberStyles.AllowDecimalPoint ) )
+                        else raise (System.OverflowException())
+                    | _ -> None
+
+                match quickCheck value with
+                | Some( n ) ->
+                    result <- n
+                    true
+                | None ->
+                    match true with
+                    | _ when 'TOther.IsComplexNumber( value ) -> raise (System.OverflowException())
+                    | _ when 'TOther.IsImaginaryNumber( value ) -> raise (System.OverflowException())
+                    | _ when 'TOther.IsInfinity( value ) -> raise (System.OverflowException())
+                    | _ when 'TOther.IsNaN( value ) -> raise (System.OverflowException())
+                    | _ when 'TOther.IsNegative( value ) -> raise (System.OverflowException())
+                    | _ when 'TOther.IsZero( value ) ->
+                        result <- Natural.Zero
+                        true
+                    | _ when 'TOther.IsInteger( value ) ->
+                        result <- Natural.Parse( value.ToString( "R", null ), NumberStyles.Any )
+                        true
+                    | _ when 'TOther.IsRealNumber( value ) -> raise (System.OverflowException())
+                    | _ -> false
+
+            static member TryConvertFromSaturating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther, result:byref<Natural> ) : bool = 
+                match true with
+                // SURPRISE! NaN is Negative!
+                // It's actually a "bug" in the implementation for the native types
+                // Either way, we need to catch it first
+                | _ when 'TOther.IsNaN( value ) ->
+                    raise (System.OverflowException())
+                | _ when 'TOther.IsNegative( value ) ->
+                    result <- Natural.Zero
+                    true
+                | _ ->
+                    result <- INumberBase<Natural>.CreateChecked<'TOther>( value )
+                    true
+
+            static member TryConvertFromTruncating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther, result:byref<Natural> ) : bool = 
+                match value :> obj with
+                | :? float32 as f ->
+                    result <- INumberBase<Natural>.CreateSaturating<float>(
+                        Math.Truncate( float f )
+                    )
+                    true
+                | :? float as d -> 
+                    result <- INumberBase<Natural>.CreateSaturating<float>( Math.Truncate( d ) )
+                    true
+                | :? decimal as m -> 
+                    result <- INumberBase<Natural>.CreateSaturating<decimal>( Math.Truncate( m ) )
+                    true
+                | :? Complex as c ->
+                    result <- INumberBase<Natural>.CreateSaturating<Complex>(
+                        Complex( Math.Truncate( c.Real ), c.Imaginary )
+                    )
+                    true
+                | _ ->
+                    // Due to the nature of Natural, I see no difference between Saturating and Truncating
+                    result <- INumberBase<Natural>.CreateSaturating<'TOther>( value )
+                    true
+
+            static member TryConvertToChecked<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:Natural, result:byref<'TOther> ) : bool = 
+                result <- INumberBase<'TOther>.CreateChecked<BigInteger>(
+                    Natural.op_Implicit( value )
+                )
+
+                // I don't agree with how BigInteger returns
+                //  PositiveInfinity for floating point numbers
+                if 'TOther.IsInfinity( result )
+                then raise (System.OverflowException())
+
+                true
+
+            static member TryConvertToSaturating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:Natural, result:byref<'TOther> ) : bool = 
+                result <- INumberBase<'TOther>.CreateSaturating<BigInteger>(
+                    Natural.op_Implicit( value )
+                )
+
+                // I don't agree with how BigInteger returns
+                //  PositiveInfinity for floating point numbers
+                if 'TOther.IsInfinity( result )
+                then
+                    match 'TOther.Zero :> obj with
+                    | :? Single ->
+                        result <- 'TOther.CreateChecked( Single.MaxValue )
+                    | :? Double 
+                    | :? Complex ->
+                        result <- 'TOther.CreateChecked( Double.MaxValue )
+                    | _ -> raise (System.OverflowException())
+
+                true
+
+            static member TryConvertToTruncating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:Natural, result:byref<'TOther> ) : bool = 
+                // Manually fix Decimal, because BigInteger acts weird
+                match 'TOther.Zero :> obj with
+                | :? Decimal ->
+                    result <- INumberBase<'TOther>.CreateTruncating<BigInteger>(
+                        Natural.op_Implicit( value &&& Natural( [UInt32.MaxValue;UInt32.MaxValue;UInt32.MaxValue;] ) )
+                    )
+                | _ ->
+                    result <- INumberBase<'TOther>.CreateTruncating<BigInteger>(
+                        Natural.op_Implicit( value )
+                    )
+
+                // I don't agree with how BigInteger returns
+                //  PositiveInfinity for floating point numbers
+                if 'TOther.IsInfinity( result )
+                then
+                    let strValue = value.ToString()
+                    match 'TOther.Zero :> obj with
+                    | :? Single ->
+                        // Single.MaxValue is 3.4028235E+38 (-ish)
+                        // Thus, it's a 39 digit number
+                        let strTrimmed = String( strValue.TakeLast( 39 ).ToArray() )
+                        let singleMaxValue = "340282346638528859811704183484516925440"
+
+                        // If it's still too big, get rid of the most significant digit
+                        if 0 < strTrimmed.CompareTo( singleMaxValue )
+                        then 
+                            result <-
+                                'TOther.CreateTruncating(
+                                    Single.Parse( strTrimmed.Substring( 1, 38 ) )
+                                )
+                        else
+                            result <-
+                                'TOther.CreateTruncating(
+                                    Single.Parse( strTrimmed )
+                                )
+                    | :? Double 
+                    | :? Complex ->
+                        // Double.MaxValue is 1.7E308 (-ish)
+                        // Thus, it's a 309 digit number
+                        let strTrimmed = String( strValue.TakeLast( 309 ).ToArray() )
+                        let doubleMaxValue = "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368"
+
+                        // If it's still too big, get rid of the most significant digit
+                        if 0 < strTrimmed.CompareTo( doubleMaxValue )
+                        then 
+                            result <-
+                                'TOther.CreateTruncating(
+                                    Double.Parse( strTrimmed.Substring( 1, 308 ) )
+                                )
+                        else
+                            result <-
+                                'TOther.CreateTruncating(
+                                    Double.Parse( strTrimmed )
+                                )
+                    | _ -> raise (System.OverflowException())
+
+                true
 
         interface IBitwiseOperators<Natural,Natural,Natural> with
             static member (&&&) ( left:Natural, right:Natural ) : Natural =

@@ -16,6 +16,7 @@
     <Compile Include="IntegerTests.fs" />
     <Compile Include="Natural\Constants.fs" />
     <Compile Include="Natural\Implicit.fs" />
+    <Compile Include="Natural\Explicit.fs" />
     <Compile Include="Natural\BitwiseOperators.fs" />
     <Compile Include="Natural\ComparisonOperators.fs" />
     <Compile Include="Natural\ArithmeticOperators.fs" />
@@ -37,6 +38,7 @@
     <Compile Include="Natural\SpanFormattable.fs" />
     <Compile Include="Natural\Parse.fs" />
     <Compile Include="Natural\TryParse.fs" />
+    <Compile Include="Natural\NumberBase.fs" />
   </ItemGroup>
 
   <ItemGroup>
