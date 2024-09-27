@@ -116,3 +116,13 @@ type public Explicit() =
                 )
             )
         )
+
+    [<Fact>]
+    member public this.BigInteger_Negative () =
+        let exc = Record.Exception(
+            fun () ->
+                Natural.op_Explicit( Numerics.BigInteger( -1m ) )
+                |> ignore
+        )
+        Assert.NotNull( exc )
+        Assert.IsType<System.OverflowException>( exc )

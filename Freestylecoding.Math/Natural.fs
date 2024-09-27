@@ -5,6 +5,7 @@ open System.Linq
 open System.Numerics
 open System.Globalization
 
+[<Diagnostics.DebuggerDisplay( "{ToString( \"N0\" )}" )>]
 type public Natural(data:uint32 list) =
     static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
     static let _defaultFormatProvider = CultureInfo.CurrentCulture.NumberFormat
@@ -377,6 +378,9 @@ type public Natural(data:uint32 list) =
 
         // .NET Object Overrides
         static member private Equals( this:Natural, that:obj ) =
+            // This method contains a few gaurd checks for if a method can't be found through reflection
+            // Nothing I send though here should catch those
+            // As such, if you do a Code Coverage, they will show as unreached
             let thatType = that.GetType()
 
             let IsNumberBase (t:Type) =
@@ -395,7 +399,7 @@ type public Natural(data:uint32 list) =
                             Reflection.BindingFlags.Static |||
                             Reflection.BindingFlags.FlattenHierarchy
                         )
-                        .First( fun m -> m.Name.EndsWith( "IsPositive" ) )
+                        .FirstOrDefault( fun m -> m.Name.EndsWith( "IsPositive" ) )
 
                 match method with
                 | null -> false
@@ -416,7 +420,7 @@ type public Natural(data:uint32 list) =
                         )
                 let method = 
                     methods
-                        .First( fun m -> m.Name.Contains( "IsInteger" ) )
+                        .FirstOrDefault( fun m -> m.Name.Contains( "IsInteger" ) )
 
                 match method with
                 | null -> false
@@ -429,7 +433,7 @@ type public Natural(data:uint32 list) =
                 let genericMethod = 
                     typeof<INumberBase<Natural>>
                         .GetMethods()
-                        .First( fun m -> m.Name.EndsWith( "CreateChecked" ) )
+                        .FirstOrDefault( fun m -> m.Name.EndsWith( "CreateChecked" ) )
 
                 let method =
                     genericMethod.MakeGenericMethod( [| t.UnderlyingSystemType |])
@@ -489,6 +493,9 @@ type public Natural(data:uint32 list) =
                     |> List.toArray
                 )
 
+        member this.ToString( format:string ) : string =
+            (this :> IFormattable).ToString( format, _defaultFormatProvider )
+
         // IComparable (for .NET) 
         interface IComparable with
             member this.CompareTo that =
@@ -510,6 +517,10 @@ type public Natural(data:uint32 list) =
                 | :? UInt32  as ui  -> doWork this (Natural ui )
                 | :? UInt64  as ul  -> doWork this (Natural ul )
                 | :? UInt128 as uLL -> doWork this (Natural uLL)
+                | :? BigInteger as bi ->
+                    if bi < BigInteger.Zero
+                    then 1
+                    else doWork this (Natural.op_Explicit( bi ))
                 | _ -> raise (new ArgumentException( "obj is not the same type as this instance." ))
 
         static member Parse (s:string) : Natural =
@@ -538,12 +549,24 @@ type public Natural(data:uint32 list) =
             static member op_Equality( left, right ) =
                 _equality left right
 
+        // IComparisonOperators implements IEqualityOperators
+        // So, even though INumberBase doesn't need IComparisonOperators
+        // It helps the flow to do this early
+        interface IComparisonOperators<Natural,Natural,bool> with
+            static member op_GreaterThan( left, right ) =
+                _greaterThan left right
+            static member op_GreaterThanOrEqual( left, right ) =
+                _equality left right || _greaterThan left right
+            static member op_LessThan( left, right ) =
+                _lessThan left right
+            static member op_LessThanOrEqual( left, right ) =
+                _equality left right || _lessThan left right
+
         interface IAdditionOperators<Natural,Natural,Natural> with
             static member (+) (left:Natural, right:Natural) : Natural = 
                 _add left right
             static member op_CheckedAddition (left:Natural, right:Natural) : Natural = 
-                // Naturals don't overflow, and addition can't underflow
-                _add left right
+                IAdditionOperators<Natural,Natural,Natural>.op_CheckedAddition( left, right )
 
         interface IAdditiveIdentity<Natural,Natural> with
             static member AdditiveIdentity
@@ -551,7 +574,7 @@ type public Natural(data:uint32 list) =
 
         interface IIncrementOperators<Natural> with
             static member op_CheckedIncrement ( value:Natural ) : Natural = 
-                IAdditionOperators<Natural,Natural,Natural>.op_CheckedAddition( value, Natural.Unit )
+                IIncrementOperators<Natural>.op_CheckedIncrement( value )
             static member op_Increment( value:Natural ) : Natural =
                 _add value Natural.Unit
 
@@ -561,7 +584,7 @@ type public Natural(data:uint32 list) =
             // A Decimal does not have a valid internal state on an Overflow/Underflow
             // As such, it always throws on an Overflow/Underflow
             static member op_CheckedSubtraction(left:Natural, right:Natural) : Natural = 
-                _subtract left right
+                ISubtractionOperators<Natural,Natural,Natural>.op_CheckedSubtraction( left, right )
             static member (-) (left:Natural, right:Natural) : Natural = 
                 _subtract left right
 
@@ -569,11 +592,11 @@ type public Natural(data:uint32 list) =
             static member op_Decrement(value:Natural) : Natural =
                 _subtract value Natural.Unit
             static member op_CheckedDecrement( value: Natural ): Natural = 
-                _subtract value Natural.Unit
+                IDecrementOperators<Natural>.op_CheckedDecrement( value )
  
         interface IUnaryNegationOperators<Natural,Natural> with
             static member op_CheckedUnaryNegation( value:Natural ) : Natural = 
-                raise ( System.OverflowException() )
+                IUnaryNegationOperators<Natural,Natural>.op_CheckedUnaryNegation( value )
             static member (~-)( value: Natural ) : Natural = 
                 raise ( System.OverflowException() )
         
@@ -583,7 +606,7 @@ type public Natural(data:uint32 list) =
 
         interface IMultiplyOperators<Natural,Natural,Natural> with
             static member op_CheckedMultiply( left: Natural, right: Natural ) : Natural = 
-                _multiply left right
+                IMultiplyOperators<Natural,Natural,Natural>.op_CheckedMultiply( left, right )
             static member (*)( left:Natural, right:Natural ) : Natural = 
                 _multiply left right
 
@@ -593,8 +616,7 @@ type public Natural(data:uint32 list) =
 
         interface IDivisionOperators<Natural,Natural,Natural> with
             static member op_CheckedDivision( left: Natural, right: Natural ) : Natural =
-                let (q,_) = _divideModulo left right
-                q
+                IDivisionOperators<Natural,Natural,Natural>.op_CheckedDivision( left, right )
             static member (/)( left:Natural, right:Natural ) : Natural = 
                 let (q,_) = _divideModulo left right
                 q
@@ -819,6 +841,39 @@ type public Natural(data:uint32 list) =
             static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
                 _tryParse s _defaultNumberStyle provider &result
         
+        interface IUtf8SpanFormattable with
+            member this.TryFormat(utf8Destination: Span<byte>, bytesWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
+                let mutable x = 0
+                let formattedString = (this :> IFormattable).ToString( format.ToString(), provider )
+ 
+                if utf8Destination.Length < formattedString.Length
+                then 
+                    bytesWritten <- utf8Destination.Length
+                    System.Text.Unicode.Utf8.FromUtf16(
+                        formattedString.Substring( 0, utf8Destination.Length ),
+                        utf8Destination,
+                        &x,
+                        &bytesWritten,
+                        true,
+                        true
+                    )
+                    |> ignore
+
+                    false
+                else
+                    bytesWritten <- formattedString.Length
+                    System.Text.Unicode.Utf8.FromUtf16(
+                        formattedString,
+                        utf8Destination,
+                        &x,
+                        &bytesWritten,
+                        true,
+                        true
+                    )
+                    |> ignore
+
+                    true
+
         interface IUtf8SpanParsable<Natural> with
             // INumberBase<T> handles ALL the ReadOnlySpan<byte> cases
             // Unfortunately, F# has no way to access them
@@ -924,6 +979,8 @@ type public Natural(data:uint32 list) =
                 // It generates a FS0008 at compile time
                 let quickCheck (v:obj) : Option<Natural> =
                     match v with
+                    // This first one will show as negative in code coverage
+                    // The base CreateChecked looks for matching types as returns the value
                     | :? Natural  as n  -> Some( Natural( n ) )
                     | :? uint8   as uy  -> Some( Natural( uy ) )
                     | :? uint16  as us  -> Some( Natural( us ) )
@@ -936,7 +993,7 @@ type public Natural(data:uint32 list) =
                         // We know this has no decimals, so I can get ALL the whole numbers
                         if Complex.IsRealNumber( c ) && Double.IsPositive( c.Real ) && Double.IsInteger( c.Real )
                         then Some( Natural.Parse( c.Real.ToString( "R" ), NumberStyles.AllowDecimalPoint ) )
-                        else raise (System.OverflowException())
+                        else None
                     | _ -> None
 
                 match quickCheck value with
@@ -951,13 +1008,18 @@ type public Natural(data:uint32 list) =
                     | _ when 'TOther.IsNaN( value ) -> raise (System.OverflowException())
                     | _ when 'TOther.IsNegative( value ) -> raise (System.OverflowException())
                     | _ when 'TOther.IsZero( value ) ->
+                        // NOTE: This would be hit by something like "Integer"
+                        // There is a test for it, which is currently skipped (because Integer isn't a INumberBase yet)
                         result <- Natural.Zero
                         true
                     | _ when 'TOther.IsInteger( value ) ->
                         result <- Natural.Parse( value.ToString( "R", null ), NumberStyles.Any )
                         true
                     | _ when 'TOther.IsRealNumber( value ) -> raise (System.OverflowException())
-                    | _ -> false
+                    | _ ->
+                        // I cannot think of a way to trigger this.
+                        // However, if we ever did hit it, we definitely don't support it
+                        false
 
             static member TryConvertFromSaturating<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther, result:byref<Natural> ) : bool = 
                 match true with
@@ -1023,7 +1085,10 @@ type public Natural(data:uint32 list) =
                     | :? Double 
                     | :? Complex ->
                         result <- 'TOther.CreateChecked( Double.MaxValue )
-                    | _ -> raise (System.OverflowException())
+                    | _ ->
+                        // This is a catch-all
+                        // I can't think of a type that will return Infinity that we can't handle
+                        raise (System.OverflowException())
 
                 true
 
@@ -1041,6 +1106,10 @@ type public Natural(data:uint32 list) =
 
                 // I don't agree with how BigInteger returns
                 //  PositiveInfinity for floating point numbers
+                // NOTE: If you do a test code coverage, a few paths are not hit
+                // We're talking egde cases on edge cases.
+                // I got lucky that what I set up hit the two opposing branches within float/double 
+                // I'm not going to go through the mental gymnastics to hit them on both
                 if 'TOther.IsInfinity( result )
                 then
                     let strValue = value.ToString()
@@ -1086,6 +1155,19 @@ type public Natural(data:uint32 list) =
 
                 true
 
+        interface IUnsignedNumber<Natural>
+
+        interface IComparable<Natural> with
+            member this.CompareTo(other: Natural): int = 
+                (this :> IComparable).CompareTo( other )
+
+        interface IModulusOperators<Natural,Natural,Natural> with
+            static member (%)(left: Natural, right: Natural): Natural = 
+                let (_,r) = _divideModulo left right
+                r
+
+        interface INumber<Natural>
+
         interface IBitwiseOperators<Natural,Natural,Natural> with
             static member (&&&) ( left:Natural, right:Natural ) : Natural =
                 _bitwiseAnd left right
@@ -1096,6 +1178,16 @@ type public Natural(data:uint32 list) =
             static member (^^^) ( left:Natural, right:Natural ) : Natural =
                 _bitwiseXor left right
 
+        interface IBinaryNumber<Natural> with
+            static member IsPow2 ( value:Natural ) : bool =
+                0ul = (List.sum value.Data.Tail)
+                &&
+                1ul = (Helpers.NumberOfSetBits value.Data.Head)
+            static member Log2 ( value:Natural ) : Natural =
+                Natural( UInt32.Log2( value.Data.Head ) )
+                +
+                ( Natural( 32ul ) * Natural( uint32 value.Data.Tail.Length ) )
+            
         interface IShiftOperators<Natural,int,Natural> with
             static member (<<<) ( left:Natural, right:int ) : Natural =
                 _leftShift right left
@@ -1103,152 +1195,3 @@ type public Natural(data:uint32 list) =
                 _rightShift right left
             static member op_UnsignedRightShift( left:Natural, right:int ) : Natural =
                 _rightShift right left
-
-        //interface IComparisonOperators<Natural,Natural,bool> with
-        //    static member op_LessThan( left, right ) =
-        //        left < right
-        //    static member op_LessThanOrEqual( left, right ) =
-        //        left <= right
-        //    static member op_GreaterThan( left, right ) =
-        //        left > right
-        //    static member op_GreaterThanOrEqual( left, right ) =
-        //        left >= right
-
-        //interface IUnsignedNumber<Natural> with
-        //    // IAdditionOperators<Natural,Natural,Natural>
-        //    member this.(+)(left: Natural, right: Natural): Natural = 
-        //        let rec operation (l:uint32 list, r:uint32 list) : uint32 list =
-        //            let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
-        //            let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
-        //            match overflows with
-        //            | _ when Natural.Zero = Natural( overflows ) -> rawSums
-        //            | _ -> operation ( rawSums, overflows )
-        //
-        //        let result = operation ( Helpers.normalize left.Data right.Data )
-        //        Natural( result )
-        //
-        //    member this.op_CheckedAddition(left: Natural, right: Natural): Natural = 
-        //        left + right
-        //
-        //    member this.(*)(left: Natural, right: Natural): Natural = 
-        //        Natural.op_Multiply( left, right )
-        //    member this.(-)(left: Natural, right: Natural): Natural = 
-        //        Natural.op_Subtraction( left, right )
-        //    member this.(/)(left: Natural, right: Natural): Natural = 
-        //        Natural.op_Division( left, right )
-        //    member this.(<>)(left: Natural, right: Natural): bool = 
-        //        Natural.op_Inequality( left, right )
-        //    member this.(=)(left: Natural, right: Natural): bool = 
-        //        Natural.op_Equality( left, right )
-        //    member this.(~+)(value: Natural): Natural = 
-        //        value
-        //    member this.(~++)(value: Natural): Natural = 
-        //        Natural.op_Addition( value, Natural.Unit )
-        //    member this.(~-)(value: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.(~--)(value: Natural): Natural = 
-        //        Natural.op_Subtraction( value, Natural.Unit )
-        //    member this.Abs(value: Natural): Natural = 
-        //        value
-        //    member this.get_AdditiveIdentity: Natural = 
-        //        Natural.Zero
-        //    member this.CreateChecked(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.CreateSaturating(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.CreateTruncating(value: 'TOther): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Equals(other: Natural): bool = 
-        //        Natural.op_Equality( this, other )
-        //    member this.IsCanonical(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsComplexNumber(value: Natural): bool = 
-        //        false
-        //    member this.IsEvenInteger(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsFinite(value: Natural): bool = 
-        //        true
-        //    member this.IsImaginaryNumber(value: Natural): bool = 
-        //        false
-        //    member this.IsInfinity(value: Natural): bool = 
-        //        false
-        //    member this.IsInteger(value: Natural): bool = 
-        //        true
-        //    member this.IsNaN(value: Natural): bool = 
-        //        false
-        //    member this.IsNegative(value: Natural): bool = 
-        //        false
-        //    member this.IsNegativeInfinity(value: Natural): bool = 
-        //        false
-        //    member this.IsNormal(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsOddInteger(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsPositive(value: Natural): bool = 
-        //        true
-        //    member this.IsPositiveInfinity(value: Natural): bool = 
-        //        false
-        //    member this.IsRealNumber(value: Natural): bool = 
-        //        true
-        //    member this.IsSubnormal(value: Natural): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.IsZero(value: Natural): bool = 
-        //        Natural.op_Equality( value, Natural.Zero )
-        //    member this.MaxMagnitude(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MaxMagnitudeNumber(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MinMagnitude(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.MinMagnitudeNumber(x: Natural, y: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.get_MultiplicativeIdentity: Natural = 
-        //        Natural.Unit
-        //    member this.get_One: Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: ReadOnlySpan<char>, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.Parse(s: string, provider: IFormatProvider): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.get_Radix: int = 
-        //        raise (System.NotImplementedException())
-        //    member this.ToString(format: string, formatProvider: IFormatProvider): string = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromChecked(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromSaturating(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertFromTruncating(value: 'TOther, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToChecked(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToSaturating(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryConvertToTruncating(value: Natural, result: byref<'TOther>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryFormat(destination: Span<char>, charsWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: ReadOnlySpan<char>, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: string, style: Globalization.NumberStyles, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.TryParse(s: string, provider: IFormatProvider, result: byref<Natural>): bool = 
-        //        raise (System.NotImplementedException())
-        //    member this.get_Zero: Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.op_CheckedDivision(left: Natural, right: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.op_CheckedIncrement(value: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.op_CheckedMultiply(left: Natural, right: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.op_CheckedSubtraction(left: Natural, right: Natural): Natural = 
-        //        raise (System.NotImplementedException())
-        //    member this.op_CheckedUnaryNegation(value: Natural): Natural = 
-        //        raise (System.NotImplementedException())

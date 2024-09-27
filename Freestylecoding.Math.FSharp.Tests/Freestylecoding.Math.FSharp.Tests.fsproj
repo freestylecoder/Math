@@ -22,8 +22,10 @@
     <Compile Include="Natural\ArithmeticOperators.fs" />
     <Compile Include="Natural\ObjectOverrides.fs" />
     <Compile Include="Natural\Comparable.fs" />
+    <Compile Include="Natural\ComparableNatural.fs" />
     <Compile Include="Natural\EquatableNatural.fs" />
     <Compile Include="Natural\EqualityOperators.fs" />
+    <Compile Include="Natural\ComparisonOperatorsNaturalNaturalBool.fs" />
     <Compile Include="Natural\AdditionOperators.fs" />
     <Compile Include="Natural\AdditiveIdentity.fs" />
     <Compile Include="Natural\IncrementOperators.fs" />
@@ -36,9 +38,14 @@
     <Compile Include="Natural\DivisionOperators.fs" />
     <Compile Include="Natural\Formattable.fs" />
     <Compile Include="Natural\SpanFormattable.fs" />
+    <Compile Include="Natural\Utf8SpanFormattable.fs" />
     <Compile Include="Natural\Parse.fs" />
     <Compile Include="Natural\TryParse.fs" />
     <Compile Include="Natural\NumberBase.fs" />
+    <Compile Include="Natural\ModulusOperators.fs" />
+    <Compile Include="Natural\BitwiseOperatorsNaturalNaturalNatural.fs" />
+    <Compile Include="Natural\BinaryNumber.fs" />
+    <Compile Include="Natural\ShiftOperators.fs" />
   </ItemGroup>
 
   <ItemGroup>

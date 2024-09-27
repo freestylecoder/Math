@@ -27,74 +27,61 @@ type public Comparable() =
 
     [<Fact>]
     member public this.Equals () =
-        let ui = System.Convert.ToUInt32( System.Random().Next() )
-        let left = Natural( ui ) :> System.IComparable
-        let right = Natural( ui )
-        Assert.True( eq (left.CompareTo( right )) )
+        let b = System.Convert.ToByte( System.Random().Next( 0, 256 ) )
+        let left = Natural( b ) :> System.IComparable
+
+        Assert.True( eq (left.CompareTo( Natural( b ) )) )
+        Assert.True( eq (left.CompareTo( b )) )
+        Assert.True( eq (left.CompareTo( uint16 b )) )
+        Assert.True( eq (left.CompareTo( uint32 b )) )
+        Assert.True( eq (left.CompareTo( uint64 b )) )
+        Assert.True( eq (left.CompareTo( System.UInt128( 0uL, uint64 b ) )) )
+        Assert.True( eq (left.CompareTo( System.Numerics.BigInteger b )) )
 
     [<Fact>]
     member public this.GreaterThan () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
-        let right = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) )
-        Assert.True( gt (left.CompareTo( right )) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 128, 256 ) ) ) :> System.IComparable
+        let b = System.Convert.ToByte( System.Random().Next( 0, 127 ) )
+
+        Assert.True( gt (left.CompareTo( Natural( b ) )) )
+        Assert.True( gt (left.CompareTo( b )) )
+        Assert.True( gt (left.CompareTo( uint16 b )) )
+        Assert.True( gt (left.CompareTo( uint32 b )) )
+        Assert.True( gt (left.CompareTo( uint64 b )) )
+        Assert.True( gt (left.CompareTo( System.UInt128( 0uL, uint64 b ) )) )
+        Assert.True( gt (left.CompareTo( System.Numerics.BigInteger b )) )
+
+    [<Fact>]
+    member public this.GreaterThan_NegativeBigInteger () =
+        let left = Natural.Unit :> System.IComparable
+
+        Assert.True( gt (left.CompareTo( System.Numerics.BigInteger( -1m ) )) )
 
     [<Fact>]
     member public this.LessThan () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) ) :> System.IComparable
-        let right = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) )
-        Assert.True( lt (left.CompareTo( right )) )
+        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 0, 127 ) ) ) :> System.IComparable
+        let b = System.Convert.ToByte( System.Random().Next( 128, 256 ) )
+
+        Assert.True( lt (left.CompareTo( Natural( b ) )) )
+        Assert.True( lt (left.CompareTo( b )) )
+        Assert.True( lt (left.CompareTo( uint16 b )) )
+        Assert.True( lt (left.CompareTo( uint32 b )) )
+        Assert.True( lt (left.CompareTo( uint64 b )) )
+        Assert.True( lt (left.CompareTo( System.UInt128( 0uL, uint64 b ) )) )
+        Assert.True( lt (left.CompareTo( System.Numerics.BigInteger b )) )
 
     [<Fact>]
-    member public this.EqualsUInt32 () =
-        let ui = System.Convert.ToUInt32( System.Random().Next() )
-        let left = Natural( ui ) :> System.IComparable
-        let right = ui
-        Assert.True( eq (left.CompareTo( right )) )
+    member public this.LessThan_NegativeBigInteger () =
+        let left = Natural.Unit :> System.IComparable
 
-    [<Fact>]
-    member public this.GreaterThanUInt32 () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
-        let right = System.Convert.ToUInt32( System.Random().Next( 1000 ) )
-        Assert.True( gt (left.CompareTo( right )) )
-
-    [<Fact>]
-    member public this.LessThanUInt32 () =
-        let left = Natural( System.Convert.ToUInt32( System.Random().Next( 1000 ) ) ) :> System.IComparable
-        let right = System.Convert.ToUInt32( System.Random().Next( 1000, 2000 ) )
-        Assert.True( lt (left.CompareTo( right )) )
-
-    [<Fact>]
-    member public this.EqualsUInt64 () =
-        let ul = System.Convert.ToUInt64( System.Random().Next() )
-        let left = Natural( ul ) :> System.IComparable
-        let right = ul
-        Assert.True( eq (left.CompareTo( right )) )
-
-    [<Fact>]
-    member public this.GreaterThanUInt64 () =
-        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000, 2000 ) ) ) :> System.IComparable
-        let right = System.Convert.ToUInt64( System.Random().Next( 1000 ) )
-        Assert.True( gt (left.CompareTo( right )) )
-
-    [<Fact>]
-    member public this.LessThanUInt64 () =
-        let left = Natural( System.Convert.ToUInt64( System.Random().Next( 1000 ) ) ) :> System.IComparable
-        let right = System.Convert.ToUInt64( System.Random().Next( 1000, 2000 ) )
-        Assert.True( lt (left.CompareTo( right )) )
-
-    member public this.AllowImplicitConversionTypes () =
-        let one = Natural.Unit :> System.IComparable
-        Assert.True( eq (one.CompareTo( 1uy )) )
-        Assert.True( eq (one.CompareTo( 1us )) )
-        Assert.True( eq (one.CompareTo( 1ul )) )
-        Assert.True( eq (one.CompareTo( 1uL )) )
-        Assert.True( eq (one.CompareTo( System.UInt128.One )) )
+        Assert.False( lt (left.CompareTo( System.Numerics.BigInteger( -1m ) )) )
 
     [<Theory>]
     [<InlineData( 1  )>]
     [<InlineData( 1L )>]
     [<InlineData( 1F )>]
     [<InlineData( 1.0 )>]
+    [<InlineData( "1" )>]
     member public this.Incompatible value =
         let one = Natural.Unit :> System.IComparable
         let exc = Record.Exception(

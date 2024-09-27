@@ -70,6 +70,7 @@ type public ObjectEquals() =
         Assert.False( Natural.Unit.Equals( int64 -1 ) )
 
         Assert.False( Natural.Unit.Equals( -System.Int128( 0uL, 1uL ) ) )
+        Assert.False( Natural.Unit.Equals( -System.Numerics.BigInteger( 1m ) ) )
 
     [<Fact>]
     member public this.FloatingTypesWithDecimals () =

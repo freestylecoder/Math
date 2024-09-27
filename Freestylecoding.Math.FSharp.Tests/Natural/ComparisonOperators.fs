@@ -10,15 +10,15 @@ type public Equality() =
     [<InlineData( 1u, 0u, false )>]
     [<InlineData( 1u, 1u, true )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) = Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_Equality( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.False( Natural( [0xBADu; 0xDEADBEEFu] ) = Natural( [0xDEADBEEFu] ) )
+        Assert.False( Natural.op_Equality( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.False( Natural( [0xDEADBEEFu] ) = Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.False( Natural.op_Equality( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
 
 type public GreaterThan() =
     [<Theory>]
@@ -26,27 +26,27 @@ type public GreaterThan() =
     [<InlineData( 1u, 0u, true )>]
     [<InlineData( 1u, 1u, false )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) > Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_GreaterThan( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.True( Natural( [0xBADu; 0xDEADBEEFu] ) > Natural( [0xDEADBEEFu] ) )
+        Assert.True( Natural.op_GreaterThan( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.False( Natural( [0xDEADBEEFu] ) > Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.False( Natural.op_GreaterThan( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
     
     [<Fact>]
     member public this.CascadeGreaterThan () =
-        Assert.True( Natural( [1u; 1u] ) > Natural( [1u; 0u] ) )
+        Assert.True( Natural.op_GreaterThan( Natural( [1u; 1u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeEqual () =
-        Assert.False( Natural( [1u; 0u] ) > Natural( [1u; 0u] ) )
+        Assert.False( Natural.op_GreaterThan( Natural( [1u; 0u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeLessThan () =
-        Assert.False( Natural( [1u; 0u] ) > Natural( [1u; 1u] ) )
+        Assert.False( Natural.op_GreaterThan( Natural( [1u; 0u] ), Natural( [1u; 1u] ) ) )
 
 type public LessThan() =
     [<Theory>]
@@ -54,27 +54,27 @@ type public LessThan() =
     [<InlineData( 1u, 0u, false )>]
     [<InlineData( 1u, 1u, false )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) < Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_LessThan( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.False( Natural( [0xBADu; 0xDEADBEEFu] ) < Natural( [0xDEADBEEFu] ) )
+        Assert.False( Natural.op_LessThan( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.True( Natural( [0xDEADBEEFu] ) < Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.True( Natural.op_LessThan( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
     
     [<Fact>]
     member public this.CascadeGreaterThan () =
-        Assert.False( Natural( [1u; 1u] ) < Natural( [1u; 0u] ) )
+        Assert.False( Natural.op_LessThan( Natural( [1u; 1u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeEqual () =
-        Assert.False( Natural( [1u; 0u] ) < Natural( [1u; 0u] ) )
+        Assert.False( Natural.op_LessThan( Natural( [1u; 0u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeLessThan () =
-        Assert.True( Natural( [1u; 0u] ) < Natural( [1u; 1u] ) )
+        Assert.True( Natural.op_LessThan( Natural( [1u; 0u] ), Natural( [1u; 1u] ) ) )
 
 type public GreaterThanOrEqual() =
     [<Theory>]
@@ -82,27 +82,27 @@ type public GreaterThanOrEqual() =
     [<InlineData( 1u, 0u, true )>]
     [<InlineData( 1u, 1u, true )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) >= Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_GreaterThanOrEqual( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.True( Natural( [0xBADu; 0xDEADBEEFu] ) >= Natural( [0xDEADBEEFu] ) )
+        Assert.True( Natural.op_GreaterThanOrEqual( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.False( Natural( [0xDEADBEEFu] ) >= Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.False( Natural.op_GreaterThanOrEqual( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
     
     [<Fact>]
     member public this.CascadeGreaterThan () =
-        Assert.True( Natural( [1u; 1u] ) >= Natural( [1u; 0u] ) )
+        Assert.True( Natural.op_GreaterThanOrEqual( Natural( [1u; 1u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeEqual () =
-        Assert.True( Natural( [1u; 0u] ) >= Natural( [1u; 0u] ) )
+        Assert.True( Natural.op_GreaterThanOrEqual( Natural( [1u; 0u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeLessThan () =
-        Assert.False( Natural( [1u; 0u] ) >= Natural( [1u; 1u] ) )
+        Assert.False( Natural.op_GreaterThanOrEqual( Natural( [1u; 0u] ), Natural( [1u; 1u] ) ) )
 
 type public LessThanOrEqual() =
     [<Theory>]
@@ -110,27 +110,27 @@ type public LessThanOrEqual() =
     [<InlineData( 1u, 0u, false )>]
     [<InlineData( 1u, 1u, true )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) <= Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_LessThanOrEqual( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.False( Natural( [0xBADu; 0xDEADBEEFu] ) <= Natural( [0xDEADBEEFu] ) )
+        Assert.False( Natural.op_LessThanOrEqual( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.True( Natural( [0xDEADBEEFu] ) <= Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.True( Natural.op_LessThanOrEqual( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
     
     [<Fact>]
     member public this.CascadeGreaterThan () =
-        Assert.False( Natural( [1u; 1u] ) <= Natural( [1u; 0u] ) )
+        Assert.False( Natural.op_LessThanOrEqual( Natural( [1u; 1u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeEqual () =
-        Assert.True( Natural( [1u; 0u] ) <= Natural( [1u; 0u] ) )
+        Assert.True( Natural.op_LessThanOrEqual( Natural( [1u; 0u] ), Natural( [1u; 0u] ) ) )
     
     [<Fact>]
     member public this.CascadeLessThan () =
-        Assert.True( Natural( [1u; 0u] ) <= Natural( [1u; 1u] ) )
+        Assert.True( Natural.op_LessThanOrEqual( Natural( [1u; 0u] ), Natural( [1u; 1u] ) ) )
 
 type public Inequality() =
     [<Theory>]
@@ -139,12 +139,12 @@ type public Inequality() =
     [<InlineData( 1u, 0u, true )>]
     [<InlineData( 1u, 1u, false )>]
     member public this.Sanity left right expected =
-        Assert.Equal( expected, Natural( [left] ) <> Natural( [right] ) )
+        Assert.Equal( expected, Natural.op_Inequality( Natural( [left] ), Natural( [right] ) ) )
 
     [<Fact>]
     member public this.BiggerLeft () =
-        Assert.True( Natural( [0xBADu; 0xDEADBEEFu] ) <> Natural( [0xDEADBEEFu] ) )
+        Assert.True( Natural.op_Inequality( Natural( [0xBADu; 0xDEADBEEFu] ), Natural( [0xDEADBEEFu] ) ) )
 
     [<Fact>]
     member public this.BiggerRight () =
-        Assert.True( Natural( [0xDEADBEEFu] ) <> Natural( [0xBADu; 0xDEADBEEFu] ) )
+        Assert.True( Natural.op_Inequality( Natural( [0xDEADBEEFu] ), Natural( [0xBADu; 0xDEADBEEFu] ) ) )
