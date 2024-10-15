@@ -2,6 +2,7 @@
 
 open System
 
+[<Diagnostics.DebuggerDisplay( "{SingleThreadedToString()}" )>]
 type public Integer(data:uint list, negative:bool) =
     inherit Natural( data )
     member internal Integer.Negative:bool = negative && ( data <> [0u] )
@@ -153,6 +154,12 @@ type public Integer(data:uint list, negative:bool) =
 
         override this.ToString() =
             let s = Natural( this.Data ).ToString()
+            match this.Negative with
+            | true -> "-" + s
+            | false -> s
+
+        member internal this.SingleThreadedToString() =
+            let s = Natural( this.Data ).SingleThreadedToString()
             match this.Negative with
             | true -> "-" + s
             | false -> s

@@ -5,7 +5,11 @@ open System.Linq
 open System.Numerics
 open System.Globalization
 
-[<Diagnostics.DebuggerDisplay( "{ToString( \"N0\" )}" )>]
+// This gets rid of warnings for explicit interface calls
+// Mostly a necessary evil because of the static interface calls
+#nowarn "3536"
+
+[<Diagnostics.DebuggerDisplay( "{SingleThreadedToString()}" )>]
 type public Natural(data:uint32 list) =
     static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
     static let _defaultFormatProvider = CultureInfo.CurrentCulture.NumberFormat
@@ -16,21 +20,55 @@ type public Natural(data:uint32 list) =
         | 0u :: t -> _compress t
         | _ -> l
 
-    static let _bitwiseOperation (f:(uint32 -> uint32 -> uint32)) (left:Natural) (right:Natural) : Natural =
-        let (l,r) = Helpers.normalize left.Data right.Data
-        Natural( List.map2 f l r )
-
     // NOTE: All the base operators are declared here
     // This allows us to have all the externally visible operators, interfaces, etc
     //   reference the same code for optimising/debugging purposes
     static let _bitwiseAnd (left:Natural) (right:Natural) : Natural =
-        _bitwiseOperation (fun x y -> x &&& y) left right
+        let (l,r) =
+            // NOTE: This let binding is a bit of a hack
+            // for some reason, the compiler can't figure out Natural.Data is a "uint32 list"
+            // Probably because
+            //  1) Data isn't defined until later and
+            //  2) nothing exists before this to give it a hint
+            //      (_bitwiseOperation used to give it that hint)
+            // However, I can't move the formal defination of Data before this
+            // because let bindings have to come before members
+            let (lData:uint32 list) = left.Data
+            if lData.Length < right.Data.Length
+            then (right.Data, left.Data)
+            else (left.Data, right.Data)
+
+        Natural(
+            List.splitAt (l.Length - r.Length) l
+            |> snd
+            |> List.map2 (fun x y -> x &&& y) r
+        )
 
     static let _bitwiseOr (left:Natural) (right:Natural) : Natural =
-        _bitwiseOperation (fun x y -> x ||| y) left right
+        let (l,r) =
+            if left.Data.Length < right.Data.Length
+            then (right.Data, left.Data)
+            else (left.Data, right.Data)
+
+        let (l0, l1) = List.splitAt (l.Length - r.Length) l
+        Natural(
+            l1
+            |> List.map2 (fun x y -> x ||| y) r
+            |> List.append l0
+        )
 
     static let _bitwiseXor (left:Natural) (right:Natural) : Natural =
-        _bitwiseOperation (fun x y -> x ^^^ y) left right
+        let (l,r) =
+            if left.Data.Length < right.Data.Length
+            then (right.Data, left.Data)
+            else (left.Data, right.Data)
+
+        let (l0, l1) = List.splitAt (l.Length - r.Length) l
+        Natural(
+            l1
+            |> List.map2 (fun x y -> x ^^^ y) r
+            |> List.append l0
+        )
 
     static let _bitwiseNot (operand:Natural) : Natural =
         Natural( List.map (fun x -> ~~~ x) operand.Data )
@@ -72,8 +110,9 @@ type public Natural(data:uint32 list) =
         Natural( result )
 
     static let _equality (left:Natural) (right:Natural) : bool =
-        let (l,r) = Helpers.normalize left.Data right.Data
-        List.map2 (fun x y -> x = y) l r
+        left.Data.Length = right.Data.Length
+        &&
+        List.map2 (fun x y -> x = y) left.Data right.Data
         |> List.reduce (fun x y -> x && y)
 
     static let _greaterThan (left:Natural) (right:Natural) : bool =
@@ -102,27 +141,73 @@ type public Natural(data:uint32 list) =
         | x when x > 0 -> false
         | _ -> lt left.Data right.Data
 
-    static let _add (left:Natural) (right:Natural) : Natural = 
-        let rec operation (l:uint32 list, r:uint32 list) : uint32 list =
+    static let rec _add (left:Natural) (right:Natural) : Natural = 
+        let rec operation (l:uint32 list) (r:uint32 list) : Natural =
             let rawSums = 0u :: List.map2 (fun x y -> x + y) l r
             let overflows = (List.map2 (fun x y -> if x > ( System.UInt32.MaxValue - y ) then 1u else 0u) l r) @ [0u]
             match overflows with
-            | _ when Natural.Zero = Natural( overflows ) -> rawSums
-            | _ -> operation ( rawSums, overflows )
+            | _ when Natural.Zero = Natural( overflows ) -> Natural( rawSums )
+            | _ -> operation rawSums overflows
 
-        let result = operation ( Helpers.normalize left.Data right.Data )
-        Natural( result )
+        // This does a trivial version of checking for possible overflow
+        let rec findSplit (x:uint32 list) (y:uint32 list) (i:int32) : uint32 list * uint32 list * uint32 list =
+            if x.Length = y.Length
+            then
+                // Base case. If the lists are the same length, just return them
+                ([], x, y)
+            else
+                let (x0, x1) = List.splitAt i x
+                // We previously checked if X > Y
+                // As such, we only need to see if X is in overflow danger
+                // FYI: What this does is see if there is a 1 highest order bit
+                // Basically: x.Head &&& 0x8000_0000 = 0x8000_0000
+                if x.Head > 0x7FFF_FFFFu
+                then findSplit x (0u :: y) (i-1)
+                else (x0,x1,y)
+
+        // Addition is communitive
+        // For ease later, I'm figuring out with is the bigger number
+        let (big,little) =
+            if _lessThan left right
+            then (right, left)
+            else (left, right)
+
+        // Spilt the big number to only do the parts that will change
+        // Pad the little number to the same length as the part that will change
+        let (b0, b1, l) = findSplit big.Data little.Data (big.Data.Length - little.Data.Length)
+
+        let result = operation b1 l
+        Natural(
+            // See if we ended up with a bigger number than we hoped for
+            if result.Data.Length > l.Length
+            then
+                // Add the overflow to the unchanged part before prepending to the result
+                List.append
+                    ((_add (Natural( b0 )) (Natural(result.Data.Head))).Data)
+                    result.Data.Tail
+            else
+                // Prepend the unchanged part to the result
+                List.append b0 result.Data
+        )
 
     static let _subtract (left:Natural) (right:Natural) : Natural =
-        if( left < right ) then raise (new OverflowException())
+        if( _lessThan left right ) then raise (new OverflowException())
 
-        let (l,r) = Helpers.normalize left.Data right.Data
-        let rawDifferences = 0u :: (List.map2 (fun x y -> x - y) l r)
-        let underflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) l r) @ [0u]
+        // Find the smallest part of left that is greater than right
+        let rec findSplit (x:uint32 list) (y:uint32 list) (i:int32) : uint32 list * uint32 list * uint32 list =
+            let (x0, x1) = List.splitAt i x
+            if _lessThan (Natural( x1 )) (Natural( y ))
+            then findSplit x (0u :: y) (i-1)
+            else (x0,x1,y)
+
+        let (l0, l1, r) = findSplit left.Data right.Data (left.Data.Length - right.Data.Length)
+
+        let rawDifferences = 0u :: (List.map2 (fun x y -> x - y) l1 r)
+        let underflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) l1 r) @ [0u]
         let cascadeUnderflows = (List.map2 (fun  x y -> if y > x then 1u else 0u) rawDifferences.Tail underflows.Tail) @ [0u]
         let result = List.map3 (fun x y z -> x - y - z ) rawDifferences underflows cascadeUnderflows
 
-        Natural( result )
+        Natural( List.append l0 (_compress result) )
 
     static let _multiply (left:Natural) (right:Natural) : Natural =
         let rec magic value bitsToShiftLeft =
@@ -161,18 +246,34 @@ type public Natural(data:uint32 list) =
             op 0
 
     static let _parse (s:ReadOnlySpan<char>) (style:NumberStyles) (provider:IFormatProvider) : Natural = 
+        let multiplyBy10 x = _add (_leftShift 3 x) (_leftShift 1 x)
+
+        let rec pow10 (e:Natural) : Natural =
+            let isEven (x:'T when 'T :> INumberBase<'T>) =
+                'T.IsEvenInteger( x )
+
+            // Code Coverage: Cases 3u and 4u aren't hit.
+            // These are trivial case, so I'm ok
+            match e with
+            | _ when e = Natural( [0u] ) -> Natural( [1u] )
+            | _ when e = Natural( [1u] ) -> Natural( [10u] )
+            | _ when e = Natural( [2u] ) -> Natural( [100u] )
+            | _ when e = Natural( [3u] ) -> Natural( [1000u] )
+            | _ when e = Natural( [4u] ) -> Natural( [10000u] )
+            | _ when (isEven e) ->
+                // do even code
+                let half = _rightShift 1 e
+                let result = pow10 half
+                _multiply result result
+            | _     ->
+                // do odd code
+                let half = _rightShift 1 e
+                let result = pow10 half
+                multiplyBy10 (_multiply result result)
+
         let powersOf2 = Seq.unfold (fun state -> Some( state, _leftShift 1 state )) Natural.Unit
-        let powersOf10 = Seq.unfold (fun state -> Some( state, _add (_leftShift 3 state) (_leftShift 1 state) )) Natural.Unit
+        let powersOf10 = Seq.unfold (fun state -> Some( state, multiplyBy10 state )) Natural.Unit
         let powersOf16 = Seq.unfold (fun state -> Some( state, _leftShift 4 state )) Natural.Unit
-
-        let pow10n e =
-            let (quot,rem) = _divideModulo e (Natural( UInt32.MaxValue >>> 1 ))
-            let maxPowerOf10 =
-                if _greaterThan quot Natural.Zero
-                then _multiply quot (powersOf10.ElementAt( Int32.MaxValue ))
-                else Natural.Unit
-
-            _multiply maxPowerOf10 (powersOf10.ElementAt( Convert.ToInt32( rem.Data.Head ) ))
 
         let hasFlag (flag:NumberStyles) : bool =
             flag = (style &&& flag)
@@ -215,14 +316,14 @@ type public Natural(data:uint32 list) =
             let parseBuddy = ParseBuddy( style, numberFormatInfo )
             parseBuddy.Parse( s )
 
-            let decFactor = powersOf10.ElementAt( parseBuddy.Decimal.Length )
+            let decFactor = pow10 (Natural( [uint32 parseBuddy.Decimal.Length] ))
             let natWhole =
-                seq { parseBuddy.WholeNumber; parseBuddy.Decimal }
-                |> List.concat
+                parseBuddy.Decimal
+                |> List.append parseBuddy.WholeNumber
                 |> listToNatural
 
             let natExp = listToNatural parseBuddy.Exponent
-            let expFactor = pow10n natExp
+            let expFactor = pow10 natExp
 
             let (q,r) =
                 if parseBuddy.IsExpNegative
@@ -257,7 +358,8 @@ type public Natural(data:uint32 list) =
         Convert.ToUInt32( data &&& 0xFFFF_FFFFUL )
     ] )
     new(data:UInt128) =
-        let down x : uint32 = UInt128.op_Explicit( ( data >>> x ) &&& 0xFFFF_FFFFUL )
+        let mask = UInt128( 0UL, 0xFFFF_FFFFUL )
+        let down x : uint32 = UInt128.op_Explicit( ( data >>> x ) &&& mask )
         Natural( [
             down 96;
             down 64;
@@ -476,23 +578,41 @@ type public Natural(data:uint32 list) =
 
             v.GetHashCode()
 
-        override this.ToString() =
-            let rec f n : char list =
+        member private this.BaseToString( singleThreaded ) =
+            let rec chunkListToArray n i : uint32 array =
                 match n with
-                | z when z = Natural.Zero -> []
+                | z when z = Natural.Zero ->
+                    // We now know how big of any array we need, so just create it
+                    Array.zeroCreate (i-1)
                 | _ ->
-                    let (q,r) = _divideModulo n (Natural([10u]))
-                    Convert.ToChar(r.Data.Head + 48u) :: (f q)
+                    // 1,000,000,000 is the largest power of 10 that fits in an uint32
+                    let (q,r) = _divideModulo n (Natural([1_000_000_000u]))
+                    let arr = chunkListToArray q (i+1)
+                    arr.[arr.Length - i] <- r.Data.Head
+                    arr
 
-            if _equality Natural.Zero this then
+            if _equality Natural.Zero this
+            then
+                // Bailing out the degenerate case because it would
+                // end up Trimming out to an empty string
                 "0"
             else
-                String.Concat(
-                    f this
-                    |> List.rev
-                    |> List.toArray
-                )
+                let unsighedArray = chunkListToArray this 1
+                // Specifying the type here so it's not ambigious in String.Join
+                let (stringArray:string array) =
+                    if singleThreaded
+                    then Array.map (fun (u:uint32) -> u.ToString( "D9" )) unsighedArray
+                    else Array.Parallel.map (fun (u:uint32) -> u.ToString( "D9" )) unsighedArray
+                String.Join( "", stringArray ).TrimStart( '0' )
 
+        override this.ToString() =
+            this.BaseToString( false )
+
+        // NOTE: This mostly exists here so I can use it in DebuggerDisplay
+        member internal this.SingleThreadedToString() : string =
+            this.BaseToString( true )
+
+        // NOTE: This mostly exists here so I can use it in DebuggerDisplay
         member this.ToString( format:string ) : string =
             (this :> IFormattable).ToString( format, _defaultFormatProvider )
 
@@ -711,6 +831,10 @@ type public Natural(data:uint32 list) =
                     | 1 -> $"{s}{numberFormatInfo.CurrencySymbol}"
                     | 2 -> $"{numberFormatInfo.CurrencySymbol} {s}"
                     | 3 -> $"{s} {numberFormatInfo.CurrencySymbol}"
+                    // NumberFormatInfo does a bounds check
+                    // You can't set it outside the range
+                    // However, F# needs a catch all
+                    // As such, this code block is not covered because it is unreachable
                     | _ -> raise (System.FormatException())
 
                 // Decimal
@@ -785,6 +909,10 @@ type public Natural(data:uint32 list) =
                     | 1 -> $"{s}{numberFormatInfo.PercentSymbol}"
                     | 2 -> $"{numberFormatInfo.PercentSymbol}{s}"
                     | 3 -> $"{numberFormatInfo.PercentSymbol} {s}"
+                    // NumberFormatInfo does a bounds check
+                    // You can't set it outside the range
+                    // However, F# needs a catch all
+                    // As such, this code block is not covered because it is unreachable
                     | _ -> raise (System.FormatException())
 
                 // Hexadecimal

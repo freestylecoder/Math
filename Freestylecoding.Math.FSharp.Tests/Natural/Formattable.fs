@@ -353,6 +353,12 @@ type public Formattable() =
         Assert.Equal( "12,345,678,901,2345,67890.00",  medium.ToString( "N",  custom ) )
 
     [<Fact>]
+    member public this.Number_GroupSizes_Empty () =
+        let custom = System.Globalization.CultureInfo( "en-US" ).NumberFormat
+        custom.NumberGroupSizes <- [||]
+        Assert.Equal( "12345678901234567890.00",  medium.ToString( "N",  custom ) )
+
+    [<Fact>]
     member public this.Percent () =
         let defaultDigits = $".{System.String( '0', System.Globalization.CultureInfo.CurrentCulture.NumberFormat.PercentDecimalDigits)}"
 

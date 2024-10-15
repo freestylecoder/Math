@@ -1,7 +1,8 @@
 ﻿namespace Freestylecoding.Math
 
 open System
-    
+
+[<Diagnostics.DebuggerDisplay( "{SingleThreadedToString()}" )>]
 type public Real(significand:Integer, exponent:Integer) =
     let ten = Integer( 10 )
     let rec normalize s e =
@@ -358,6 +359,9 @@ type public Real(significand:Integer, exponent:Integer) =
                     $"{sign}0.{digits}"
             | _ -> // z when z = Integer.Zero
                 this.Significand.ToString()
+
+        member internal this.SingleThreadedToString() =
+            $"{this.Significand.SingleThreadedToString()}E{this.Exponent.SingleThreadedToString()}"
 
         // IComparable (for .NET) 
         interface IComparable with

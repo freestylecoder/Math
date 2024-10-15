@@ -9,17 +9,6 @@ type internal Helpers =
         let y = (x &&& 0x33333333u) + ((x >>> 2) &&& 0x33333333u);
         (((y + (y >>> 4)) &&& 0x0F0F0F0Fu) * 0x01010101u) >>> 24;
     
-    static member normalize (left:uint32 list) (right:uint32 list) =
-        if left.Length = right.Length
-        then
-            (left,right)
-        else
-            let rightpad (l:uint32 list) n =
-                List.init (n - l.Length) (fun i -> 0u) @ l
-
-            let len = Math.Max( left.Length, right.Length )
-            (rightpad left len, rightpad right len)
-        
     static member internal Xor (l:bool) (r:bool) : bool =
         ( l || r ) && not ( l && r )
 

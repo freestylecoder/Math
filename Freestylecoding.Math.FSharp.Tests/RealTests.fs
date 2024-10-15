@@ -674,17 +674,17 @@ module Real =
         [<InlineData( ".1",       ".1",        "0" )>]             // Sanity
         [<InlineData( "12300",    "45000",     "-32700" )>]        // Sanity
         [<InlineData( "0.00123",  "0.000045",  "0.001185" )>]      // Sanity
-        [<InlineData( "12300",    "0.000045",  "12299.999955" )>]  // Sanity
-        [<InlineData( "0.00123",  "45000",     "-44999.99877" )>]  // Sanity
+        [<InlineData( "12300",    "0.000045",  "12299.999955" )>]  // Sanity !
+        [<InlineData( "0.00123",  "45000",     "-44999.99877" )>]  // Sanity !
         [<InlineData( "-1",       "0",         "-1" )>]            // Sanity
         [<InlineData( "0",        "-1",        "1" )>]             // Sanity
         [<InlineData( "-1",       "-1",        "0" )>]             // Sanity
         [<InlineData( "-10",      "-10",       "0" )>]             // Sanity
         [<InlineData( "-0.1",     "-0.1",      "0" )>]             // Sanity
         [<InlineData( "-12300",   "-45000",    "32700" )>]         // Sanity
-        [<InlineData( "-0.00123", "-0.000045", "-0.001185" )>]     // Sanity
+        [<InlineData( "-0.00123", "-0.000045", "-0.001185" )>]     // Sanity !
         [<InlineData( "-12300",   "-0.000045", "-12299.999955" )>] // Sanity
-        [<InlineData( "-0.00123", "-45000",    "44999.99877" )>]   // Sanity
+        [<InlineData( "-0.00123", "-45000",    "44999.99877" )>]   // Sanity !
         let Sanity l r s =
             Assert.Equal( Real.Parse( s ), Real.Parse( l ) - Real.Parse( r ) )
 

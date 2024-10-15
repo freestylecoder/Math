@@ -61,6 +61,15 @@ type public ParseString() =
             Overloads.Parse( "1234567890123456789" )
         )
 
+    [<Fact>]
+    member public this.InsaneSanity () =
+        // This test case is for a very specialized test case
+        // That's 1E80, which is roughly the number of atoms in the universe
+        Assert.Equal(
+            Natural( [ 863u; 2649374239u; 1809837936u; 3453057829u; 4020508874u; 1671571300u; 3468754944u; 0u; 0u ] ),
+            Overloads.Parse( "100000000000000000000000000000000000000000000000000000000000000000000000000000000" )
+        )
+
     [<Theory>]
     [<InlineData( " 1" )>]
     [<InlineData( "  1" )>]
@@ -601,6 +610,26 @@ type public ParseStringStyle() =
         )
 
     [<Fact>]
+    member public this.AllowLargeExponent () =
+        // This test is mainly to hit a few areas in the base pasre code
+        Assert.Equal(
+            Natural( [ 0x2u; 0x540B_E400u ] ),
+            Overloads.Parse(
+                "1e10",
+                System.Globalization.NumberStyles.AllowExponent
+            )
+        )
+
+        // 1E80 is roughly the number of atoms in the universe
+        Assert.Equal(
+            Natural( [ 863u; 2649374239u; 1809837936u; 3453057829u; 4020508874u; 1671571300u; 3468754944u; 0u; 0u ] ),
+            Overloads.Parse(
+                "1e80",
+                System.Globalization.NumberStyles.AllowExponent
+            )
+        )
+
+    [<Fact>]
     member public this.AllowExponentWithDecimal () =
         Assert.Equal(
             Natural( 12u ),
@@ -724,7 +753,7 @@ type public ParseStringStyle() =
         Assert.Equal(
             value,
             Overloads.Parse(
-                "1234567890ABCDEF",
+                "01234567890ABCDEF",
                 System.Globalization.NumberStyles.AllowHexSpecifier
             )
         )
@@ -732,10 +761,22 @@ type public ParseStringStyle() =
         Assert.Equal(
             value,
             Overloads.Parse(
-                "1234567890abcdef",
+                "01234567890abcdef",
                 System.Globalization.NumberStyles.AllowHexSpecifier
             )
         )
+
+    [<Fact>]
+    member public this.AllowHex_BadInput () =
+        Assert.IsType<System.FormatException>(
+            Record.Exception(
+                fun () ->
+                    Overloads.Parse(
+                        "1234567890ABCDEFG",
+                        System.Globalization.NumberStyles.AllowHexSpecifier
+                    ) |> ignore
+            )
+        ) |> ignore
 
     [<Fact>]
     member public this.AllowBinary () =
@@ -746,6 +787,30 @@ type public ParseStringStyle() =
                 System.Globalization.NumberStyles.AllowBinarySpecifier
             )
         )
+
+    [<Fact>]
+    member public this.AllowBinary_BadInput () =
+        Assert.IsType<System.FormatException>(
+            Record.Exception(
+                fun () ->
+                    Overloads.Parse(
+                        "012",
+                        System.Globalization.NumberStyles.AllowBinarySpecifier
+                    ) |> ignore
+            )
+        ) |> ignore
+
+    [<Fact>]
+    member public this.DisallowBothBinaryAndHex () =
+        Assert.IsType<System.ArgumentException>(
+            Record.Exception(
+                fun () ->
+                    Overloads.Parse(
+                        "0",
+                        System.Globalization.NumberStyles.AllowBinarySpecifier ||| System.Globalization.NumberStyles.AllowHexSpecifier
+                    ) |> ignore
+            )
+        ) |> ignore
 
 type public ParseStringFormat() =
     let small  = Natural( [0x4996_02D2u] )
@@ -787,6 +852,21 @@ type public ParseStringFormat() =
                 "1234567890123456789",
                 currentCulture
             )
+        )
+
+    [<Fact>]
+    member public this.NullFormatIsCurrentCulture () =
+        Assert.Equal(
+            Overloads.Parse( smallStr, currentCulture ),
+            Overloads.Parse( smallStr, null )
+        )
+        Assert.Equal(
+            Overloads.Parse( mediumStr, currentCulture ),
+            Overloads.Parse( mediumStr, null )
+        )
+        Assert.Equal(
+            Overloads.Parse( largeStr, currentCulture ),
+            Overloads.Parse( largeStr, null )
         )
 
     [<Theory>]
