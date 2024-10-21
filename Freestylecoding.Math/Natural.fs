@@ -247,6 +247,23 @@ type public Natural(data:uint32 list) =
 
     static let _parse (s:ReadOnlySpan<char>) (style:NumberStyles) (provider:IFormatProvider) : Natural = 
         let multiplyBy10 x = _add (_leftShift 3 x) (_leftShift 1 x)
+        let multiplyByBillion x =
+            [
+                (_leftShift 30 x);
+                (_leftShift 29 x);
+                (_leftShift 28 x);
+                (_leftShift 26 x);
+                (_leftShift 25 x);
+                (_leftShift 24 x);
+                (_leftShift 21 x);
+                (_leftShift 20 x);
+                (_leftShift 18 x);
+                (_leftShift 16 x);
+                (_leftShift 15 x);
+                (_leftShift 12 x);
+                (_leftShift 10 x)
+            ]
+            |> List.sum 
 
         let rec pow10 (e:Natural) : Natural =
             let isEven (x:'T when 'T :> INumberBase<'T>) =
@@ -260,6 +277,11 @@ type public Natural(data:uint32 list) =
             | _ when e = Natural( [2u] ) -> Natural( [100u] )
             | _ when e = Natural( [3u] ) -> Natural( [1000u] )
             | _ when e = Natural( [4u] ) -> Natural( [10000u] )
+            | _ when e = Natural( [5u] ) -> Natural( [100000u] )
+            | _ when e = Natural( [6u] ) -> Natural( [1000000u] )
+            | _ when e = Natural( [7u] ) -> Natural( [10000000u] )
+            | _ when e = Natural( [8u] ) -> Natural( [100000000u] )
+            | _ when e = Natural( [9u] ) -> Natural( [1000000000u] )
             | _ when (isEven e) ->
                 // do even code
                 let half = _rightShift 1 e
@@ -300,13 +322,23 @@ type public Natural(data:uint32 list) =
             |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf16
             |> Seq.sum
         | _ ->
+            let charToNatural (c:char) : Natural = 
+                Natural( [
+                    Convert.ToUInt32(
+                        CharUnicodeInfo.GetNumericValue( c )
+                    )
+                ] )
+
             let listToNatural (l:char list) : Natural =
-                l
-                |> List.rev
-                |> List.map (fun c -> Natural([Convert.ToUInt32(CharUnicodeInfo.GetNumericValue(c))]))
-                |> List.toSeq
-                |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf10
-                |> Seq.sum
+                List.fold (fun state c -> _add (charToNatural c) (multiplyBy10 state)) Natural.Zero l
+
+            //let listToNatural (l:char list) : Natural =
+            //    l
+            //    |> List.rev
+            //    |> List.map (fun c -> Natural([Convert.ToUInt32(CharUnicodeInfo.GetNumericValue(c))]))
+            //    |> List.toSeq
+            //    |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf10
+            //    |> Seq.sum
 
             let numberFormatInfo =
                 if null = provider
@@ -315,6 +347,47 @@ type public Natural(data:uint32 list) =
 
             let parseBuddy = ParseBuddy( style, numberFormatInfo )
             parseBuddy.Parse( s )
+
+            /////////////////////////////////////////////////////////////////
+
+            let decOffset = Natural( [uint32 parseBuddy.Decimal.Length] )
+            let expOffset = listToNatural parseBuddy.Exponent
+            let offsetNegative = 
+                parseBuddy.IsExpNegative || ( _greaterThan decOffset expOffset )
+            let offset =
+                if parseBuddy.IsExpNegative
+                then _add decOffset expOffset
+                else
+                    if offsetNegative
+                    then _subtract decOffset expOffset
+                    else _subtract expOffset decOffset
+
+            let value = 
+                if offsetNegative
+                then
+                    let tmp = List.append parseBuddy.WholeNumber parseBuddy.Decimal
+                    let tmpLength = (Natural([uint32 tmp.Length]))
+                    if _greaterThan offset tmpLength
+                    then raise (System.OverflowException())
+
+                    let splitPoint =
+                        (_subtract tmpLength offset).Data
+                        |> List.exactlyOne
+                        |> int32
+
+                    let wholePart, decPart = List.splitAt splitPoint tmp
+
+                    if not (_equality Natural.Zero (listToNatural decPart))
+                    then raise (System.OverflowException())
+
+                    wholePart
+                else
+                    let tmp =
+
+                        List.append parseBuddy.WholeNumber parseBuddy.Decimal
+                    []
+
+            /////////////////////////////////////////////////////////////////
 
             let decFactor = pow10 (Natural( [uint32 parseBuddy.Decimal.Length] ))
             let natWhole =

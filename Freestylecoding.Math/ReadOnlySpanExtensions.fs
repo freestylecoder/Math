@@ -7,7 +7,7 @@ open Microsoft.FSharp.NativeInterop
 // I do bad things with memory here.
 // I know I do bad things with memory here.
 // I'm "ok" with the bad things I do with memory here
-// This whole class is a hack around issues with F# and ReadOnlySpan<'T>
+// This whole type is a hack around issues with F# and ReadOnlySpan<'T>
 #nowarn "9"
 
 [<Extension>]
