@@ -4,6 +4,9 @@ open System
 open System.Globalization
 open System.Text.RegularExpressions
 
+// Warning for "experimental Parallel feature"
+#nowarn "57"
+
 type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
     let isUnicodeDecimalDigit (c:char) =
         UnicodeCategory.DecimalDigitNumber = CharUnicodeInfo.GetUnicodeCategory( c )
@@ -15,13 +18,11 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
         | 1 -> true
         | _ -> raise (System.FormatException())
 
-    let stringToCleanList str : char list =
-        let lst = Seq.toList str
-
-        if List.exists (fun c -> not (isUnicodeDecimalDigit( c ))) lst
+    let verifyStringIsClean (str:string) : string =
+        if Array.Parallel.exists (fun c -> not (isUnicodeDecimalDigit( c ))) (str.ToCharArray())
         then raise (System.FormatException())
 
-        lst
+        str
 
     let hasFlag (flag:NumberStyles) : bool =
         flag = (style &&& flag)
@@ -63,10 +64,15 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
 
         let group4 =
             if allowExponent
-            then "[eE]?([+\-]?[\d]*)"
+            then "[eE]?([+\-]?)"
             else "([\a]*)"
 
-        let group5 = String.Format(
+        let group5 =
+            if allowExponent
+            then "([\d]*)"
+            else "([\a]*)"
+
+        let group6 = String.Format(
                 "([{0}{1}{2}\a]*)",
                 (if allowParentheses then ")" else String.Empty),
                 (if allowCurrencySymbol then currency else String.Empty),
@@ -75,13 +81,14 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
 
         String
             .Format(
-                "^{0}{1}{2}{3}{4}{5}{6}\0*$",
+                "^{0}{1}{2}{3}{4}{5}{6}{7}\0*$",
                 (if allowLeadingWhite then "\s*" else String.Empty),
                 group1,
                 group2,
                 group3,
                 group4,
                 group5,
+                group6,
                 (if allowTrailingWhite then "\s*" else String.Empty)
             )
 
@@ -107,27 +114,13 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
 
         isNegative
 
-    let parseExponent exp = 
-        if String.IsNullOrEmpty( exp )
-        then []
-        else
-            if "+-".Contains( exp.[0] )
-            then exp.Substring( 1 )
-            else exp
-            |> stringToCleanList
-
-    let parseDecimal dec = 
-        if String.IsNullOrEmpty( dec )
-        then []
-        else stringToCleanList dec
-
     member val IsCurrency = false with get, set
     member val IsNegative = false with get, set
     member val IsExpNegative = false with get, set
 
-    member val WholeNumber = [] with get, set
-    member val Decimal = [] with get, set
-    member val Exponent = [] with get, set
+    member val WholeNumber = String.Empty with get, set
+    member val Decimal = String.Empty with get, set
+    member val Exponent = String.Empty with get, set
 
     member internal this.Parse( str:string ) : unit =
         if allowCurrencySymbol && (hasSymbol formatInfo.CurrencySymbol str)
@@ -144,18 +137,15 @@ type internal ParseBuddy( style:NumberStyles, formatInfo:NumberFormatInfo ) =
             else formatInfo.NumberDecimalSeparator
 
         let groups = Regex( getRegexString groupSeparator decimalSeparator ).Match( str ).Groups
-        if( 6 <> groups.Count ) then raise (System.FormatException())
+        if( 7 <> groups.Count ) then raise (System.FormatException())
 
         this.IsNegative <-
-            String.Concat( groups.[1].Value, groups.[5].Value )
+            String.Concat( groups.[1].Value, groups.[6].Value )
             |> parseSigns
-        this.IsExpNegative <- '-' = if groups.[4].Length > 0 then groups.[4].Value.[0] else ' '
+        this.IsExpNegative <- "-" = groups.[4].Value
 
-        this.Exponent <- parseExponent groups.[4].Value
-        this.Decimal <- parseDecimal groups.[3].Value
+        this.Exponent <- verifyStringIsClean groups.[5].Value
+        this.Decimal <- verifyStringIsClean groups.[3].Value
         this.WholeNumber <-
             groups.[2].Value.Replace( groupSeparator, String.Empty )
-            |> stringToCleanList
-
-    member internal this.Parse( span:ReadOnlySpan<char> ) : unit =
-        this.Parse( span.ToString() )
+            |> verifyStringIsClean

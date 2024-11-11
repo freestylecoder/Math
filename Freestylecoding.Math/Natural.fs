@@ -172,23 +172,27 @@ type public Natural(data:uint32 list) =
             then (right, left)
             else (left, right)
 
-        // Spilt the big number to only do the parts that will change
-        // Pad the little number to the same length as the part that will change
-        let (b0, b1, l) = findSplit big.Data little.Data (big.Data.Length - little.Data.Length)
+        // Bail on trivial case
+        if Natural.Zero = little
+        then Natural( big )
+        else
+            // Spilt the big number to only do the parts that will change
+            // Pad the little number to the same length as the part that will change
+            let (b0, b1, l) = findSplit big.Data little.Data (big.Data.Length - little.Data.Length)
 
-        let result = operation b1 l
-        Natural(
-            // See if we ended up with a bigger number than we hoped for
-            if result.Data.Length > l.Length
-            then
-                // Add the overflow to the unchanged part before prepending to the result
-                List.append
-                    ((_add (Natural( b0 )) (Natural(result.Data.Head))).Data)
-                    result.Data.Tail
-            else
-                // Prepend the unchanged part to the result
-                List.append b0 result.Data
-        )
+            let result = operation b1 l
+            Natural(
+                // See if we ended up with a bigger number than we hoped for
+                if result.Data.Length > l.Length
+                then
+                    // Add the overflow to the unchanged part before prepending to the result
+                    List.append
+                        ((_add (Natural( b0 )) (Natural(result.Data.Head))).Data)
+                        result.Data.Tail
+                else
+                    // Prepend the unchanged part to the result
+                    List.append b0 result.Data
+            )
 
     static let _subtract (left:Natural) (right:Natural) : Natural =
         if( _lessThan left right ) then raise (new OverflowException())
@@ -210,6 +214,19 @@ type public Natural(data:uint32 list) =
         Natural( List.append l0 (_compress result) )
 
     static let _multiply (left:Natural) (right:Natural) : Natural =
+        // Multiplication is communitive
+        // However, we want little to have the fewest 1s
+        let (big,little) =
+            let leftBits =
+                left.Data
+                |> List.fold (fun state ui -> _add state (Natural( Helpers.NumberOfSetBits ui )) ) Natural.Zero
+            let rightBits =
+                right.Data
+                |> List.fold (fun state ui -> _add state (Natural( Helpers.NumberOfSetBits ui )) ) Natural.Zero
+            if _lessThan leftBits rightBits
+            then (right, left)
+            else (left, right)
+
         let rec magic value bitsToShiftLeft =
             match value with
             | x when Natural.Zero = x ->
@@ -219,11 +236,15 @@ type public Natural(data:uint32 list) =
                 | z when (_equality z Natural.Zero) ->
                     magic (_rightShift 1 value) (bitsToShiftLeft+1)
                 | u when u = Natural.Unit ->
-                    (_leftShift bitsToShiftLeft left) :: (magic (_rightShift 1 value) (bitsToShiftLeft+1))
+                    (_leftShift bitsToShiftLeft big) :: (magic (_rightShift 1 value) (bitsToShiftLeft+1))
                 | _ -> failwith "not possible (bit has value other than 0 or 1)"
 
-        magic right 0
-        |> List.sum
+        match little with
+        | _ when little = Natural.Zero -> Natural.Zero
+        | _ when little = Natural.Unit -> Natural( big )
+        | _ ->
+            magic little 0
+            |> List.sum
             
     static let _divideModulo (left:Natural) (right:Natural) : Natural*Natural =
         let rec op bit =
@@ -245,25 +266,8 @@ type public Natural(data:uint32 list) =
         | _ ->
             op 0
 
-    static let _parse (s:ReadOnlySpan<char>) (style:NumberStyles) (provider:IFormatProvider) : Natural = 
+    static let _parse (s:string) (style:NumberStyles) (provider:IFormatProvider) : Natural = 
         let multiplyBy10 x = _add (_leftShift 3 x) (_leftShift 1 x)
-        let multiplyByBillion x =
-            [
-                (_leftShift 30 x);
-                (_leftShift 29 x);
-                (_leftShift 28 x);
-                (_leftShift 26 x);
-                (_leftShift 25 x);
-                (_leftShift 24 x);
-                (_leftShift 21 x);
-                (_leftShift 20 x);
-                (_leftShift 18 x);
-                (_leftShift 16 x);
-                (_leftShift 15 x);
-                (_leftShift 12 x);
-                (_leftShift 10 x)
-            ]
-            |> List.sum 
 
         let rec pow10 (e:Natural) : Natural =
             let isEven (x:'T when 'T :> INumberBase<'T>) =
@@ -294,7 +298,6 @@ type public Natural(data:uint32 list) =
                 multiplyBy10 (_multiply result result)
 
         let powersOf2 = Seq.unfold (fun state -> Some( state, _leftShift 1 state )) Natural.Unit
-        let powersOf10 = Seq.unfold (fun state -> Some( state, multiplyBy10 state )) Natural.Unit
         let powersOf16 = Seq.unfold (fun state -> Some( state, _leftShift 4 state )) Natural.Unit
 
         let hasFlag (flag:NumberStyles) : bool =
@@ -304,22 +307,22 @@ type public Natural(data:uint32 list) =
         | (true,true) ->
             raise (System.ArgumentException( "With the AllowHexSpecifier or AllowBinarySpecifier bit set in the enum bit field, the only other valid bits that can be combined into the enum value must be AllowLeadingWhite and AllowTrailingWhite.", nameof( style )))
         | (true,false) ->
-            if s.ContainsAnyExcept( '0', '1' )
+            if s.Any( (fun c -> not (('0' = c) || ('1' = c))) )
             then raise (System.FormatException())
                     
-            s.ToSeq()
+            s
             |> Seq.rev
-            |> Seq.map (fun c -> if '0' = c then Natural.Zero else Natural.Unit )
-            |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf2
+            |> Seq.map2 (fun n c -> if '0' = c then Natural.Zero else n ) powersOf2
             |> Seq.sum
         | (false,true) ->
-            if s.ContainsAnyExcept( "0123456789abcdefABCDEF".AsSpan() )
+            if s.Any( (fun c -> not ("0123456789abcdefABCDEF".Contains( c ))) )
             then raise (System.FormatException())
                     
-            s.ToSeq()
+            s
             |> Seq.rev
-            |> Seq.map (fun c -> Natural(Convert.ToUInt32(c.ToString(), 16)))
-            |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf16
+            |> Seq.map2 (fun n1 c -> _multiply n1 (Natural(Convert.ToUInt32(c.ToString(), 16)))) powersOf16
+            //|> Seq.map (fun c -> Natural(Convert.ToUInt32(c.ToString(), 16)))
+            //|> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf16
             |> Seq.sum
         | _ ->
             let charToNatural (c:char) : Natural = 
@@ -329,16 +332,9 @@ type public Natural(data:uint32 list) =
                     )
                 ] )
 
-            let listToNatural (l:char list) : Natural =
-                List.fold (fun state c -> _add (charToNatural c) (multiplyBy10 state)) Natural.Zero l
-
-            //let listToNatural (l:char list) : Natural =
-            //    l
-            //    |> List.rev
-            //    |> List.map (fun c -> Natural([Convert.ToUInt32(CharUnicodeInfo.GetNumericValue(c))]))
-            //    |> List.toSeq
-            //    |> Seq.map2 (fun n1 n2 -> _multiply n1 n2 ) powersOf10
-            //    |> Seq.sum
+            let stringToNatural (s:string) : Natural =
+                s.ToCharArray()
+                |> Array.fold (fun state c -> _add (charToNatural c) (multiplyBy10 state)) Natural.Zero
 
             let numberFormatInfo =
                 if null = provider
@@ -348,60 +344,20 @@ type public Natural(data:uint32 list) =
             let parseBuddy = ParseBuddy( style, numberFormatInfo )
             parseBuddy.Parse( s )
 
-            /////////////////////////////////////////////////////////////////
-
-            let decOffset = Natural( [uint32 parseBuddy.Decimal.Length] )
-            let expOffset = listToNatural parseBuddy.Exponent
-            let offsetNegative = 
-                parseBuddy.IsExpNegative || ( _greaterThan decOffset expOffset )
-            let offset =
-                if parseBuddy.IsExpNegative
-                then _add decOffset expOffset
-                else
-                    if offsetNegative
-                    then _subtract decOffset expOffset
-                    else _subtract expOffset decOffset
-
-            let value = 
-                if offsetNegative
-                then
-                    let tmp = List.append parseBuddy.WholeNumber parseBuddy.Decimal
-                    let tmpLength = (Natural([uint32 tmp.Length]))
-                    if _greaterThan offset tmpLength
-                    then raise (System.OverflowException())
-
-                    let splitPoint =
-                        (_subtract tmpLength offset).Data
-                        |> List.exactlyOne
-                        |> int32
-
-                    let wholePart, decPart = List.splitAt splitPoint tmp
-
-                    if not (_equality Natural.Zero (listToNatural decPart))
-                    then raise (System.OverflowException())
-
-                    wholePart
-                else
-                    let tmp =
-
-                        List.append parseBuddy.WholeNumber parseBuddy.Decimal
-                    []
-
-            /////////////////////////////////////////////////////////////////
-
-            let decFactor = pow10 (Natural( [uint32 parseBuddy.Decimal.Length] ))
+            let decFactor = Natural( [uint32 parseBuddy.Decimal.Length] )
             let natWhole =
-                parseBuddy.Decimal
-                |> List.append parseBuddy.WholeNumber
-                |> listToNatural
+                String.Concat( parseBuddy.WholeNumber, parseBuddy.Decimal )
+                |> stringToNatural
 
-            let natExp = listToNatural parseBuddy.Exponent
-            let expFactor = pow10 natExp
+            let natExp = stringToNatural parseBuddy.Exponent
 
             let (q,r) =
                 if parseBuddy.IsExpNegative
-                then _divideModulo natWhole ( _multiply expFactor decFactor )
-                else _divideModulo ( _multiply natWhole expFactor ) decFactor
+                then _divideModulo natWhole ( _add natExp decFactor |> pow10 )
+                else
+                    if _greaterThan natExp decFactor
+                    then (_multiply ( _subtract natExp decFactor |> pow10 ) natWhole, Natural.Zero)
+                    else _divideModulo natWhole ( _subtract decFactor natExp |> pow10 )
                 
             if _greaterThan r Natural.Zero
             then raise (System.OverflowException())
@@ -411,7 +367,7 @@ type public Natural(data:uint32 list) =
 
             q
 
-    static let _tryParse (s:ReadOnlySpan<Char>) (style:NumberStyles) (provider:IFormatProvider) (result:byref<Natural>) : bool =
+    static let _tryParse (s:string) (style:NumberStyles) (provider:IFormatProvider) (result:byref<Natural>) : bool =
         try
             result <- _parse s style provider
             true
@@ -717,19 +673,16 @@ type public Natural(data:uint32 list) =
                 | _ -> raise (new ArgumentException( "obj is not the same type as this instance." ))
 
         static member Parse (s:string) : Natural =
-            _parse (s.AsSpan()) _defaultNumberStyle _defaultFormatProvider
+            _parse s _defaultNumberStyle _defaultFormatProvider
         static member Parse (s:string, style:System.Globalization.NumberStyles) : Natural =
-            _parse (s.AsSpan()) style _defaultFormatProvider
+            _parse s style _defaultFormatProvider
 
         static member TryParse( s:string, result:byref<Natural>) : bool =
-            _tryParse (s.AsSpan()) _defaultNumberStyle _defaultFormatProvider &result
-        static member TryParse( s:ReadOnlySpan<Char>, result:byref<Natural>) : bool =
             _tryParse s _defaultNumberStyle _defaultFormatProvider &result
+        static member TryParse( s:ReadOnlySpan<Char>, result:byref<Natural>) : bool =
+            _tryParse (s.ToString()) _defaultNumberStyle _defaultFormatProvider &result
         static member TryParse( s:ReadOnlySpan<Byte>, result:byref<Natural>) : bool =
-            let utf16text = Span<Char>( ( Array.create s.Length '\u0000' ) )
-            let mutable x = 0
-            System.Text.Unicode.Utf8.ToUtf16( s, utf16text, &x, &x, true, true ) |> ignore
-            _tryParse utf16text _defaultNumberStyle _defaultFormatProvider &result
+            _tryParse (System.Text.Encoding.UTF8.GetString( s )) _defaultNumberStyle _defaultFormatProvider &result
 
         //interface IUnsignedNumber<Natural> with
         interface IEquatable<Natural> with
@@ -1032,15 +985,15 @@ type public Natural(data:uint32 list) =
             ///     The exception is this method also allows <see cref="System.Globalization.NumberFormatInfo.NumberGroupSeparator"/>
             /// </remarks>
             static member Parse( s:string, provider:IFormatProvider ) : Natural =
-                _parse (s.AsSpan()) _defaultNumberStyle provider
+                _parse s _defaultNumberStyle provider
             static member TryParse( s: string, provider: IFormatProvider, result: byref<Natural> ): bool = 
-                _tryParse (s.AsSpan()) _defaultNumberStyle provider &result
+                _tryParse s _defaultNumberStyle provider &result
         
         interface ISpanParsable<Natural> with
             static member Parse( s: ReadOnlySpan<char>, provider: IFormatProvider ) : Natural = 
-                _parse s _defaultNumberStyle provider
+                _parse (s.ToString()) _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<char>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
-                _tryParse s _defaultNumberStyle provider &result
+                _tryParse (s.ToString()) _defaultNumberStyle provider &result
         
         interface IUtf8SpanFormattable with
             member this.TryFormat(utf8Destination: Span<byte>, bytesWritten: byref<int>, format: ReadOnlySpan<char>, provider: IFormatProvider): bool = 
@@ -1079,15 +1032,9 @@ type public Natural(data:uint32 list) =
             // INumberBase<T> handles ALL the ReadOnlySpan<byte> cases
             // Unfortunately, F# has no way to access them
             static member Parse( utf8text: ReadOnlySpan<byte>, provider: IFormatProvider ) : Natural = 
-                let utf16text = Span<Char>( ( Array.create utf8text.Length '\u0000' ) )
-                let mutable x = 0
-                System.Text.Unicode.Utf8.ToUtf16( utf8text, utf16text, &x, &x, true, true ) |> ignore
-                _parse utf16text _defaultNumberStyle provider
+                _parse (System.Text.Encoding.UTF8.GetString( utf8text )) _defaultNumberStyle provider
             static member TryParse( s: ReadOnlySpan<byte>, provider: IFormatProvider, result: byref<Natural> ) : bool = 
-                let utf16text = Span<Char>( ( Array.create s.Length '\u0000' ) )
-                let mutable x = 0
-                System.Text.Unicode.Utf8.ToUtf16( s, utf16text, &x, &x, true, true ) |> ignore
-                _tryParse utf16text _defaultNumberStyle provider &result
+                _tryParse (System.Text.Encoding.UTF8.GetString( s )) _defaultNumberStyle provider &result
         
         interface INumberBase<Natural> with
             static member One
@@ -1166,14 +1113,14 @@ type public Natural(data:uint32 list) =
                 else y
 
             static member Parse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                _parse s style provider
+                _parse (s.ToString()) style provider
             static member Parse( s:string, style:NumberStyles, provider:IFormatProvider ) : Natural = 
-                _parse (s.AsSpan()) style provider
+                _parse s style provider
 
             static member TryParse( s:ReadOnlySpan<char>, style:NumberStyles, provider:IFormatProvider, result:byref<Natural> ) : bool = 
-                _tryParse s style provider &result
+                _tryParse (s.ToString()) style provider &result
             static member TryParse( s:string, style:NumberStyles, provider: IFormatProvider, result:byref<Natural> ) : bool = 
-                _tryParse (s.AsSpan()) style provider &result
+                _tryParse s style provider &result
 
             static member TryConvertFromChecked<'TOther when 'TOther :> System.Numerics.INumberBase<'TOther>>( value:'TOther, result:byref<Natural> ) : bool = 
                 // HACK: The F# type coersion system wouldn't pattern match on the generic type
