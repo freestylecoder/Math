@@ -1,5 +1,4 @@
-﻿
-namespace Natural
+﻿namespace Natural
 
 open Xunit
 open Freestylecoding.Math
@@ -145,7 +144,7 @@ type public ToStringFormat() =
     [<InlineData( "N" )>]
     [<InlineData( "P" )>]
     [<InlineData( "R" )>]
-    [<InlineData( "D" )>]
+    [<InlineData( "X" )>]
     [<InlineData( "b" )>]//, Skip = "Not Supported until dotnet8" )>]
     [<InlineData( "c" )>]
     [<InlineData( "d" )>]

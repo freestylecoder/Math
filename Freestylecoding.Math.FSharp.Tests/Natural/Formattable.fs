@@ -38,7 +38,7 @@ type public Formattable() =
     [<InlineData( "N" )>]
     [<InlineData( "P" )>]
     [<InlineData( "R" )>]
-    [<InlineData( "D" )>]
+    [<InlineData( "X" )>]
     [<InlineData( "b" )>]//, Skip = "Not Supported until dotnet8" )>]
     [<InlineData( "c" )>]
     [<InlineData( "d" )>]

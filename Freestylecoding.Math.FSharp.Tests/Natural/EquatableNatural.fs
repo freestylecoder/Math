@@ -12,17 +12,17 @@ type public EquatableNatural() =
     member public this.Sanity left right expected =
         Assert.Equal(
             expected,
-            Natural( [left] ).Equals( Natural( [right] ) )
+            (Natural( [left] ) :> System.IEquatable<Natural>).Equals( Natural( [right] ) )
         )
 
     [<Fact>]
     member public this.LargeNaturalsTrue () =
         Assert.True(
-            Natural( [0xFu; 0x00000101u] ).Equals( Natural( [0xFu; 0x00000101u] ) )
+            (Natural( [0xFu; 0x00000101u] ) :> System.IEquatable<Natural>).Equals( Natural( [0xFu; 0x00000101u] ) )
         )
 
     [<Fact>]
     member public this.LargeNaturalsFalse () =
         Assert.False(
-            Natural( [0x8u; 0x00000101u] ).Equals( Natural( [0xFu; 0x00000101u] ) )
+            (Natural( [0x8u; 0x00000101u] ) :> System.IEquatable<Natural>).Equals( Natural( [0xFu; 0x00000101u] ) )
         )

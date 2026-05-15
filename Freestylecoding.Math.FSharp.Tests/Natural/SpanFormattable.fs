@@ -67,7 +67,7 @@ type public SpanFormattable() =
     [<InlineData( "N" )>]
     [<InlineData( "P" )>]
     [<InlineData( "R" )>]
-    [<InlineData( "D" )>]
+    [<InlineData( "X" )>]
     [<InlineData( "b" )>]
     [<InlineData( "c" )>]
     [<InlineData( "d" )>]

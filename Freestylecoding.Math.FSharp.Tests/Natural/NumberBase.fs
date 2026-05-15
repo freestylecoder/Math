@@ -209,7 +209,6 @@ type public NumberBase() =
     [<Fact>]
     member public this.CreateChecked() =
         Assert.Equal( Natural.Unit, Numerics.INumberBase<Natural>.CreateChecked( 1uy ) )
-        Assert.Equal( Natural.Unit, Numerics.INumberBase<Natural>.CreateChecked( 1uy ) )
         Assert.Equal( Natural.Unit, Numerics.INumberBase<Natural>.CreateChecked( 1us ) )
         Assert.Equal( Natural.Unit, Numerics.INumberBase<Natural>.CreateChecked( 1u ) )
         Assert.Equal( Natural.Unit, Numerics.INumberBase<Natural>.CreateChecked( 1UL ) )
