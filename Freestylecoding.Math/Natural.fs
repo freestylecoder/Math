@@ -9,6 +9,13 @@ open System.Globalization
 // Mostly a necessary evil because of the static interface calls
 #nowarn "3536"
 
+// TODO: v2
+//  Make this a struct so it acts like a true value type
+//  Even though F# doesn't like Increment and Decrement operators
+//    C# does like them, and postfix Increment and Decrement won't work on Ref Types
+//    This will mean a refactor of ALL the types, as you can't inherit a Value Type
+//  It will also mean being REALLY careful with the list
+//    As we will have a VauleType wrapping a ReferenceType
 [<Diagnostics.DebuggerDisplay( "{SingleThreadedToString()}" )>]
 type public Natural(data:uint32 list) =
     static let _defaultNumberStyle = NumberStyles.Integer ||| NumberStyles.AllowThousands
@@ -375,7 +382,12 @@ type public Natural(data:uint32 list) =
             result <- Natural.Zero
             false
 
-    member internal Natural.Data = _compress data
+    // NOTE: This is a hack specifically for Increment and Decrement
+    //  ONLY Increment and Decrement should use the private set
+    let mutable internalData = data
+    member Natural.Data
+      with internal get () = _compress internalData
+      and private set (d) = internalData <- d
 
     new() = Natural( [0u] )
     new(data:Natural) = Natural( data.Data )
@@ -458,6 +470,10 @@ type public Natural(data:uint32 list) =
         static member (~~~) (right:Natural) : Natural =
             _bitwiseNot right
 
+        // This is here for C#
+        static member op_OnesComplement(right:Natural) : Natural =
+            _bitwiseNot right
+
         static member (<<<) (left:Natural, (right:int)) : Natural =
             _leftShift right left
 
@@ -504,6 +520,16 @@ type public Natural(data:uint32 list) =
         static member (%) (left:Natural, right:Natural) : Natural =
             let (_,r) = _divideModulo left right
             r
+
+        static member op_Increment (value:Natural) : Natural =
+            let result = _add value Natural.Unit
+            value.Data <- result.Data
+            result
+
+        static member op_Decrement (value:Natural) : Natural =
+            let result = _subtract value Natural.Unit
+            value.Data <- result.Data
+            result
 
         // Unary
 
@@ -722,7 +748,7 @@ type public Natural(data:uint32 list) =
             static member op_CheckedIncrement ( value:Natural ) : Natural = 
                 IIncrementOperators<Natural>.op_CheckedIncrement( value )
             static member op_Increment( value:Natural ) : Natural =
-                _add value Natural.Unit
+                Natural.op_Increment( value )
 
         interface ISubtractionOperators<Natural,Natural,Natural> with
             // Both of these throw an OverflowException
