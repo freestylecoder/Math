@@ -382,12 +382,7 @@ type public Natural(data:uint32 list) =
             result <- Natural.Zero
             false
 
-    // NOTE: This is a hack specifically for Increment and Decrement
-    //  ONLY Increment and Decrement should use the private set
-    let mutable internalData = data
-    member Natural.Data
-      with internal get () = _compress internalData
-      and private set (d) = internalData <- d
+    member internal Natural.Data = _compress data
 
     new() = Natural( [0u] )
     new(data:Natural) = Natural( data.Data )
@@ -521,17 +516,13 @@ type public Natural(data:uint32 list) =
             let (_,r) = _divideModulo left right
             r
 
+        // Unary
         static member op_Increment (value:Natural) : Natural =
-            let result = _add value Natural.Unit
-            value.Data <- result.Data
-            result
+            _add value Natural.Unit
 
         static member op_Decrement (value:Natural) : Natural =
-            let result = _subtract value Natural.Unit
-            value.Data <- result.Data
-            result
+            _subtract value Natural.Unit
 
-        // Unary
 
         // .NET Object Overrides
         static member private Equals( this:Natural, that:obj ) =
