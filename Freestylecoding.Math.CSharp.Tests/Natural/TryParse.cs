@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Xunit;
 
-namespace Freestylecoding.Math.CSharp.Tests.Natural;
+namespace Natural.Tests;
 
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
@@ -50,7 +50,7 @@ file class Overload {
 }
 
 public class TryParseString {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -241,7 +241,7 @@ public class TryParseString {
 }
 
 public class TryParseStringFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -464,7 +464,7 @@ public class TryParseStringFormat {
 }
 
 public class TryParseStringStyleFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -1097,7 +1097,7 @@ public class TryParseStringStyleFormat {
 }
 
 public class TryParseSpan {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -1288,7 +1288,7 @@ public class TryParseSpan {
 }
 
 public class TryParseSpanFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -1511,7 +1511,7 @@ public class TryParseSpanFormat {
 }
 
 public class TryParseSpanStyleFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -2147,7 +2147,7 @@ public class TryParseUtf8 {
 	private static ReadOnlySpan<byte> toSpan( string s ) =>
 		new ReadOnlySpan<byte>( System.Text.Encoding.UTF8.GetBytes( s ) );
 
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -2341,7 +2341,7 @@ public class TryParseUtf8Format {
 	private static ReadOnlySpan<byte> toSpan( string s ) =>
 		new ReadOnlySpan<byte>( System.Text.Encoding.UTF8.GetBytes( s ) );
 
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -2567,7 +2567,7 @@ public class TryParseUtf8StyleFormat {
 	private static ReadOnlySpan<byte> toSpan( string s ) =>
 		new ReadOnlySpan<byte>( System.Text.Encoding.UTF8.GetBytes( s ) );
 
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity

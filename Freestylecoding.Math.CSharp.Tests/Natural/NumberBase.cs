@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace Freestylecoding.Math.CSharp.Tests.Natural;
+namespace Natural.Tests;
 
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;

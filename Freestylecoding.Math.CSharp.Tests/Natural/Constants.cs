@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Freestylecoding.Math.CSharp.Tests.Natural;
+namespace Natural.Tests;
 
 using Natural = Freestylecoding.Math.Natural;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;

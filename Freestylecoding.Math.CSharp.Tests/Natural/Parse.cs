@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Xunit;
 
-namespace Freestylecoding.Math.CSharp.Tests.Natural;
+namespace Natural.Tests;
 
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
@@ -226,7 +226,7 @@ public class ParseString {
 }
 
 public class ParseStringStyle {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	[Theory]
 	[InlineData( 0u, "0" )]          // Sanity
@@ -753,7 +753,7 @@ public class ParseStringStyle {
 }
 
 public class ParseStringFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T ParsableParse<T>( string s, IFormatProvider info ) where T : IParsable<T> =>
 		T.Parse( s, info );
@@ -1058,7 +1058,7 @@ public class ParseStringFormat {
 }
 
 public class ParseStringStyleFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T NumberBaseParse<T>( string s, NumberStyles style, IFormatProvider info ) where T : System.Numerics.INumberBase<T> =>
 		T.Parse( s, style, info );
@@ -1630,7 +1630,7 @@ public class ParseStringStyleFormat {
 }
 
 public class ParseSpanFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T SpanParsableParse<T>( ReadOnlySpan<char> s, IFormatProvider info ) where T : ISpanParsable<T> =>
 		T.Parse( s, info );
@@ -1919,7 +1919,7 @@ public class ParseSpanFormat {
 }
 
 public class ParseSpanStyleFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T NumberBaseParse<T>( ReadOnlySpan<char> s, NumberStyles style, IFormatProvider info ) where T : System.Numerics.INumberBase<T> =>
 		T.Parse( s, style, info );
@@ -2491,7 +2491,7 @@ public class ParseSpanStyleFormat {
 }
 
 public class ParseUtf8Format {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T UtfSpanParsableParse<T>( ReadOnlySpan<byte> s, IFormatProvider info ) where T : IUtf8SpanParsable<T> =>
 		T.Parse( s, info );
@@ -2783,7 +2783,7 @@ public class ParseUtf8Format {
 }
 
 public class ParseUtf8StyleFormat {
-	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Helpers.Whitespace;
+	public static readonly System.Collections.Generic.IEnumerable<object[]> Whitespace = Freestylecoding.Math.CSharp.Tests.Helpers.Whitespace;
 
 	private static T NumberBaseParse<T>( ReadOnlySpan<byte> s, NumberStyles style, IFormatProvider info ) where T : System.Numerics.INumberBase<T> =>
 		T.Parse( s, style, info );
