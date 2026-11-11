@@ -1,4 +1,5 @@
 ﻿using System;
+using Freestylecoding.Math.CSharp.Tests;
 using Xunit;
 
 namespace Natural.Tests;
@@ -6,30 +7,18 @@ namespace Natural.Tests;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
 
-public class Comparable {
+public class Comparable : Freestylecoding.Math.Interface.Tests.TComparable<Natural> {
 	private static readonly Random random = new Random();
 
 	private static Func<int,bool> eq = (int actual) => actual == 0;
 	private static Func<int,bool> gt = (int actual) => actual > 0;
 	private static Func<int,bool> lt = (int actual) => actual < 0;
 
-	[Theory]
-	[InlineData( 0u, 0u, 0 )]
-	[InlineData( 1u, 1u, 0 )]
-	[InlineData( 1u, 0u, 1 )]
-	[InlineData( 0u, 1u, -1 )]
-	public void Sanity( uint left, uint right, int expected ) {
-		Func<int, bool> TestFunc = expected switch {
-			0 => eq,
-			_ when expected > 0 => gt,
-			_ when expected < 0 => lt,
-			_ => throw new Exception( "Not Possible" )
-		};
-
-		Assert.True(
-			TestFunc( ( new Natural( left ) as IComparable ).CompareTo( new Natural( right ) ) )
-		);
-	}
+	public override Natural smallest => Natural.Zero;
+	public override Natural small => Natural.Unit;
+	public override Natural medium => SmallNatural;
+	public override Natural large => MediumNatural;
+	public override Natural largest => LargeNatural;
 
 	[Fact( DisplayName = "Equals" )]
 	public void EqualsTest() {

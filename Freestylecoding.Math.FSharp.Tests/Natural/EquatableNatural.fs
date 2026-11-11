@@ -4,16 +4,13 @@ open Xunit
 open Freestylecoding.Math
 
 type public EquatableNatural() =
-    [<Theory>]
-    [<InlineData(  0u,  0u, true)>]
-    [<InlineData(  1u,  0u, false)>]
-    [<InlineData(  0u,  1u, false)>]
-    [<InlineData(  1u,  1u, true)>]
-    member public this.Sanity left right expected =
-        Assert.Equal(
-            expected,
-            (Natural( [left] ) :> System.IEquatable<Natural>).Equals( Natural( [right] ) )
-        )
+    inherit Freestylecoding.Math.Interface.Tests.TEquatableT<Natural>()
+
+    override this.item1 = Natural.Unit
+    override this.item2 = Natural.Unit
+    override this.item3 = Natural.Unit
+    override this.different1 = Natural.Zero
+    override this.different2 = Natural( [System.UInt32.MaxValue] )
 
     [<Fact>]
     member public this.LargeNaturalsTrue () =

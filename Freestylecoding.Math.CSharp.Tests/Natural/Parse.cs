@@ -785,16 +785,16 @@ public class ParseStringFormat {
 	[Fact]
 	public void NullFormatIsCurrentCulture() {
 		Assert.Equal(
-			ParsableParse<Natural>( SmallNaturalString, CurrentCultureNumberFormat ),
-			ParsableParse<Natural>( SmallNaturalString, null )
+			ParsableParse<Natural>( SmallString, CurrentCultureNumberFormat ),
+			ParsableParse<Natural>( SmallString, null )
 		);
 		Assert.Equal(
-			ParsableParse<Natural>( MediumNaturalString, CurrentCultureNumberFormat ),
-			ParsableParse<Natural>( MediumNaturalString, null )
+			ParsableParse<Natural>( MediumString, CurrentCultureNumberFormat ),
+			ParsableParse<Natural>( MediumString, null )
 		);
 		Assert.Equal(
-			ParsableParse<Natural>( LargeNaturalString, CurrentCultureNumberFormat ),
-			ParsableParse<Natural>( LargeNaturalString, null )
+			ParsableParse<Natural>( LargeString, CurrentCultureNumberFormat ),
+			ParsableParse<Natural>( LargeString, null )
 		);
 	}
 
@@ -1944,7 +1944,7 @@ public class ParseSpanStyleFormat {
 		Assert.Equal(
 			MediumNatural,
 			NumberBaseParse<Natural>(
-				MediumNaturalString.AsSpan(),
+				MediumString.AsSpan(),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat
 			)
@@ -2811,7 +2811,7 @@ public class ParseUtf8StyleFormat {
 		Assert.Equal(
 			MediumNatural,
 			NumberBaseParse<Natural>(
-				ToSpan( MediumNaturalString ),
+				ToSpan( MediumString ),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat
 			)

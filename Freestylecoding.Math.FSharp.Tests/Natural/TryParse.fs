@@ -2297,7 +2297,7 @@ type public TryParseUtf8Format() =
             Assert.True( Overload.TryParse((toSpan "11"), culture, &result) )
             Assert.Equal( Natural( 11u ), result )
 
- type public TryParseUtf8StyleFormat() =
+type public TryParseUtf8StyleFormat() =
     let toSpan (s:string) : ReadOnlySpan<byte> =
         ReadOnlySpan<byte>( System.Text.Encoding.UTF8.GetBytes(s) )
 

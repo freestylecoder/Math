@@ -171,20 +171,20 @@ public class ToStringFormat {
 	public void GeneralAndRoundTrip() {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "G" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "g" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "R" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "r" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "G" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "g" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "R" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "r" ) );
 
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "G" ) );
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "g" ) );
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "R" ) );
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "r" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "G" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "g" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "R" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "r" ) );
 
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "G" ) );
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "g" ) );
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "R" ) );
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "r" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "G" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "g" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "R" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "r" ) );
 	}
 
 	[Fact]
@@ -192,40 +192,40 @@ public class ToStringFormat {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
 		foreach( int i in Enumerable.Range( 0, 20 ) ) {
-			Assert.Equal( SmallNaturalString, SmallNatural.ToString( $"G{i}" ) );
-			Assert.Equal( SmallNaturalString, SmallNatural.ToString( $"g{i}" ) );
-			Assert.Equal( SmallNaturalString, SmallNatural.ToString( $"R{i}" ) );
-			Assert.Equal( SmallNaturalString, SmallNatural.ToString( $"r{i}" ) );
+			Assert.Equal( SmallString, SmallNatural.ToString( $"G{i}" ) );
+			Assert.Equal( SmallString, SmallNatural.ToString( $"g{i}" ) );
+			Assert.Equal( SmallString, SmallNatural.ToString( $"R{i}" ) );
+			Assert.Equal( SmallString, SmallNatural.ToString( $"r{i}" ) );
 
-			Assert.Equal( MediumNaturalString, MediumNatural.ToString( $"G{i}" ) );
-			Assert.Equal( MediumNaturalString, MediumNatural.ToString( $"g{i}" ) );
-			Assert.Equal( MediumNaturalString, MediumNatural.ToString( $"R{i}" ) );
-			Assert.Equal( MediumNaturalString, MediumNatural.ToString( $"r{i}" ) );
+			Assert.Equal( MediumString, MediumNatural.ToString( $"G{i}" ) );
+			Assert.Equal( MediumString, MediumNatural.ToString( $"g{i}" ) );
+			Assert.Equal( MediumString, MediumNatural.ToString( $"R{i}" ) );
+			Assert.Equal( MediumString, MediumNatural.ToString( $"r{i}" ) );
 
-			Assert.Equal( LargeNaturalString, LargeNatural.ToString( $"G{i}" ) );
-			Assert.Equal( LargeNaturalString, LargeNatural.ToString( $"g{i}" ) );
-			Assert.Equal( LargeNaturalString, LargeNatural.ToString( $"R{i}" ) );
-			Assert.Equal( LargeNaturalString, LargeNatural.ToString( $"r{i}" ) );
+			Assert.Equal( LargeString, LargeNatural.ToString( $"G{i}" ) );
+			Assert.Equal( LargeString, LargeNatural.ToString( $"g{i}" ) );
+			Assert.Equal( LargeString, LargeNatural.ToString( $"R{i}" ) );
+			Assert.Equal( LargeString, LargeNatural.ToString( $"r{i}" ) );
 		}
 	}
 
 	[Fact]
 	public void Decimal() {
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "D" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "d" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "D" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "d" ) );
 
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "D" ) );
-		Assert.Equal( MediumNaturalString, MediumNatural.ToString( "d" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "D" ) );
+		Assert.Equal( MediumString, MediumNatural.ToString( "d" ) );
 
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "D" ) );
-		Assert.Equal( LargeNaturalString, LargeNatural.ToString( "d" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "D" ) );
+		Assert.Equal( LargeString, LargeNatural.ToString( "d" ) );
 	}
 
 	[Fact]
 	public void Decimal_Precision() {
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "D0" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "D4" ) );
-		Assert.Equal( SmallNaturalString, SmallNatural.ToString( "D8" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "D0" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "D4" ) );
+		Assert.Equal( SmallString, SmallNatural.ToString( "D8" ) );
 		Assert.Equal( "001234567890", SmallNatural.ToString( "D12" ) );
 	}
 

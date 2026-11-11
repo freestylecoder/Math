@@ -7,13 +7,25 @@ using Microsoft.FSharp.Collections;
 namespace Freestylecoding.Math.CSharp.Tests {
 	internal static class Helpers {
 		internal static readonly Math.Natural SmallNatural  = FListNatural( 0x4996_02D2u );
-		internal const string SmallNaturalString = "1234567890";
+		internal static readonly Math.Integer SmallInteger  = FListInteger( 0x4996_02D2u );
+		internal const string SmallString = "1234567890";
 
 		internal static readonly Math.Natural MediumNatural = FListNatural( 0xAB54_A98Cu, 0xEB1F_0AD2u );
-		internal const string MediumNaturalString = "12345678901234567890";
+		internal static readonly Math.Integer MediumInteger = FListInteger( 0xAB54_A98Cu, 0xEB1F_0AD2u );
+		internal const string MediumString = "12345678901234567890";
 
 		internal static readonly Math.Natural LargeNatural  = FListNatural( 0x0000_0001u, 0x8EE9_0FF6u, 0xC373_E0EEu, 0x4E3F_0AD2u );
-		internal const string LargeNaturalString = "123456789012345678901234567890";
+		internal static readonly Math.Integer LargeInteger  = FListInteger( 0x0000_0001u, 0x8EE9_0FF6u, 0xC373_E0EEu, 0x4E3F_0AD2u );
+		internal const string LargeString = "123456789012345678901234567890";
+
+		internal static readonly Math.Integer SmallNegativeInteger  = -SmallInteger;
+		internal const string SmallNegativeString = $"-{SmallString}";
+
+		internal static readonly Math.Integer MediumNegativeInteger = -MediumInteger;
+		internal const string MediumNegativeString = $"-{MediumString}";
+
+		internal static readonly Math.Integer LargeNegativeInteger  = -LargeInteger;
+		internal const string LargeNegativeString = $"-{LargeString}";
 
 		// Used to initialize anything byref so we can see if it changes to 0
 		internal static readonly Math.Natural DeadBeef = new Math.Natural( 0xDeadBeeful );
@@ -50,5 +62,13 @@ namespace Freestylecoding.Math.CSharp.Tests {
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static Math.Natural FListNatural( params uint[] items ) =>
 			new Math.Natural( FList( items ) );
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Math.Integer FListInteger( params uint[] items ) =>
+			new Math.Integer( FList( items ) );
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static Math.Integer FListInteger( bool negative, params uint[] items ) =>
+			new Math.Integer( FList( items ), negative );
 	}
 }

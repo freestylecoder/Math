@@ -4,30 +4,15 @@ open Xunit
 open Freestylecoding.Math
 
 type public EqualityOperators() =
-    static member Equality( this:'T when 'T :> System.Numerics.IEqualityOperators<'T,'T,bool>, that:'T ) : bool =
-        'T.op_Equality( this, that )
+    inherit Freestylecoding.Math.Interface.Tests.TEqualityOperatorsSelf<Natural>()
 
-    static member Inequality( this:'T when 'T :> System.Numerics.IEqualityOperators<'T,'T,bool>, that:'T ) : bool =
-        'T.op_Inequality( this, that )
-
-    [<Theory>]
-    [<InlineData(  0u,  0u, true)>]
-    [<InlineData(  1u,  0u, false)>]
-    [<InlineData(  0u,  1u, false)>]
-    [<InlineData(  1u,  1u, true)>]
-    member public this.EqualitySanity left right (expected:bool) =
-        Assert.Equal(
-            expected,
-            EqualityOperators.Equality(
-                Natural( [left] ),
-                Natural( [right] )
-            )
-        )
+    override _.self1  = Natural.Zero
+    override _.self2  = Natural.Unit
 
     [<Fact>]
     member public this.EqualityLargeNaturalsTrue () =
         Assert.True(
-            EqualityOperators.Equality(
+            this.Equality(
                 Natural( [0xFu; 0x00000101u] ),
                 Natural( [0xFu; 0x00000101u] )
             )
@@ -36,30 +21,16 @@ type public EqualityOperators() =
     [<Fact>]
     member public this.EqualityLargeNaturalsFalse () =
         Assert.False(
-            EqualityOperators.Equality(
+            this.Equality(
                 Natural( [0x8u; 0x00000101u] ),
                 Natural( [0xFu; 0x00000101u] )
-            )
-        )
-
-    [<Theory>]
-    [<InlineData(  0u,  0u, false)>]
-    [<InlineData(  1u,  0u, true)>]
-    [<InlineData(  0u,  1u, true)>]
-    [<InlineData(  1u,  1u, false)>]
-    member public this.InequalitySanity left right (expected:bool) =
-        Assert.Equal(
-            expected,
-            EqualityOperators.Inequality(
-                Natural( [left] ),
-                Natural( [right] )
             )
         )
 
     [<Fact>]
     member public this.InequalityLargeNaturalsFalse () =
         Assert.False(
-            EqualityOperators.Inequality(
+            this.Inequality(
                 Natural( [0xFu; 0x00000101u] ),
                 Natural( [0xFu; 0x00000101u] )
             )
@@ -68,7 +39,7 @@ type public EqualityOperators() =
     [<Fact>]
     member public this.InequalityLargeNaturalsTrue () =
         Assert.True(
-            EqualityOperators.Inequality(
+            this.Inequality(
                 Natural( [0x8u; 0x00000101u] ),
                 Natural( [0xFu; 0x00000101u] )
             )

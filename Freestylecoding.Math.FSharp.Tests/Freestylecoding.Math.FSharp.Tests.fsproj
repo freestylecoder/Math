@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
@@ -9,6 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Integer\Sanity.fs" />
+    <Compile Include="Integer\Constructors.fs" />
+    <Compile Include="Integer\Constants.fs" />
+    <Compile Include="Integer\Implicit.fs" />
+    <Compile Include="Integer\BitwiseOperators.fs" />
+    <Compile Include="Integer\ComparisonOperators.fs" />
+    <Compile Include="Integer\ArithmeticOperators.fs" />
+    <Compile Include="Integer\ObjectOverrides.fs" />
+    <Compile Include="Integer\Comparable.fs" />
+    <Compile Include="Integer\EquatableInteger.fs" />
+    <Compile Include="Integer\EqualityOperators.fs" />
+    <Compile Include="Integer\ComparisonOperatorsNaturalNaturalBool.fs" />
     <Compile Include="Natural\Sanity.fs" />
     <Compile Include="Natural\Constructors.fs" />
     <Compile Include="RealTests.fs" />
@@ -49,28 +61,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.6.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.0">
+    <PackageReference Include="coverlet.collector" Version="10.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
-    <!--<PackageReference Include="FSharp.Core" Version="7.0.400">
-      <GeneratePathProperty></GeneratePathProperty>
-    </PackageReference>-->
+    <PackageReference Include="Xunit.SkippableFact" Version="1.5.85" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Freestylecoding.Math.Interface.Tests\Freestylecoding.Math.Interface.Tests.fsproj" />
     <ProjectReference Include="..\Freestylecoding.Math\Freestylecoding.Math.fsproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="8.0.100" />
+    <PackageReference Update="FSharp.Core" Version="10.1.403" />
   </ItemGroup>
 
 </Project>

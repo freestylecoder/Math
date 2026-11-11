@@ -4,34 +4,25 @@ open Xunit
 open Freestylecoding.Math
 
 type public AdditionOperators() =
-    static member Add( this:'T when 'T :> System.Numerics.IAdditionOperators<'T,'T,'T>, that:'T ) : 'T =
-        'T.op_Addition( this, that )
+    inherit Freestylecoding.Math.Interface.Tests.TAdditionOperatorsSelf<Natural>()
 
-    [<Theory>]
-    [<InlineData( 0u, 0u,  0u )>]        // Sanity
-    [<InlineData( 1u, 1u,  2u )>]        // Sanity
-    [<InlineData( 1u, 0u,  1u )>]        // Sanity
-    [<InlineData( 0u, 1u,  1u )>]        // Sanity
-    [<InlineData( 1u, 5u,  6u )>]        // l < r
-    [<InlineData( 9u, 2u, 11u )>]        // l > r
-    member public this.Sanity left right expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            AdditionOperators.Add( Natural( [left] ), Natural( [right] ) )
-        )
-    
-    [<Fact>]
-    member public this.Simple () =
-        Assert.Equal(
-            Natural.Unit,
-            Natural.Zero + Natural.Unit
-        )
+    override _.selfIdentity = Some Natural.Zero
+    override _.selfIncrement = Some Natural.Unit
+    override _.self1 = Natural( 18u )
+    override _.self2 = Natural( 42u )
+    override _.selfMin = Some Natural.Zero
+    override _.selfMax = None
+
+    override _.sum11 = Natural( 36u )
+    override _.sum12 = Natural( 60u )
+    override _.sum21 = Natural( 60u )
+    override _.sum22 = Natural( 84u )
 
     [<Fact>]
     member public this.Overflow () =
         Assert.Equal(
             Natural( [1u; 2u] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [0xFFFF_FFFFu] ),
                 Natural( [3u] )
             )
@@ -41,7 +32,7 @@ type public AdditionOperators() =
     member public this.LeftBiggerNoOverflow () =
         Assert.Equal(
             Natural( [0xFu; 0xFF0Fu] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [0xFu; 0xFu] ),
                 Natural( [0xFF00u] )
             )
@@ -51,7 +42,7 @@ type public AdditionOperators() =
     member public this.RightBiggerNoOverflow () =
         Assert.Equal(
             Natural( [0xFu; 0xFF0Fu] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [0xFF00u] ),
                 Natural( [0xFu; 0xFu] )
             )
@@ -61,7 +52,7 @@ type public AdditionOperators() =
     member public this.CascadingOverflow () =
         Assert.Equal(
             Natural( [1u; 0u; 0u] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [1u] ),
                 Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] )
             )
@@ -71,7 +62,7 @@ type public AdditionOperators() =
     member public this.OverflowCausedOverflow () =
         Assert.Equal(
             Natural( [2u; 0u; 0u] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [1u; 1u] ),
                 Natural( [1u; 0xFFFF_FFFFu - 1u; 0xFFFF_FFFFu] )
             )
@@ -81,40 +72,17 @@ type public AdditionOperators() =
     member public this.EdgeOfOverflow () =
         Assert.Equal(
             Natural( [1u; 0xFFFF_FFFFu; 1u] ),
-            AdditionOperators.Add(
+            this.Addition(
                 Natural( [1u; 1u] ),
                 Natural( [1u; 0xFFFF_FFFFu - 1u; 0u] )
             )
         )
 
-    static member CheckedAdd( this:'T when 'T :> System.Numerics.IAdditionOperators<'T,'T,'T>, that:'T ) : 'T =
-        'T.op_CheckedAddition( this, that )
-    
-    [<Theory>]
-    [<InlineData( 0u, 0u,  0u )>]        // Sanity
-    [<InlineData( 1u, 1u,  2u )>]        // Sanity
-    [<InlineData( 1u, 0u,  1u )>]        // Sanity
-    [<InlineData( 0u, 1u,  1u )>]        // Sanity
-    [<InlineData( 1u, 5u,  6u )>]        // l < r
-    [<InlineData( 9u, 2u, 11u )>]       // l > r
-    member public this.CheckedSanity left right expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            AdditionOperators.CheckedAdd( Natural( [left] ), Natural( [right] ) )
-        )
-        
-    [<Fact>]
-    member public this.CheckedSimple () =
-        Assert.Equal(
-            Natural.Unit,
-            Natural.Zero + Natural.Unit
-        )
-    
     [<Fact>]
     member public this.CheckedOverflow () =
         Assert.Equal(
             Natural( [1u; 2u] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [0xFFFF_FFFFu] ),
                 Natural( [3u] )
             )
@@ -124,7 +92,7 @@ type public AdditionOperators() =
     member public this.CheckedLeftBiggerNoOverflow () =
         Assert.Equal(
             Natural( [0xFu; 0xFF0Fu] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [0xFu; 0xFu] ),
                 Natural( [0xFF00u] )
             )
@@ -134,7 +102,7 @@ type public AdditionOperators() =
     member public this.CheckedRightBiggerNoOverflow () =
         Assert.Equal(
             Natural( [0xFu; 0xFF0Fu] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [0xFF00u] ),
                 Natural( [0xFu; 0xFu] )
             )
@@ -144,7 +112,7 @@ type public AdditionOperators() =
     member public this.CheckedCascadingOverflow () =
         Assert.Equal(
             Natural( [1u; 0u; 0u] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [1u] ),
                 Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] )
             )
@@ -154,7 +122,7 @@ type public AdditionOperators() =
     member public this.CheckedOverflowCausedOverflow () =
         Assert.Equal(
             Natural( [2u; 0u; 0u] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [1u; 1u] ),
                 Natural( [1u; 0xFFFF_FFFFu - 1u; 0xFFFF_FFFFu] )
             )
@@ -164,7 +132,7 @@ type public AdditionOperators() =
     member public this.CheckedEdgeOfOverflow () =
         Assert.Equal(
             Natural( [1u; 0xFFFF_FFFFu; 1u] ),
-            AdditionOperators.CheckedAdd(
+            this.CheckedAddition(
                 Natural( [1u; 1u] ),
                 Natural( [1u; 0xFFFF_FFFFu - 1u; 0u] )
             )

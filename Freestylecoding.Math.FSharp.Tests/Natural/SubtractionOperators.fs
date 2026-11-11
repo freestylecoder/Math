@@ -4,27 +4,22 @@ open Xunit
 open Freestylecoding.Math
 
 type public SubtractionOperators() =
-    static member Sub( this:'T when 'T :> System.Numerics.ISubtractionOperators<'T,'T,'T>, that:'T ) : 'T =
-        'T.op_Subtraction( this, that )
+    inherit Freestylecoding.Math.Interface.Tests.TSubtractionOperatorsSelf<Natural>()
 
-    [<Theory>]
-    [<InlineData( 1u, 1u, 0u )>]    // Sanity
-    [<InlineData( 1u, 0u, 1u )>]    // Sanity
-    [<InlineData( 9u, 2u, 7u )>]    // l > r
-    member public this.Sanity left right expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            SubtractionOperators.Sub(
-                Natural( [left] ),
-                Natural( [right] )
-            )
-        )
-    
+    override _.selfIdentity = Some Natural.Zero
+    override _.selfDecrement = Some Natural.Unit
+    override _.selfMin = Some Natural.Zero
+    override _.selfMax = None
+    override _.IsUnsigned = true
+
+    override _.ToSelf( b:byte ) : Natural =
+        Natural( b )
+
     [<Fact>]
     member public this.SingleItemBadUnderflow () =
         let exc = Record.Exception(
             fun () ->
-                SubtractionOperators.Sub(
+                this.Subtraction(
                     Natural.Zero,
                     Natural.Unit
                 )
@@ -37,7 +32,7 @@ type public SubtractionOperators() =
     member public this.MultiItemNoUnderflow () =
         Assert.Equal(
             Natural( [2u; 2u] ),
-            SubtractionOperators.Sub(
+            this.Subtraction(
                 Natural( [3u; 4u] ),
                 Natural( [1u; 2u] )
             )
@@ -47,7 +42,7 @@ type public SubtractionOperators() =
     member public this.MultiItemSafeUnderflow () =
         Assert.Equal(
             Natural( [0x2u; 0xFFFFFFFFu] ),
-            SubtractionOperators.Sub(
+            this.Subtraction(
                 Natural( [4u; 2u] ),
                 Natural( [1u; 3u] )
             )
@@ -57,7 +52,7 @@ type public SubtractionOperators() =
     member public this.MultiItemSafeCascadingUnderflow () =
         Assert.Equal(
             Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] ),
-            SubtractionOperators.Sub(
+            this.Subtraction(
                 Natural( [1u; 0u; 0u] ),
                 Natural.Unit
             )
@@ -67,7 +62,7 @@ type public SubtractionOperators() =
     member public this.MultiItemUnsafeUnderflow () =
         let exc = Record.Exception(
             fun () ->
-                SubtractionOperators.Sub(
+                this.Subtraction(
                     Natural( [1u; 2u] ),
                     Natural( [1u; 3u] )
                 )
@@ -80,34 +75,17 @@ type public SubtractionOperators() =
     member public this.LargeWithUnderflows () =
         Assert.Equal(
             Natural( [0x1u; 0xFFFF_FFFFu; 0xFFFF_FFFEu] ),
-            SubtractionOperators.Sub(
+            this.Subtraction(
                 Natural( [3u; 2u; 1u] ),
                 Natural( [1u; 2u; 3u] )
             )
         )
 
-type public CheckedSubtractionOperators() =
-    static member CheckedSub( this:'T when 'T :> System.Numerics.ISubtractionOperators<'T,'T,'T>, that:'T ) : 'T =
-        'T.op_CheckedSubtraction( this, that )
-
-    [<Theory>]
-    [<InlineData( 1u, 1u, 0u )>]    // Sanity
-    [<InlineData( 1u, 0u, 1u )>]    // Sanity
-    [<InlineData( 9u, 2u, 7u )>]    // l > r
-    member public this.Sanity left right expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            CheckedSubtractionOperators.CheckedSub(
-                Natural( [left] ),
-                Natural( [right] )
-            )
-        )
-    
     [<Fact>]
-    member public this.SingleItemBadUnderflow () =
+    member public this.SingleItemCheckedBadUnderflow () =
         let exc = Record.Exception(
             fun () ->
-                CheckedSubtractionOperators.CheckedSub(
+                this.CheckedSubtraction(
                     Natural.Zero,
                     Natural.Unit
                 )
@@ -117,40 +95,40 @@ type public CheckedSubtractionOperators() =
         Assert.IsType<System.OverflowException>( exc )
 
     [<Fact>]
-    member public this.MultiItemNoUnderflow () =
+    member public this.MultiItemCheckedNoUnderflow () =
         Assert.Equal(
             Natural( [2u; 2u] ),
-            CheckedSubtractionOperators.CheckedSub(
+            this.CheckedSubtraction(
                 Natural( [3u; 4u] ),
                 Natural( [1u; 2u] )
             )
         )
         
     [<Fact>]
-    member public this.MultiItemSafeUnderflow () =
+    member public this.MultiItemCheckedSafeUnderflow () =
         Assert.Equal(
             Natural( [0x2u; 0xFFFFFFFFu] ),
-            CheckedSubtractionOperators.CheckedSub(
+            this.CheckedSubtraction(
                 Natural( [4u; 2u] ),
                 Natural( [1u; 3u] )
             )
         )
         
     [<Fact>]
-    member public this.MultiItemSafeCascadingUnderflow () =
+    member public this.MultiItemCheckedSafeCascadingUnderflow () =
         Assert.Equal(
             Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] ),
-            CheckedSubtractionOperators.CheckedSub(
+            this.CheckedSubtraction(
                 Natural( [1u; 0u; 0u] ),
                 Natural.Unit
             )
         )
         
     [<Fact>]
-    member public this.MultiItemUnsafeUnderflow () =
+    member public this.MultiItemCheckedUnsafeUnderflow () =
         let exc = Record.Exception(
             fun () ->
-                CheckedSubtractionOperators.CheckedSub(
+                this.CheckedSubtraction(
                     Natural( [1u; 2u] ),
                     Natural( [1u; 3u] )
                 )
@@ -160,10 +138,10 @@ type public CheckedSubtractionOperators() =
         Assert.IsType<System.OverflowException>( exc )
 
     [<Fact>]
-    member public this.LargeWithUnderflows () =
+    member public this.LargeCheckedWithUnderflows () =
         Assert.Equal(
             Natural( [0x1u; 0xFFFF_FFFFu; 0xFFFF_FFFEu] ),
-            CheckedSubtractionOperators.CheckedSub(
+            this.CheckedSubtraction(
                 Natural( [3u; 2u; 1u] ),
                 Natural( [1u; 2u; 3u] )
             )

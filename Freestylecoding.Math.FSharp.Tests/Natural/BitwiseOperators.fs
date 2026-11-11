@@ -21,7 +21,7 @@ type public BitwiseAnd() =
     member public this.BiggerRight () =
         Assert.Equal( Natural.Unit, Natural([0x00010001u]) &&& Natural([0xFu; 0x00000101u]) )
 
-    [<FactAttribute>]
+    [<Fact>]
     member public this.Large () =
         Assert.Equal( Natural( [1u; 0u; 0u; 0u] ), Natural( [1u; 1u; 0u; 0u] ) &&& Natural( [1u; 0u; 1u; 0u] ) )
 

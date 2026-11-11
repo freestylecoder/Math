@@ -66,15 +66,15 @@ public class TryParseString {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( SmallNaturalString, ref result ) );
+		Assert.True( Overload.TryParse( SmallString, ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( MediumNaturalString, ref result ) );
+		Assert.True( Overload.TryParse( MediumString, ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( LargeNaturalString, ref result ) );
+		Assert.True( Overload.TryParse( LargeString, ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -257,15 +257,15 @@ public class TryParseStringFormat {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( SmallNaturalString, CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( SmallString, CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( MediumNaturalString, CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( MediumString, CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( LargeNaturalString, CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( LargeString, CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -488,7 +488,7 @@ public class TryParseStringStyleFormat {
 		Natural result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				SmallNaturalString,
+				SmallString,
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -498,7 +498,7 @@ public class TryParseStringStyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				MediumNaturalString,
+				MediumString,
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -508,7 +508,7 @@ public class TryParseStringStyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				LargeNaturalString,
+				LargeString,
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -1113,15 +1113,15 @@ public class TryParseSpan {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( SmallNaturalString.AsSpan(), ref result ) );
+		Assert.True( Overload.TryParse( SmallString.AsSpan(), ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( MediumNaturalString.AsSpan(), ref result ) );
+		Assert.True( Overload.TryParse( MediumString.AsSpan(), ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( LargeNaturalString.AsSpan(), ref result ) );
+		Assert.True( Overload.TryParse( LargeString.AsSpan(), ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -1304,15 +1304,15 @@ public class TryParseSpanFormat {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( SmallNaturalString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( SmallString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( MediumNaturalString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( MediumString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( LargeNaturalString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( LargeString.AsSpan(), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -1535,7 +1535,7 @@ public class TryParseSpanStyleFormat {
 		Natural result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				SmallNaturalString.AsSpan(),
+				SmallString.AsSpan(),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -1545,7 +1545,7 @@ public class TryParseSpanStyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				MediumNaturalString.AsSpan(),
+				MediumString.AsSpan(),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -1555,7 +1555,7 @@ public class TryParseSpanStyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				LargeNaturalString.AsSpan(),
+				LargeString.AsSpan(),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -2163,15 +2163,15 @@ public class TryParseUtf8 {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( SmallNaturalString ), ref result ) );
+		Assert.True( Overload.TryParse( toSpan( SmallString ), ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( MediumNaturalString ), ref result ) );
+		Assert.True( Overload.TryParse( toSpan( MediumString ), ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( LargeNaturalString ), ref result ) );
+		Assert.True( Overload.TryParse( toSpan( LargeString ), ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -2357,15 +2357,15 @@ public class TryParseUtf8Format {
 	[Fact]
 	public void BiggerSanity() {
 		Natural result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( SmallNaturalString ), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( toSpan( SmallString ), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( SmallNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( MediumNaturalString ), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( toSpan( MediumString ), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( MediumNatural, result );
 
 		result = DeadBeef;
-		Assert.True( Overload.TryParse( toSpan( LargeNaturalString ), CurrentCultureNumberFormat, ref result ) );
+		Assert.True( Overload.TryParse( toSpan( LargeString ), CurrentCultureNumberFormat, ref result ) );
 		Assert.Equal( LargeNatural, result );
 	}
 
@@ -2591,7 +2591,7 @@ public class TryParseUtf8StyleFormat {
 		Natural result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				toSpan( SmallNaturalString ),
+				toSpan( SmallString ),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -2601,7 +2601,7 @@ public class TryParseUtf8StyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				toSpan( MediumNaturalString ),
+				toSpan( MediumString ),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result
@@ -2611,7 +2611,7 @@ public class TryParseUtf8StyleFormat {
 		result = DeadBeef;
 		Assert.True(
 			Overload.TryParse(
-				toSpan( LargeNaturalString ),
+				toSpan( LargeString ),
 				NumberStyles.Integer,
 				CurrentCultureNumberFormat,
 				ref result

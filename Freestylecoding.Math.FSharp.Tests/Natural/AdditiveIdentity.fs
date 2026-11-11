@@ -4,12 +4,6 @@ open Xunit
 open Freestylecoding.Math
 
 type public AdditiveIdentity() =
-    static member GetAdditiveIdentity( this:'T when 'T :> System.Numerics.IAdditiveIdentity<'T,'T> ) : 'T =
-        'T.AdditiveIdentity
+    inherit Freestylecoding.Math.Interface.Tests.TAdditiveIdentitySelf<Natural>()
 
-    [<Fact>]
-    member public this.IsIdentityCorrect () =
-        Assert.Equal(
-            Natural.Zero,
-            AdditiveIdentity.GetAdditiveIdentity( Natural.Unit )
-        )
+    override _.resultIdentity = Natural.Zero

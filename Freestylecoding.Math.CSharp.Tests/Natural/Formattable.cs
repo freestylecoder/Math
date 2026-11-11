@@ -51,20 +51,20 @@ public class Formattable {
 	public void GeneralAndRoundTrip() {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
-		Assert.Equal( SmallNaturalString, small.ToString( "G", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "g", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "R", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "r", null ) );
+		Assert.Equal( SmallString, small.ToString( "G", null ) );
+		Assert.Equal( SmallString, small.ToString( "g", null ) );
+		Assert.Equal( SmallString, small.ToString( "R", null ) );
+		Assert.Equal( SmallString, small.ToString( "r", null ) );
 
-		Assert.Equal( MediumNaturalString, medium.ToString( "G", null ) );
-		Assert.Equal( MediumNaturalString, medium.ToString( "g", null ) );
-		Assert.Equal( MediumNaturalString, medium.ToString( "R", null ) );
-		Assert.Equal( MediumNaturalString, medium.ToString( "r", null ) );
+		Assert.Equal( MediumString, medium.ToString( "G", null ) );
+		Assert.Equal( MediumString, medium.ToString( "g", null ) );
+		Assert.Equal( MediumString, medium.ToString( "R", null ) );
+		Assert.Equal( MediumString, medium.ToString( "r", null ) );
 
-		Assert.Equal( LargeNaturalString, large.ToString( "G", null ) );
-		Assert.Equal( LargeNaturalString, large.ToString( "g", null ) );
-		Assert.Equal( LargeNaturalString, large.ToString( "R", null ) );
-		Assert.Equal( LargeNaturalString, large.ToString( "r", null ) );
+		Assert.Equal( LargeString, large.ToString( "G", null ) );
+		Assert.Equal( LargeString, large.ToString( "g", null ) );
+		Assert.Equal( LargeString, large.ToString( "R", null ) );
+		Assert.Equal( LargeString, large.ToString( "r", null ) );
 	}
 
 	[Fact]
@@ -72,20 +72,20 @@ public class Formattable {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
 		foreach( int i in Enumerable.Range( 0, 20 ) ) {
-			Assert.Equal( SmallNaturalString, small.ToString( $"G{i}", null ) );
-			Assert.Equal( SmallNaturalString, small.ToString( $"g{i}", null ) );
-			Assert.Equal( SmallNaturalString, small.ToString( $"R{i}", null ) );
-			Assert.Equal( SmallNaturalString, small.ToString( $"r{i}", null ) );
+			Assert.Equal( SmallString, small.ToString( $"G{i}", null ) );
+			Assert.Equal( SmallString, small.ToString( $"g{i}", null ) );
+			Assert.Equal( SmallString, small.ToString( $"R{i}", null ) );
+			Assert.Equal( SmallString, small.ToString( $"r{i}", null ) );
 
-			Assert.Equal( MediumNaturalString, medium.ToString( $"G{i}", null ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( $"g{i}", null ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( $"R{i}", null ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( $"r{i}", null ) );
+			Assert.Equal( MediumString, medium.ToString( $"G{i}", null ) );
+			Assert.Equal( MediumString, medium.ToString( $"g{i}", null ) );
+			Assert.Equal( MediumString, medium.ToString( $"R{i}", null ) );
+			Assert.Equal( MediumString, medium.ToString( $"r{i}", null ) );
 
-			Assert.Equal( LargeNaturalString, large.ToString( $"G{i}", null ) );
-			Assert.Equal( LargeNaturalString, large.ToString( $"g{i}", null ) );
-			Assert.Equal( LargeNaturalString, large.ToString( $"R{i}", null ) );
-			Assert.Equal( LargeNaturalString, large.ToString( $"r{i}", null ) );
+			Assert.Equal( LargeString, large.ToString( $"G{i}", null ) );
+			Assert.Equal( LargeString, large.ToString( $"g{i}", null ) );
+			Assert.Equal( LargeString, large.ToString( $"R{i}", null ) );
+			Assert.Equal( LargeString, large.ToString( $"r{i}", null ) );
 		}
 	}
 
@@ -94,54 +94,54 @@ public class Formattable {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
 		foreach( System.Globalization.CultureInfo culture in Cultures ) {
-			Assert.Equal( SmallNaturalString, small.ToString( "G", culture ) );
-			Assert.Equal( SmallNaturalString, small.ToString( "g", culture ) );
-			Assert.Equal( SmallNaturalString, small.ToString( "R", culture ) );
-			Assert.Equal( SmallNaturalString, small.ToString( "r", culture ) );
+			Assert.Equal( SmallString, small.ToString( "G", culture ) );
+			Assert.Equal( SmallString, small.ToString( "g", culture ) );
+			Assert.Equal( SmallString, small.ToString( "R", culture ) );
+			Assert.Equal( SmallString, small.ToString( "r", culture ) );
 
-			Assert.Equal( MediumNaturalString, medium.ToString( "G", culture ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( "g", culture ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( "R", culture ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( "r", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "G", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "g", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "R", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "r", culture ) );
 
-			Assert.Equal( LargeNaturalString, large.ToString( "G", culture ) );
-			Assert.Equal( LargeNaturalString, large.ToString( "g", culture ) );
-			Assert.Equal( LargeNaturalString, large.ToString( "R", culture ) );
-			Assert.Equal( LargeNaturalString, large.ToString( "r", culture ) );
+			Assert.Equal( LargeString, large.ToString( "G", culture ) );
+			Assert.Equal( LargeString, large.ToString( "g", culture ) );
+			Assert.Equal( LargeString, large.ToString( "R", culture ) );
+			Assert.Equal( LargeString, large.ToString( "r", culture ) );
 		}
 	}
 
 	[Fact]
 	public void Decimal() {
-		Assert.Equal( SmallNaturalString, small.ToString( "D", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "d", null ) );
+		Assert.Equal( SmallString, small.ToString( "D", null ) );
+		Assert.Equal( SmallString, small.ToString( "d", null ) );
 
-		Assert.Equal( MediumNaturalString, medium.ToString( "D", null ) );
-		Assert.Equal( MediumNaturalString, medium.ToString( "d", null ) );
+		Assert.Equal( MediumString, medium.ToString( "D", null ) );
+		Assert.Equal( MediumString, medium.ToString( "d", null ) );
 
-		Assert.Equal( LargeNaturalString, large.ToString( "D", null ) );
-		Assert.Equal( LargeNaturalString, large.ToString( "d", null ) );
+		Assert.Equal( LargeString, large.ToString( "D", null ) );
+		Assert.Equal( LargeString, large.ToString( "d", null ) );
 	}
 
 	[Fact]
 	public void Decimal_Precision() {
-		Assert.Equal( SmallNaturalString, small.ToString( "D0", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "D4", null ) );
-		Assert.Equal( SmallNaturalString, small.ToString( "D8", null ) );
+		Assert.Equal( SmallString, small.ToString( "D0", null ) );
+		Assert.Equal( SmallString, small.ToString( "D4", null ) );
+		Assert.Equal( SmallString, small.ToString( "D8", null ) );
 		Assert.Equal( "001234567890", small.ToString( "D12", null ) );
 	}
 
 	[Fact]
 	public void Decimal_IgnoreFormatProvider() {
 		foreach( System.Globalization.CultureInfo culture in Cultures ) {
-			Assert.Equal( SmallNaturalString, small.ToString( "D", culture ) );
-			Assert.Equal( SmallNaturalString, small.ToString( "d", culture ) );
+			Assert.Equal( SmallString, small.ToString( "D", culture ) );
+			Assert.Equal( SmallString, small.ToString( "d", culture ) );
 
-			Assert.Equal( MediumNaturalString, medium.ToString( "D", culture ) );
-			Assert.Equal( MediumNaturalString, medium.ToString( "d", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "D", culture ) );
+			Assert.Equal( MediumString, medium.ToString( "d", culture ) );
 
-			Assert.Equal( LargeNaturalString, large.ToString( "D", culture ) );
-			Assert.Equal( LargeNaturalString, large.ToString( "d", culture ) );
+			Assert.Equal( LargeString, large.ToString( "D", culture ) );
+			Assert.Equal( LargeString, large.ToString( "d", culture ) );
 		}
 	}
 

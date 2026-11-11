@@ -6,243 +6,187 @@ namespace Natural.Tests;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
 
-public class ComparisonOperatorsNaturalNaturalBool {
-	private static bool op_GT<T>( T left, T right ) where T : IComparisonOperators<T, T, bool> =>
-		left > right;
-	private static bool op_GTE<T>( T left, T right ) where T : IComparisonOperators<T, T, bool> =>
-		left >= right;
-	private static bool op_LT<T>( T left, T right ) where T : IComparisonOperators<T, T, bool> =>
-		left < right;
-	private static bool op_LTE<T>( T left, T right ) where T : IComparisonOperators<T, T, bool> =>
-		left <= right;
-
-	[Theory]
-	[InlineData( 0u, 1u, false )]
-	[InlineData( 1u, 0u, true )]
-	[InlineData( 1u, 1u, false )]
-	public void GT_Sanity( uint left, uint right, bool expected ) =>
-		Assert.Equal(
-			expected,
-			op_GT(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
+public class ComparisonOperatorsNaturalNaturalBool : Freestylecoding.Math.Interface.Tests.TComparisonOperatorsSelf<Natural> {
+	public override Natural self0 => Natural.Zero;
+	public override Natural self1 => Natural.Unit;
+	public override Natural self2 => new Natural( int.MaxValue );
+	public override Natural self3 => new Natural( uint.MaxValue );
 
 	[Fact]
-	public void GT_BiggerLeft() =>
+	public void GreaterThan_BiggerLeft() =>
 		Assert.True(
-			op_GT(
+			GreaterThan(
 				FListNatural( 0xBADu, 0xDEADBEEFu ),
 				new Natural( 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void GT_BiggerRight() =>
+	public void GreaterThan_BiggerRight() =>
 		Assert.False(
-			op_GT(
+			GreaterThan(
 				new Natural( 0xDEADBEEFu ),
 				FListNatural( 0xBADu, 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void GT_CascadeGreaterThan() =>
+	public void GreaterThan_CascadeGreaterThan() =>
 		Assert.True(
-			op_GT(
+			GreaterThan(
 				FListNatural( 1u, 1u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void GT_CascadeEqual() =>
+	public void GreaterThan_CascadeEqual() =>
 		Assert.False(
-			op_GT(
+			GreaterThan(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void GT_CascadeLessThan() =>
+	public void GreaterThan_CascadeLessThan() =>
 		Assert.False(
-			op_GT(
+			GreaterThan(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 1u )
 			)
 		);
 
-	[Theory]
-	[InlineData( 0u, 1u, true )]
-	[InlineData( 1u, 0u, false )]
-	[InlineData( 1u, 1u, false )]
-	public void LT_Sanity( uint left, uint right, bool expected ) =>
-		Assert.Equal(
-			expected,
-			op_LT(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
-
 	[Fact]
-	public void LT_BiggerLeft() =>
+	public void LessThan_BiggerLeft() =>
 		Assert.False(
-			op_LT(
+			LessThan(
 				FListNatural( 0xBADu, 0xDEADBEEFu ),
 				new Natural( 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void LT_BiggerRight() =>
+	public void LessThan_BiggerRight() =>
 		Assert.True(
-			op_LT(
+			LessThan(
 				new Natural( 0xDEADBEEFu ),
 				FListNatural( 0xBADu, 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void LT_CascadeGreaterThan() =>
+	public void LessThan_CascadeGreaterThan() =>
 		Assert.False(
-			op_LT(
+			LessThan(
 				FListNatural( 1u, 1u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void LT_CascadeEqual() =>
+	public void LessThan_CascadeEqual() =>
 		Assert.False(
-			op_LT(
+			LessThan(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void LT_CascadeLessThan() =>
+	public void LessThan_CascadeLessThan() =>
 		Assert.True(
-			op_LT(
+			LessThan(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 1u )
 			)
 		);
 
-	[Theory]
-	[InlineData( 0u, 1u, false )]
-	[InlineData( 1u, 0u, true )]
-	[InlineData( 1u, 1u, true )]
-	public void GTE_Sanity( uint left, uint right, bool expected ) =>
-		Assert.Equal(
-			expected,
-			op_GTE(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
-
 	[Fact]
-	public void GTE_BiggerLeft() =>
+	public void GreaterThanOrEqual_BiggerLeft() =>
 		Assert.True(
-			op_GTE(
+			GreaterThanOrEqual(
 				FListNatural( 0xBADu, 0xDEADBEEFu ),
 				new Natural( 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void GTE_BiggerRight() =>
+	public void GreaterThanOrEqual_BiggerRight() =>
 		Assert.False(
-			op_GTE(
+			GreaterThanOrEqual(
 				new Natural( 0xDEADBEEFu ),
 				FListNatural( 0xBADu, 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void GTE_CascadeGreaterThan() =>
+	public void GreaterThanOrEqual_CascadeGreaterThan() =>
 		Assert.True(
-			op_GTE(
+			GreaterThanOrEqual(
 				FListNatural( 1u, 1u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void GTE_CascadeEqual() =>
+	public void GreaterThanOrEqual_CascadeEqual() =>
 		Assert.True(
-			op_GTE(
+			GreaterThanOrEqual(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void GTE_CascadeLessThan() =>
+	public void GreaterThanOrEqual_CascadeLessThan() =>
 		Assert.False(
-			op_GTE(
+			GreaterThanOrEqual(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 1u )
 			)
 		);
 
-	[Theory]
-	[InlineData( 0u, 1u, true )]
-	[InlineData( 1u, 0u, false )]
-	[InlineData( 1u, 1u, true )]
-	public void LTE_Sanity( uint left, uint right, bool expected ) =>
-		Assert.Equal(
-			expected,
-			op_LTE(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
-
 	[Fact]
-	public void LTE_BiggerLeft() =>
+	public void LessThanOrEqual_BiggerLeft() =>
 		Assert.False(
-			op_LTE(
+			LessThanOrEqual(
 				FListNatural( 0xBADu, 0xDEADBEEFu ),
 				new Natural( 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void LTE_BiggerRight() =>
+	public void LessThanOrEqual_BiggerRight() =>
 		Assert.True(
-			op_LTE(
+			LessThanOrEqual(
 				new Natural( 0xDEADBEEFu ),
 				FListNatural( 0xBADu, 0xDEADBEEFu )
 			)
 		);
 
 	[Fact]
-	public void LTE_CascadeGreaterThan() =>
+	public void LessThanOrEqual_CascadeGreaterThan() =>
 		Assert.False(
-			op_LTE(
+			LessThanOrEqual(
 				FListNatural( 1u, 1u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void LTE_CascadeEqual() =>
+	public void LessThanOrEqual_CascadeEqual() =>
 		Assert.True(
-			op_LTE(
+			LessThanOrEqual(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 0u )
 			)
 		);
 
 	[Fact]
-	public void LTE_CascadeLessThan() =>
+	public void LessThanOrEqual_CascadeLessThan() =>
 		Assert.True(
-			op_LTE(
+			LessThanOrEqual(
 				FListNatural( 1u, 0u ),
 				FListNatural( 1u, 1u )
 			)

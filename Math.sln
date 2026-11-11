@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37301.10 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Combinatorics", "Combinatorics\Combinatorics.fsproj", "{C3260B91-FD6D-4470-B128-260425A6F313}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freestylecoding.Math.Linear", "Freestylecoding.Math.Linear\Freestylecoding.Math.Linear.fsproj", "{13689690-C88B-4F40-9210-5D5E8ABCD898}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freestylecoding.Math.Linear.FSharp.Tests", "Freestylecoding.Math.Linear.FSharp.Tests\Freestylecoding.Math.Linear.FSharp.Tests.fsproj", "{52350999-17D4-4989-8D0D-9E32FAD3BB95}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Freestylecoding.Math.Interface.Tests", "Freestylecoding.Math.Interface.Tests\Freestylecoding.Math.Interface.Tests.fsproj", "{94ACB50E-51D6-4932-8EBE-FDA8C4FE678B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52350999-17D4-4989-8D0D-9E32FAD3BB95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94ACB50E-51D6-4932-8EBE-FDA8C4FE678B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94ACB50E-51D6-4932-8EBE-FDA8C4FE678B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94ACB50E-51D6-4932-8EBE-FDA8C4FE678B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94ACB50E-51D6-4932-8EBE-FDA8C4FE678B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

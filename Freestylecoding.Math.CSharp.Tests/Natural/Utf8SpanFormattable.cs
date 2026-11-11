@@ -71,7 +71,7 @@ public class Utf8SpanFormattable {
 		Assert.Equal( 5, charsWritten );
 
 		// The TrimEnd is because I filled the original buffer with spaces
-		Assert.Equal( SmallNaturalString.Substring( 0, 5 ), System.Text.Encoding.UTF8.GetString( destination ).TrimEnd() );
+		Assert.Equal( SmallString.Substring( 0, 5 ), System.Text.Encoding.UTF8.GetString( destination ).TrimEnd() );
 	}
 
 	[Theory]
@@ -114,20 +114,20 @@ public class Utf8SpanFormattable {
 	public void GeneralAndRoundTrip() {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
-		assertEqual( SmallNaturalString, SmallNatural, "G", null );
-		assertEqual( SmallNaturalString, SmallNatural, "g", null );
-		assertEqual( SmallNaturalString, SmallNatural, "R", null );
-		assertEqual( SmallNaturalString, SmallNatural, "r", null );
+		assertEqual( SmallString, SmallNatural, "G", null );
+		assertEqual( SmallString, SmallNatural, "g", null );
+		assertEqual( SmallString, SmallNatural, "R", null );
+		assertEqual( SmallString, SmallNatural, "r", null );
 
-		assertEqual( MediumNaturalString, MediumNatural, "G", null );
-		assertEqual( MediumNaturalString, MediumNatural, "g", null );
-		assertEqual( MediumNaturalString, MediumNatural, "R", null );
-		assertEqual( MediumNaturalString, MediumNatural, "r", null );
+		assertEqual( MediumString, MediumNatural, "G", null );
+		assertEqual( MediumString, MediumNatural, "g", null );
+		assertEqual( MediumString, MediumNatural, "R", null );
+		assertEqual( MediumString, MediumNatural, "r", null );
 
-		assertEqual( LargeNaturalString, LargeNatural, "G", null );
-		assertEqual( LargeNaturalString, LargeNatural, "g", null );
-		assertEqual( LargeNaturalString, LargeNatural, "R", null );
-		assertEqual( LargeNaturalString, LargeNatural, "r", null );
+		assertEqual( LargeString, LargeNatural, "G", null );
+		assertEqual( LargeString, LargeNatural, "g", null );
+		assertEqual( LargeString, LargeNatural, "R", null );
+		assertEqual( LargeString, LargeNatural, "r", null );
 	}
 
 	[Fact]
@@ -135,20 +135,20 @@ public class Utf8SpanFormattable {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
 		foreach( int i in Enumerable.Range( 0, 20 ) ) {
-			assertEqual( SmallNaturalString, SmallNatural, $"G{i}", null );
-			assertEqual( SmallNaturalString, SmallNatural, $"g{i}", null );
-			assertEqual( SmallNaturalString, SmallNatural, $"R{i}", null );
-			assertEqual( SmallNaturalString, SmallNatural, $"r{i}", null );
+			assertEqual( SmallString, SmallNatural, $"G{i}", null );
+			assertEqual( SmallString, SmallNatural, $"g{i}", null );
+			assertEqual( SmallString, SmallNatural, $"R{i}", null );
+			assertEqual( SmallString, SmallNatural, $"r{i}", null );
 
-			assertEqual( MediumNaturalString, MediumNatural, $"G{i}", null );
-			assertEqual( MediumNaturalString, MediumNatural, $"g{i}", null );
-			assertEqual( MediumNaturalString, MediumNatural, $"R{i}", null );
-			assertEqual( MediumNaturalString, MediumNatural, $"r{i}", null );
+			assertEqual( MediumString, MediumNatural, $"G{i}", null );
+			assertEqual( MediumString, MediumNatural, $"g{i}", null );
+			assertEqual( MediumString, MediumNatural, $"R{i}", null );
+			assertEqual( MediumString, MediumNatural, $"r{i}", null );
 
-			assertEqual( LargeNaturalString, LargeNatural, $"G{i}", null );
-			assertEqual( LargeNaturalString, LargeNatural, $"g{i}", null );
-			assertEqual( LargeNaturalString, LargeNatural, $"R{i}", null );
-			assertEqual( LargeNaturalString, LargeNatural, $"r{i}", null );
+			assertEqual( LargeString, LargeNatural, $"G{i}", null );
+			assertEqual( LargeString, LargeNatural, $"g{i}", null );
+			assertEqual( LargeString, LargeNatural, $"R{i}", null );
+			assertEqual( LargeString, LargeNatural, $"r{i}", null );
 		}
 	}
 
@@ -157,54 +157,54 @@ public class Utf8SpanFormattable {
 		// These are all the same as Object.ToString
 		// Thus, I'm lumping the tests together
 		foreach( System.Globalization.CultureInfo culture in Cultures ) {
-			assertEqual( SmallNaturalString, SmallNatural, "G", culture );
-			assertEqual( SmallNaturalString, SmallNatural, "g", culture );
-			assertEqual( SmallNaturalString, SmallNatural, "R", culture );
-			assertEqual( SmallNaturalString, SmallNatural, "r", culture );
+			assertEqual( SmallString, SmallNatural, "G", culture );
+			assertEqual( SmallString, SmallNatural, "g", culture );
+			assertEqual( SmallString, SmallNatural, "R", culture );
+			assertEqual( SmallString, SmallNatural, "r", culture );
 
-			assertEqual( MediumNaturalString, MediumNatural, "G", culture );
-			assertEqual( MediumNaturalString, MediumNatural, "g", culture );
-			assertEqual( MediumNaturalString, MediumNatural, "R", culture );
-			assertEqual( MediumNaturalString, MediumNatural, "r", culture );
+			assertEqual( MediumString, MediumNatural, "G", culture );
+			assertEqual( MediumString, MediumNatural, "g", culture );
+			assertEqual( MediumString, MediumNatural, "R", culture );
+			assertEqual( MediumString, MediumNatural, "r", culture );
 
-			assertEqual( LargeNaturalString, LargeNatural, "G", culture );
-			assertEqual( LargeNaturalString, LargeNatural, "g", culture );
-			assertEqual( LargeNaturalString, LargeNatural, "R", culture );
-			assertEqual( LargeNaturalString, LargeNatural, "r", culture );
+			assertEqual( LargeString, LargeNatural, "G", culture );
+			assertEqual( LargeString, LargeNatural, "g", culture );
+			assertEqual( LargeString, LargeNatural, "R", culture );
+			assertEqual( LargeString, LargeNatural, "r", culture );
 		}
 	}
 
 	[Fact]
 	public void Decimal() {
-		assertEqual( SmallNaturalString, SmallNatural, "D", null );
-		assertEqual( SmallNaturalString, SmallNatural, "d", null );
+		assertEqual( SmallString, SmallNatural, "D", null );
+		assertEqual( SmallString, SmallNatural, "d", null );
 
-		assertEqual( MediumNaturalString, MediumNatural, "D", null );
-		assertEqual( MediumNaturalString, MediumNatural, "d", null );
+		assertEqual( MediumString, MediumNatural, "D", null );
+		assertEqual( MediumString, MediumNatural, "d", null );
 
-		assertEqual( LargeNaturalString, LargeNatural, "D", null );
-		assertEqual( LargeNaturalString, LargeNatural, "d", null );
+		assertEqual( LargeString, LargeNatural, "D", null );
+		assertEqual( LargeString, LargeNatural, "d", null );
 	}
 
 	[Fact]
 	public void Decimal_Precision() {
-		assertEqual( SmallNaturalString, SmallNatural, "D0", null );
-		assertEqual( SmallNaturalString, SmallNatural, "D4", null );
-		assertEqual( SmallNaturalString, SmallNatural, "D8", null );
+		assertEqual( SmallString, SmallNatural, "D0", null );
+		assertEqual( SmallString, SmallNatural, "D4", null );
+		assertEqual( SmallString, SmallNatural, "D8", null );
 		assertEqual( "001234567890", SmallNatural, "D12", null );
 	}
 
 	[Fact]
 	public void Decimal_IgnoreFormatProvider() {
 		foreach( System.Globalization.CultureInfo culture in Cultures ) {
-			assertEqual( SmallNaturalString, SmallNatural, "D", culture );
-			assertEqual( SmallNaturalString, SmallNatural, "d", culture );
+			assertEqual( SmallString, SmallNatural, "D", culture );
+			assertEqual( SmallString, SmallNatural, "d", culture );
 
-			assertEqual( MediumNaturalString, MediumNatural, "D", culture );
-			assertEqual( MediumNaturalString, MediumNatural, "d", culture );
+			assertEqual( MediumString, MediumNatural, "D", culture );
+			assertEqual( MediumString, MediumNatural, "d", culture );
 
-			assertEqual( LargeNaturalString, LargeNatural, "D", culture );
-			assertEqual( LargeNaturalString, LargeNatural, "d", culture );
+			assertEqual( LargeString, LargeNatural, "D", culture );
+			assertEqual( LargeString, LargeNatural, "d", culture );
 		}
 	}
 

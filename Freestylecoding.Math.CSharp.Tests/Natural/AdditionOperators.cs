@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Microsoft.FSharp.Core;
 using Xunit;
 
 namespace Natural.Tests;
@@ -6,35 +7,24 @@ namespace Natural.Tests;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
 
-public class AdditionOperators {
-    private static T Add<T>( T left, T right ) where T : IAdditionOperators<T, T, T> =>
-        left + right;
+public class AdditionOperators : Freestylecoding.Math.Interface.Tests.TAdditionOperatorsSelf<Natural> {
+    public override FSharpOption<Natural> selfIdentity => new FSharpOption<Natural>( Natural.Zero );
+    public override FSharpOption<Natural> selfIncrement => new FSharpOption<Natural>( Natural.One );
+	public override Natural self1 => new Natural( 18u );
+	public override Natural self2 => new Natural( 42u );
+	public override FSharpOption<Natural> selfMin => new FSharpOption<Natural>( Natural.Zero );
+	public override FSharpOption<Natural> selfMax => FSharpOption<Natural>.None;
 
-    [Theory]
-    [InlineData( 0u, 0u, 0u )]        // Sanity
-    [InlineData( 1u, 1u, 2u )]        // Sanity
-    [InlineData( 1u, 0u, 1u )]        // Sanity
-    [InlineData( 0u, 1u, 1u )]        // Sanity
-    [InlineData( 1u, 5u, 6u )]        // l < r
-    [InlineData( 9u, 2u, 11u )]        // l > r
-    public void Sanity( uint left, uint right, uint expected ) =>
-        Assert.Equal(
-            new Natural( expected ),
-            Add( new Natural( left ), new Natural( right ) )
-        );
-
-    [Fact]
-    public void Simple() =>
-        Assert.Equal(
-            Natural.Unit,
-            Natural.Zero + Natural.Unit
-        );
+	public override Natural sum11 => new Natural( 36u );
+	public override Natural sum12 => new Natural( 60u );
+	public override Natural sum21 => new Natural( 60u );
+	public override Natural sum22 => new Natural( 84u );
 
     [Fact]
     public void Overflow() =>
         Assert.Equal(
             FListNatural( 1u, 2u ),
-            Add(
+            Addition(
                 new Natural( 0xFFFF_FFFFu ),
                 new Natural( 3u )
             )
@@ -44,7 +34,7 @@ public class AdditionOperators {
     public void LeftBiggerNoOverflow() =>
         Assert.Equal(
             FListNatural( 0xFu, 0xFF0Fu ),
-            Add(
+            Addition(
                 FListNatural( 0xFu, 0xFu ),
                 new Natural( 0xFF00u )
             )
@@ -54,7 +44,7 @@ public class AdditionOperators {
     public void RightBiggerNoOverflow() =>
         Assert.Equal(
             FListNatural( 0xFu, 0xFF0Fu ),
-            Add(
+            Addition(
                 new Natural( 0xFF00u ),
                 FListNatural( 0xFu, 0xFu )
             )
@@ -64,7 +54,7 @@ public class AdditionOperators {
     public void CascadingOverflow() =>
         Assert.Equal(
             FListNatural( 1u, 0u, 0u ),
-            Add(
+            Addition(
                 new Natural( 1u ),
                 FListNatural( 0xFFFF_FFFFu, 0xFFFF_FFFFu )
             )
@@ -74,7 +64,7 @@ public class AdditionOperators {
     public void OverflowCausedOverflow() =>
         Assert.Equal(
             FListNatural( 2u, 0u, 0u ),
-            Add(
+            Addition(
                 FListNatural( 1u, 1u ),
                 FListNatural( 1u, 0xFFFF_FFFFu - 1u, 0xFFFF_FFFFu )
             )
@@ -84,43 +74,17 @@ public class AdditionOperators {
     public void EdgeOfOverflow() =>
         Assert.Equal(
             FListNatural( 1u, 0xFFFF_FFFFu, 1u ),
-            Add(
+            Addition(
                 FListNatural( 1u, 1u ),
                 FListNatural( 1u, 0xFFFF_FFFFu - 1u, 0u )
             )
-        );
-
-    private static T CheckedAdd<T>( T left, T right ) where T : IAdditionOperators<T, T, T> {
-        checked {
-            return left + right;
-        }
-    }
-
-    [Theory]
-    [InlineData( 0u, 0u, 0u )]        // Sanity
-    [InlineData( 1u, 1u, 2u )]        // Sanity
-    [InlineData( 1u, 0u, 1u )]        // Sanity
-    [InlineData( 0u, 1u, 1u )]        // Sanity
-    [InlineData( 1u, 5u, 6u )]        // l < r
-    [InlineData( 9u, 2u, 11u )]       // l > r
-    public void CheckedSanity( uint left, uint right, uint expected ) =>
-        Assert.Equal(
-            new Natural( expected ),
-            CheckedAdd( new Natural( left ), new Natural( right ) )
-        );
-
-    [Fact]
-    public void CheckedSimple() =>
-        Assert.Equal(
-            Natural.Unit,
-            Natural.Zero + Natural.Unit
         );
 
     [Fact]
     public void CheckedOverflow() =>
         Assert.Equal(
             FListNatural( 1u, 2u ),
-            CheckedAdd(
+            CheckedAddition(
                 new Natural( 0xFFFF_FFFFu ),
                 new Natural( 3u )
             )
@@ -130,7 +94,7 @@ public class AdditionOperators {
     public void CheckedLeftBiggerNoOverflow() =>
         Assert.Equal(
             FListNatural( 0xFu, 0xFF0Fu ),
-            CheckedAdd(
+            CheckedAddition(
                 FListNatural( 0xFu, 0xFu ),
                 new Natural( 0xFF00u )
             )
@@ -140,7 +104,7 @@ public class AdditionOperators {
     public void CheckedRightBiggerNoOverflow() =>
         Assert.Equal(
             FListNatural( 0xFu, 0xFF0Fu ),
-            CheckedAdd(
+            CheckedAddition(
                 new Natural( 0xFF00u ),
                 FListNatural( 0xFu, 0xFu )
             )
@@ -150,7 +114,7 @@ public class AdditionOperators {
     public void CheckedCascadingOverflow() =>
         Assert.Equal(
             FListNatural( 1u, 0u, 0u ),
-            CheckedAdd(
+            CheckedAddition(
                 new Natural( 1u ),
                 FListNatural( 0xFFFF_FFFFu, 0xFFFF_FFFFu )
             )
@@ -160,7 +124,7 @@ public class AdditionOperators {
     public void CheckedOverflowCausedOverflow() =>
         Assert.Equal(
             FListNatural( 2u, 0u, 0u ),
-            CheckedAdd(
+            CheckedAddition(
                 FListNatural( 1u, 1u ),
                 FListNatural( 1u, 0xFFFF_FFFFu - 1u, 0xFFFF_FFFFu )
             )
@@ -170,7 +134,7 @@ public class AdditionOperators {
     public void CheckedEdgeOfOverflow() =>
         Assert.Equal(
             FListNatural( 1u, 0xFFFF_FFFFu, 1u ),
-            CheckedAdd(
+            CheckedAddition(
                 FListNatural( 1u, 1u ),
                 FListNatural( 1u, 0xFFFF_FFFFu - 1u, 0u )
             )

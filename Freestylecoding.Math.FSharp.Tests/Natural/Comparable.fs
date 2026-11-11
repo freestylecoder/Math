@@ -4,26 +4,17 @@ open Xunit
 open Freestylecoding.Math
 
 type public Comparable() =
+    inherit Freestylecoding.Math.Interface.Tests.TComparable<Natural>()
+
     let eq actual = actual = 0
     let gt actual = actual > 0
     let lt actual = actual < 0
 
-    [<Theory>]
-    [<InlineData( 0u, 0u,  0 )>]
-    [<InlineData( 1u, 1u,  0 )>]
-    [<InlineData( 1u, 0u,  1 )>]
-    [<InlineData( 0u, 1u, -1 )>]
-    member public this.Sanity left right expected =
-        let test =
-            match expected with
-            | 0 -> eq
-            | p when p > 0 -> gt
-            | n when n < 0 -> lt
-            | _ -> raise (System.Exception( "Not Possible" ))
-
-        Assert.True(
-            test ((Natural( [left] ) :> System.IComparable).CompareTo( Natural( [right] )) )
-        )
+    override this.smallest = Natural.Zero
+    override this.small    = Natural.Unit
+    override this.medium   = Natural( [System.UInt32.MaxValue] )
+    override this.large    = Natural( [1u; System.UInt32.MaxValue] )
+    override this.largest  = Natural( [1u; 0u; 0u] )
 
     [<Fact>]
     member public this.Equals () =

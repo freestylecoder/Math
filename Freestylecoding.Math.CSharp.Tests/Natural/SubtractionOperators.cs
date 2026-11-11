@@ -1,4 +1,5 @@
 using System.Numerics;
+using Microsoft.FSharp.Core;
 using Xunit;
 
 namespace Natural.Tests;
@@ -6,28 +7,21 @@ namespace Natural.Tests;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
 
-public class SubtractionOperators {
-	private static T Sub<T>( T left, T right ) where T : ISubtractionOperators<T, T, T> =>
-		left - right;
+public class SubtractionOperators : Freestylecoding.Math.Interface.Tests.TSubtractionOperatorsSelf<Natural> {
+	public override FSharpOption<Natural> selfIdentity => Natural.Zero;
+	public override FSharpOption<Natural> selfDecrement => Natural.Unit;
+	public override FSharpOption<Natural> selfMin => Natural.Zero;
+	public override FSharpOption<Natural> selfMax => FSharpOption<Natural>.None;
 
-	[Theory]
-	[InlineData( 1u, 1u, 0u )]    // Sanity
-	[InlineData( 1u, 0u, 1u )]    // Sanity
-	[InlineData( 9u, 2u, 7u )]    // l > r
-	public void Sanity( uint left, uint right, uint expected ) =>
-		Assert.Equal(
-			new Natural( expected ),
-			Sub(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
+	public override bool IsUnsigned => true;
+
+	public override Natural ToSelf( byte b ) => new Natural( b );
 
 	[Fact]
 	public void SingleItemBadUnderflow() {
 		System.Exception exc = Record.Exception(
 			() =>
-				Sub(
+				Subtraction(
 					Natural.Zero,
 					Natural.Unit
 				)
@@ -41,7 +35,7 @@ public class SubtractionOperators {
 	public void MultiItemNoUnderflow() =>
 		Assert.Equal(
 			FListNatural( 2u, 2u ),
-			Sub(
+			Subtraction(
 				FListNatural( 3u, 4u ),
 				FListNatural( 1u, 2u )
 			)
@@ -51,7 +45,7 @@ public class SubtractionOperators {
 	public void MultiItemSafeUnderflow() =>
 		Assert.Equal(
 			FListNatural( 0x2u, 0xFFFFFFFFu ),
-			Sub(
+			Subtraction(
 				FListNatural( 4u, 2u ),
 				FListNatural( 1u, 3u )
 			)
@@ -61,7 +55,7 @@ public class SubtractionOperators {
 	public void MultiItemSafeCascadingUnderflow() =>
 		Assert.Equal(
 			FListNatural( 0xFFFF_FFFFu, 0xFFFF_FFFFu ),
-			Sub(
+			Subtraction(
 				FListNatural( 1u, 0u, 0u ),
 				Natural.Unit
 			)
@@ -71,7 +65,7 @@ public class SubtractionOperators {
 	public void MultiItemUnsafeUnderflow() {
 		System.Exception exc = Record.Exception(
 			() =>
-				Sub(
+				Subtraction(
 					FListNatural( 1u, 2u ),
 					FListNatural( 1u, 3u )
 				)
@@ -85,35 +79,17 @@ public class SubtractionOperators {
 	public void LargeWithUnderflows() =>
 		Assert.Equal(
 			FListNatural( 0x1u, 0xFFFF_FFFFu, 0xFFFF_FFFEu ),
-			Sub(
+			Subtraction(
 				FListNatural( 3u, 2u, 1u ),
 				FListNatural( 1u, 2u, 3u )
 			)
 		);
-}
-
-public class CheckedSubtractionOperators {
-	private static T CheckedSub<T>( T left, T right ) where T : ISubtractionOperators<T, T, T> =>
-		checked(left - right);
-
-	[Theory]
-	[InlineData( 1u, 1u, 0u )]    // Sanity
-	[InlineData( 1u, 0u, 1u )]    // Sanity
-	[InlineData( 9u, 2u, 7u )]    // l > r
-	public void Sanity( uint left, uint right, uint expected ) =>
-		Assert.Equal(
-			new Natural( expected ),
-			CheckedSub(
-				new Natural( left ),
-				new Natural( right )
-			)
-		);
 
 	[Fact]
-	public void SingleItemBadUnderflow() {
+	public void SingleItemCheckedBadUnderflow() {
 		System.Exception exc = Record.Exception(
 			() =>
-				CheckedSub(
+				CheckedSubtraction(
 					Natural.Zero,
 					Natural.Unit
 				)
@@ -124,40 +100,40 @@ public class CheckedSubtractionOperators {
 	}
 
 	[Fact]
-	public void MultiItemNoUnderflow() =>
+	public void MultiItemCheckedNoUnderflow() =>
 		Assert.Equal(
 			FListNatural( 2u, 2u ),
-			CheckedSub(
+			CheckedSubtraction(
 				FListNatural( 3u, 4u ),
 				FListNatural( 1u, 2u )
 			)
 		);
 
 	[Fact]
-	public void MultiItemSafeUnderflow() =>
+	public void MultiItemCheckedSafeUnderflow() =>
 		Assert.Equal(
 			FListNatural( 0x2u, 0xFFFFFFFFu ),
-			CheckedSub(
+			CheckedSubtraction(
 				FListNatural( 4u, 2u ),
 				FListNatural( 1u, 3u )
 			)
 		);
 
 	[Fact]
-	public void MultiItemSafeCascadingUnderflow() =>
+	public void MultiItemCheckedSafeCascadingUnderflow() =>
 		Assert.Equal(
 			FListNatural( 0xFFFF_FFFFu, 0xFFFF_FFFFu ),
-			CheckedSub(
+			CheckedSubtraction(
 				FListNatural( 1u, 0u, 0u ),
 				Natural.Unit
 			)
 		);
 
 	[Fact]
-	public void MultiItemUnsafeUnderflow() {
+	public void MultiItemCheckedUnsafeUnderflow() {
 		System.Exception exc = Record.Exception(
 			() =>
-				CheckedSub(
+				CheckedSubtraction(
 					FListNatural( 1u, 2u ),
 					FListNatural( 1u, 3u )
 				)
@@ -168,10 +144,10 @@ public class CheckedSubtractionOperators {
 	}
 
 	[Fact]
-	public void LargeWithUnderflows() =>
+	public void LargeCheckedWithUnderflows() =>
 		Assert.Equal(
 			FListNatural( 0x1u, 0xFFFF_FFFFu, 0xFFFF_FFFEu ),
-			CheckedSub(
+			CheckedSubtraction(
 				FListNatural( 3u, 2u, 1u ),
 				FListNatural( 1u, 2u, 3u )
 			)

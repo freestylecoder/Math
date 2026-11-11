@@ -6,17 +6,12 @@ namespace Natural.Tests;
 using static Freestylecoding.Math.CSharp.Tests.Helpers;
 using Natural = Freestylecoding.Math.Natural;
 
-public class EquatableNatural {
-    [Theory]
-    [InlineData( 0u, 0u, true )]
-    [InlineData( 1u, 0u, false )]
-    [InlineData( 0u, 1u, false )]
-    [InlineData( 1u, 1u, true )]
-    public void Sanity( uint left, uint right, bool expected ) =>
-        Assert.Equal(
-            expected,
-            ( new Natural( left ) as IEquatable<Natural> ).Equals( new Natural( right ) )
-        );
+public class EquatableNatural : Freestylecoding.Math.Interface.Tests.TEquatableT<Natural> {
+	public override Natural item1 => Natural.Unit;
+	public override Natural item2 => Natural.Unit;
+	public override Natural item3 => Natural.Unit;
+	public override Natural different1 => Natural.Zero;
+	public override Natural different2 => FListNatural( int.MaxValue );
 
     [Fact]
     public void LargeNaturalsTrue() =>

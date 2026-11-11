@@ -9,24 +9,21 @@ open Freestylecoding.Math
 //	Maybe, after i confirm everything is working, I'll loop back and play with mutable to try it
 
 type public IncrementOperators() =
-    static member Increment( n:'T when 'T :> System.Numerics.IIncrementOperators<'T> ) : 'T =
-        'T.op_Increment( n )
+    inherit Freestylecoding.Math.Interface.Tests.TIncrementOperatorsT<Natural>()
 
-    [<Theory>]
-    [<InlineData( 0u,  1u )>]   // Sanity
-    [<InlineData( 1u,  2u )>]   // Sanity
-    [<InlineData( 9u, 10u )>]   // Sanity
-    member public this.Sanity value expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            IncrementOperators.Increment( Natural( [value] ) )
-        )
-    
+    override _.item1 = Natural( [1u] )
+    override _.item2 = Natural( [2u] )
+    override _.item3 = Natural( [3u] )
+
+    override _.minValue = Some( Natural.Zero )
+    override _.maxValue = None
+
+
     [<Fact>]
-    member public this.Overflow () =
+    member public this.OverflowGrows () =
         Assert.Equal(
             Natural( [1u; 0u] ),
-            IncrementOperators.Increment(
+            this.Increment(
                 Natural( [0xFFFF_FFFFu] )
             )
         )
@@ -35,39 +32,25 @@ type public IncrementOperators() =
     member public this.CascadingOverflow () =
         Assert.Equal(
             Natural( [1u; 0u; 0u] ),
-            IncrementOperators.Increment(
+            this.Increment(
                 Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] )
             )
         )
 
-type public CheckedIncrementOperators() =
-    static member CheckedIncrement( this:'T when 'T :> System.Numerics.IIncrementOperators<'T> ) : 'T =
-        'T.op_CheckedIncrement( this )
-
-    [<Theory>]
-    [<InlineData( 0u,  1u )>]   // Sanity
-    [<InlineData( 1u,  2u )>]   // Sanity
-    [<InlineData( 9u, 10u )>]   // Sanity
-    member public this.Sanity value expected =
-        Assert.Equal(
-            Natural( [expected] ),
-            CheckedIncrementOperators.CheckedIncrement( Natural( [value] ) )
-        )
-    
     [<Fact>]
-    member public this.Overflow () =
+    member public this.CheckedOverflowGrows () =
         Assert.Equal(
             Natural( [1u; 0u] ),
-            CheckedIncrementOperators.CheckedIncrement(
+            this.CheckedIncrement(
                 Natural( [0xFFFF_FFFFu] )
             )
         )
         
     [<Fact>]
-    member public this.CascadingOverflow () =
+    member public this.CascadingCheckedOverflow () =
         Assert.Equal(
             Natural( [1u; 0u; 0u] ),
-            CheckedIncrementOperators.CheckedIncrement(
+            this.CheckedIncrement(
                 Natural( [0xFFFF_FFFFu; 0xFFFF_FFFFu] )
             )
         )
